@@ -7,8 +7,14 @@
   },
   "plugins": ["@typescript-eslint"],
   "rules": {
-    "@typescript-eslint/naming-convention": "warn",
     "@typescript-eslint/semi": "warn",
+    "@typescript-eslint/naming-convention": [
+      "warn",
+      {
+        "selector": "enumMember",
+        "format": ["camelCase", "UPPER_CASE", "PascalCase"]
+      }
+    ],
     "curly": "warn",
     "eqeqeq": "warn",
     "no-throw-literal": "warn",

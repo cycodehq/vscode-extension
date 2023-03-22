@@ -9,15 +9,69 @@
   "categories": [
     "Other"
   ],
-  "activationEvents": [],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
   "main": "./dist/extension.js",
   "contributes": {
+    "configuration": {
+      "title": "Cycode",
+      "id": "cycode",
+      "properties": {
+        "cycode.cliPath": {
+          "type": "string",
+          "default": "",
+          "description": "Path to the Cycode CLI executable. Run `which cycode` in your terminal to find the path.",
+          "markdownDescription": "Path to the Cycode CLI executable. Run `which cycode` in your terminal to find the path."
+        },
+        "cycode.scanOnSave": {
+          "type": "boolean",
+          "default": "false",
+          "description": "Perform a scan on save",
+          "markdownDescription": "Perform a scan on save"
+        }
+      }
+    },
     "commands": [
       {
         "command": "cycode.scan",
         "title": "Cycode: Scan for vulnerabilities"
+      },
+      {
+        "command": "cycode.auth",
+        "title": "Cycode: authenticate with service"
       }
-    ]
+    ],
+    "viewsWelcome": [
+      {
+        "view": "cycode",
+        "contents": "Cycode extension requires pre-installed [Cycode cli](https://github.com/cycodehq-public/cycode-cli#install-cycode-cli)\n [Auth](command:cycode.auth)\n[Scan File](command:cycode.scan)\n [Settings](command:workbench.action.openSettings) \n To learn more about how to use Cycode  in VS Code [read our docs](https://somewhere.cycode.com)."
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "cycode",
+          "title": "Cycode",
+          "icon": "resources/cycode24.svg"
+        }
+      ],
+      "panel": [
+        {
+          "id": "cycode",
+          "title": "Cycode",
+          "icon": "resources/cycode24.svg"
+        }
+      ]
+    },
+    "views": {
+      "cycode": [
+        {
+          "id": "cycode",
+          "name": "Cycode"
+        }
+      ]
+    }
   },
   "scripts": {
     "vscode:prepublish": "yarn run package",
@@ -31,19 +85,23 @@
     "test": "node ./out/test/runTest.js"
   },
   "devDependencies": {
-    "@types/vscode": "1.76.0",
     "@types/glob": "8.1.0",
     "@types/mocha": "10.0.1",
     "@types/node": "16.x",
+    "@types/shelljs": "0.8.11",
+    "@types/vscode": "1.76.0",
     "@typescript-eslint/eslint-plugin": "5.53.0",
     "@typescript-eslint/parser": "5.53.0",
+    "@vscode/test-electron": "2.2.3",
     "eslint": "8.34.0",
     "glob": "8.1.0",
     "mocha": "10.2.0",
-    "typescript": "4.9.5",
     "ts-loader": "9.4.2",
+    "typescript": "4.9.5",
     "webpack": "5.76.0",
-    "webpack-cli": "5.0.1",
-    "@vscode/test-electron": "2.2.3"
+    "webpack-cli": "5.0.1"
+  },
+  "dependencies": {
+    "shelljs": "0.8.5"
   }
 }
