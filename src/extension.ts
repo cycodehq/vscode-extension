@@ -1,47 +1,53 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from "vscode";
+import { extensionOutput } from "./logging/extension-output";
+import { scan } from "./services/scanner";
+import { auth } from "./services/auth";
+import { Texts } from "./utils/texts";
+import { Commands } from "./utils/commands";
+import statusBar from "./utils/status-bar";
 
-let myStatusBarItem: vscode.StatusBarItem;
-
-// This method is called when your extension is activated
-// Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
-  // Use the console to output diagnostic information (console.log) and errors (console.error)
-  // This line of code will only be executed once when your extension is activated
   console.log("Cycode extension is now active");
 
-  const scanCommandId = "cycode.scan";
+  const outputChannel = vscode.window.createOutputChannel(Texts.ExtensionName);
+  extensionOutput.setOpts({ output: outputChannel });
+  extensionOutput.info("Cycode plugin is running");
 
-  // The command has been defined in the package.json file
-  // Now provide the implementation of the command with registerCommand
-  // The commandId parameter must match the command field in package.json
-  let scanCommand = vscode.commands.registerCommand(scanCommandId, () => {
-    // The code you place here will be executed every time your command is executed
-    // Display a message box to the user
-    vscode.window.showInformationMessage("Cycode scanning!");
-  });
-
-  // create a new status bar item that we can now manage
-  myStatusBarItem = vscode.window.createStatusBarItem(
-    vscode.StatusBarAlignment.Right,
-    0
+  const diagnosticCollection = vscode.languages.createDiagnosticCollection(
+    Texts.ExtensionName
   );
 
-  context.subscriptions.push(
-    vscode.window.onDidChangeActiveTextEditor(updateStatusBarItem)
-  );
+  const newStatusBar = statusBar.create();
 
-  context.subscriptions.push(myStatusBarItem);
+  const scanCommand = vscode.commands.registerCommand(
+    Commands.ScanCommandId,
+    async () => {
+      await scan(context, diagnosticCollection);
+    }
+  );
+  const authCommand = vscode.commands.registerCommand(
+    Commands.AuthCommandId,
+    async () => {
+      await auth(context);
+    }
+  );
+  newStatusBar.command = Commands.ScanCommandId;
+  context.subscriptions.push(newStatusBar);
   context.subscriptions.push(scanCommand);
+  context.subscriptions.push(authCommand);
 
-  myStatusBarItem.command = scanCommandId;
-  updateStatusBarItem();
-}
-
-function updateStatusBarItem(): void {
-  myStatusBarItem.text = `Scan with CyCode`;
-  myStatusBarItem.show();
+  let disposable = vscode.workspace.onDidSaveTextDocument((document) => {
+    if (
+      vscode.workspace
+        .getConfiguration(Texts.ExtensionName.toLocaleLowerCase())
+        .get("scanOnSave")
+    ) {
+      scan(context, diagnosticCollection, document.fileName);
+    }
+  });
+  context.subscriptions.push(disposable);
 }
 
 // This method is called when your extension is deactivated
