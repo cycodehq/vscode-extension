@@ -4,50 +4,93 @@ import * as vscode from "vscode";
 import { extensionOutput } from "./logging/extension-output";
 import { scan } from "./services/scanner";
 import { auth } from "./services/auth";
-import { Texts } from "./utils/texts";
-import { Commands } from "./utils/commands";
+import { install } from "./services/install";
+import { uninstall } from "./services/uninstall";
+import {
+  extensionName,
+  extensionId,
+  scanOnSavePropery as scanOnSaveProperty,
+} from "./utils/texts";
+import { VscodeCommands } from "./utils/commands";
 import statusBar from "./utils/status-bar";
+import extenstionContext from "./utils/context";
+import { checkCLI } from "./services/checkCli";
 
 export function activate(context: vscode.ExtensionContext) {
   console.log("Cycode extension is now active");
 
-  const outputChannel = vscode.window.createOutputChannel(Texts.ExtensionName);
+  const outputChannel = vscode.window.createOutputChannel(extensionName);
   extensionOutput.setOpts({ output: outputChannel });
   extensionOutput.info("Cycode plugin is running");
 
-  const diagnosticCollection = vscode.languages.createDiagnosticCollection(
-    Texts.ExtensionName
-  );
+  const diagnosticCollection =
+    vscode.languages.createDiagnosticCollection(extensionName);
 
   const newStatusBar = statusBar.create();
 
+  extenstionContext.initContext(context);
+  const isAuthed = extenstionContext.getGlobalState("auth.isAuthed");
+  extenstionContext.setContext("auth.isAuthed", !!isAuthed);
+  const commands = initCommands(context, diagnosticCollection);
+
+  checkCLI(context);
+
+  const scanOnSave = vscode.workspace.onDidSaveTextDocument((document) => {
+    if (
+      vscode.workspace.getConfiguration(extensionId).get(scanOnSaveProperty)
+    ) {
+      scan(context, diagnosticCollection, document.fileName);
+    }
+  });
+
+  context.subscriptions.push(newStatusBar, ...commands, scanOnSave);
+}
+
+function initCommands(
+  context: vscode.ExtensionContext,
+  diagnosticCollection: vscode.DiagnosticCollection
+) {
   const scanCommand = vscode.commands.registerCommand(
-    Commands.ScanCommandId,
+    VscodeCommands.ScanCommandId,
     async () => {
       await scan(context, diagnosticCollection);
     }
   );
   const authCommand = vscode.commands.registerCommand(
-    Commands.AuthCommandId,
+    VscodeCommands.AuthCommandId,
     async () => {
       await auth(context);
     }
   );
-  newStatusBar.command = Commands.ScanCommandId;
-  context.subscriptions.push(newStatusBar);
-  context.subscriptions.push(scanCommand);
-  context.subscriptions.push(authCommand);
 
-  let disposable = vscode.workspace.onDidSaveTextDocument((document) => {
-    if (
-      vscode.workspace
-        .getConfiguration(Texts.ExtensionName.toLocaleLowerCase())
-        .get("scanOnSave")
-    ) {
-      scan(context, diagnosticCollection, document.fileName);
+  const installCommand = vscode.commands.registerCommand(
+    VscodeCommands.InstallCommandId,
+    async () => {
+      await install(context);
     }
-  });
-  context.subscriptions.push(disposable);
+  );
+
+  const uninstallCommand = vscode.commands.registerCommand(
+    VscodeCommands.UninstallCommandId,
+    async () => {
+      await uninstall(context);
+    }
+  );
+
+  const openSettingsCommand = vscode.commands.registerCommand(
+    VscodeCommands.openSettingsCommandId,
+    async () => {
+      vscode.commands.executeCommand("workbench.action.openSettings", "cycode");
+    }
+  );
+
+  return [
+    scanCommand,
+    authCommand,
+    installCommand,
+    uninstallCommand,
+    openSettingsCommand,
+  ];
 }
 
 // This method is called when your extension is deactivated

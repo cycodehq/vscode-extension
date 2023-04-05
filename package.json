@@ -1,8 +1,15 @@
 {
   "name": "cycode",
   "displayName": "Cycode",
-  "description": "",
+  "icon": "resources/cycode124.png",
+  "description": "Cycode vscode extension",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cycodehq-public/vscode-extension"
+  },
+  "homepage": "https://cycode.com/",
   "version": "0.0.1",
+  "publisher": "cycode",
   "engines": {
     "vscode": "^1.76.0"
   },
@@ -26,9 +33,14 @@
         },
         "cycode.scanOnSave": {
           "type": "boolean",
-          "default": "false",
-          "description": "Perform a scan on save",
+          "default": "true",
+          "description": "Scan your files for secrets upon file save. If auto-scan disabled you can still trigger scans manually from the command palette. Open the command palette with `Ctrl+Shift+P` and search for `Cycode: Scan for vulnerabilities`.",
           "markdownDescription": "Perform a scan on save"
+        },
+        "cycode.additionalParamaeters": {
+          "type": "string",
+          "default": "",
+          "description": "Additional parameters to pass to the Cycode CLI. See the [Cycode CLI documentation](https://github.com/cycodehq-public/cycode-cli#install-cycode-cli)"
         }
       }
     },
@@ -39,13 +51,36 @@
       },
       {
         "command": "cycode.auth",
-        "title": "Cycode: authenticate with service"
+        "title": "Cycode: Authenticate with service"
+      },
+      {
+        "command": "cycode.install",
+        "title": "Cycode: Install cli with pip3"
+      },
+      {
+        "command": "cycode.uninstall",
+        "title": "Cycode: Uninstall cycode cli"
+      },
+      {
+        "command": "cycode.openSettings",
+        "title": "Cycode: Open Cycode settings"
       }
     ],
     "viewsWelcome": [
       {
         "view": "cycode",
-        "contents": "Cycode extension requires pre-installed [Cycode cli](https://github.com/cycodehq-public/cycode-cli#install-cycode-cli)\n [Auth](command:cycode.auth)\n[Scan File](command:cycode.scan)\n [Settings](command:workbench.action.openSettings) \n To learn more about how to use Cycode  in VS Code [read our docs](https://somewhere.cycode.com)."
+        "contents": "Cycode extension requires pre-installed [Cycode cli](https://github.com/cycodehq-public/cycode-cli#install-cycode-cli)\n [Authenticate](command:cycode.auth) \n To learn more about how to use Cycode in VSCode [read our docs](https://github.com/cycodehq-public/vscode-extension/blob/main/README.md).",
+        "when": "!cycode:auth.isAuthed && !cycode:auth.isAuthenticating"
+      },
+      {
+        "view": "cycode",
+        "contents": "Cycode extension requires pre-installed [Cycode cli](https://github.com/cycodehq-public/cycode-cli#install-cycode-cli)\n [Authenticating...](command:cycode.stub) \n ",
+        "when": "cycode:auth.isAuthenticating"
+      },
+      {
+        "view": "cycode",
+        "contents": "Authentication successful \n Open a file for editing and then hit the button: \n [Scan for vulnerabilities](command:cycode.scan) \n To easily scan your files, enable scanOnSave in [settings](command:cycode.openSettings) or click the Cycode status bar to scan the currently open file.  \n To learn more about how to use Cycode in VSCode [read our docs](https://github.com/cycodehq-public/vscode-extension).",
+        "when": "cycode:auth.isAuthed"
       }
     ],
     "viewsContainers": {
@@ -53,14 +88,14 @@
         {
           "id": "cycode",
           "title": "Cycode",
-          "icon": "resources/cycode24.svg"
+          "icon": "resources/cycode24.png"
         }
       ],
       "panel": [
         {
           "id": "cycode",
           "title": "Cycode",
-          "icon": "resources/cycode24.svg"
+          "icon": "resources/cycode24.png"
         }
       ]
     },
@@ -71,6 +106,15 @@
           "name": "Cycode"
         }
       ]
+    },
+    "icons": {
+      "cycode-logo": {
+        "description": "Cycode icon",
+        "default": {
+          "fontPath": "./resources/cycode.woff",
+          "fontCharacter": "\\E800"
+        }
+      }
     }
   },
   "scripts": {
