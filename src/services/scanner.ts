@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import { extensionOutput } from "../logging/extension-output";
 import { cliWrapper } from "../cli-wrapper/cli-wrapper";
-import statusBar, { StatusBarColor } from "../utils/status-bar";
+import statusBar from "../utils/status-bar";
 import { StatusBarTexts, TrayNotificationTexts } from "../utils/texts";
 import { validateCliCommonErrors } from "./common";
 import { VscodeCommands } from "../utils/commands";
@@ -35,6 +35,11 @@ export async function scan(
     statusBar.showScanningInProgress();
 
     const document = vscode.window.activeTextEditor?.document;
+
+    if (!document) {
+      return;
+    }
+
     let filePath = extFilePath || document?.fileName || "";
 
     //  validate
@@ -82,7 +87,7 @@ export async function scan(
 
 export const detectionsToDiagnostings = (
   detections: Detection[],
-  document?: vscode.TextDocument
+  document: vscode.TextDocument
 ): vscode.Diagnostic[] => {
   return detections
     ?.map((detection) => {
@@ -99,10 +104,14 @@ export const detectionsToDiagnostings = (
         return;
       }
 
-      const message = `${detection.type}: ${detection.message.replace(
+      let message = "Severity: High\n";
+      message += `${detection.type}: ${detection.message.replace(
         "within '' repository",
         ""
-      )}`;
+      )}\n`;
+      message += `Rule ID: ${detection.detection_rule_id}\n`;
+      message += `In file: ${detection.detection_details.file_name}\n`;
+      message += `Secret SHA: ${detection.detection_details.sha512}\n`;
 
       const diagnostic = new vscode.Diagnostic(
         new vscode.Range(startPosition, endPosition),
@@ -122,7 +131,7 @@ const handleScanDetections = (
   result: any,
   filePath: string,
   diagnosticCollection: vscode.DiagnosticCollection,
-  document?: vscode.TextDocument
+  document: vscode.TextDocument
 ) => {
   let diagnostics = [];
   if (result.detections) {
