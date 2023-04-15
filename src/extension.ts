@@ -15,6 +15,8 @@ import { VscodeCommands } from "./utils/commands";
 import statusBar from "./utils/status-bar";
 import extenstionContext from "./utils/context";
 import { checkCLI } from "./services/checkCli";
+import { CycodeActions } from "./providers/CodeActions";
+import { ignore } from "./services/ignore";
 
 export function activate(context: vscode.ExtensionContext) {
   console.log("Cycode extension is now active");
@@ -42,6 +44,16 @@ export function activate(context: vscode.ExtensionContext) {
       scan(context, diagnosticCollection, document.fileName);
     }
   });
+
+  context.subscriptions.push(
+    vscode.languages.registerCodeActionsProvider(
+      { scheme: "file", language: "*" },
+      new CycodeActions(),
+      {
+        providedCodeActionKinds: [vscode.CodeActionKind.QuickFix],
+      }
+    )
+  );
 
   context.subscriptions.push(newStatusBar, ...commands, scanOnSave);
 }
@@ -77,6 +89,13 @@ function initCommands(
     }
   );
 
+  const ignoreCommand = vscode.commands.registerCommand(
+    VscodeCommands.IgnoreCommandId,
+    async (params) => {
+      await ignore(context, params);
+    }
+  );
+
   const openSettingsCommand = vscode.commands.registerCommand(
     VscodeCommands.openSettingsCommandId,
     async () => {
@@ -90,6 +109,7 @@ function initCommands(
     installCommand,
     uninstallCommand,
     openSettingsCommand,
+    ignoreCommand,
   ];
 }
 

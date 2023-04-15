@@ -8,10 +8,10 @@ import { VscodeCommands } from "../utils/commands";
 import {
   getGlobalState,
   getWorkspaceState,
-  setContext,
   updateGlobalState,
   updateWorkspaceState,
 } from "../utils/context";
+import { Detection } from "../types/detection";
 
 const validateScanEnv = async (filePath: string) => {
   // Check if the active tab is the output tab instread of a file
@@ -81,29 +81,41 @@ export async function scan(
 }
 
 export const detectionsToDiagnostings = (
-  detections: any,
+  detections: Detection[],
   document?: vscode.TextDocument
-) => {
-  return detections.map((detection: any) => {
-    const startPosition = document?.positionAt(
-      detection.detection_details.start_position
-    );
+): vscode.Diagnostic[] => {
+  return detections
+    ?.map((detection) => {
+      const startPosition = document?.positionAt(
+        detection.detection_details.start_position
+      );
 
-    const endPosition = document?.positionAt(
-      detection.detection_details.start_position +
-        detection.detection_details.length
-    );
+      const endPosition = document?.positionAt(
+        detection.detection_details.start_position +
+          detection.detection_details.length
+      );
 
-    if (!startPosition || !endPosition) {
-      return;
-    }
+      if (!startPosition || !endPosition) {
+        return;
+      }
 
-    return new vscode.Diagnostic(
-      new vscode.Range(startPosition, endPosition),
-      `${detection.type}: ${detection.message}`,
-      vscode.DiagnosticSeverity.Error
-    );
-  });
+      const message = `${detection.type}: ${detection.message.replace(
+        "within '' repository",
+        ""
+      )}`;
+
+      const diagnostic = new vscode.Diagnostic(
+        new vscode.Range(startPosition, endPosition),
+        message,
+        vscode.DiagnosticSeverity.Error
+      );
+
+      diagnostic.source = "Cycode";
+      diagnostic.code = detection.detection_rule_id;
+
+      return diagnostic;
+    })
+    .filter((diagnostic) => diagnostic !== undefined) as vscode.Diagnostic[];
 };
 
 const handleScanDetections = (
@@ -114,7 +126,11 @@ const handleScanDetections = (
 ) => {
   let diagnostics = [];
   if (result.detections) {
-    diagnostics = detectionsToDiagnostings(result.detections, document);
+    diagnostics = detectionsToDiagnostings(result.detections, document) || [];
+
+    if (!diagnostics.length) {
+      return;
+    }
 
     const uri = vscode.Uri.file(filePath);
     diagnosticCollection.set(uri, diagnostics); // Show in problems tab

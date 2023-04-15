@@ -21,4 +21,6 @@ export enum TrayNotificationTexts {
   UninstallCompleted = "Cycode CLI uninstalled successfully",
   InstallError = "Cycode CLI installation failed. Check output for more details.",
   UninstallError = "Cycode CLI removing failed. Check output for more details.",
+  IgnoreError = "Cycode failed to ignore the rule, please try again",
+  IgnoreCompleted = "Cycode ignore completed successfully",
 }

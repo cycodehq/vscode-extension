@@ -4,7 +4,7 @@ import { CommandResult } from "./types";
 import { runCli } from "./runner";
 import { extensionId } from "../utils/texts";
 
-const defaultParams = [CommandParameters.ScanInfoFormatJson];
+const defaultParams = [CommandParameters.OutputFormatJson];
 
 const config = {
   get cliPath() {
@@ -42,6 +42,14 @@ export const cliWrapper = {
   },
   runUsage: async (): Promise<CommandResult> => {
     return await runCli(config.cliPath, [CommandParameters.Usage], true);
+  },
+  runIgnore: async (params: { rule: string }): Promise<CommandResult> => {
+    const commandParams: string[] = [];
+    commandParams.push(CliCommands.Ignore);
+    commandParams.push(CommandParameters.ByRule);
+    commandParams.push(params.rule);
+
+    return await runCli(config.cliPath, commandParams);
   },
 };
 
