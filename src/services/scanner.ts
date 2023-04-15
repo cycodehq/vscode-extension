@@ -2,7 +2,11 @@ import * as vscode from "vscode";
 import { extensionOutput } from "../logging/extension-output";
 import { cliWrapper } from "../cli-wrapper/cli-wrapper";
 import statusBar from "../utils/status-bar";
-import { StatusBarTexts, TrayNotificationTexts } from "../utils/texts";
+import {
+  StatusBarTexts,
+  TrayNotificationTexts,
+  extensionId,
+} from "../utils/texts";
 import { validateCliCommonErrors } from "./common";
 import { VscodeCommands } from "../utils/commands";
 import {
@@ -111,7 +115,7 @@ export const detectionsToDiagnostings = (
       )}\n`;
       message += `Rule ID: ${detection.detection_rule_id}\n`;
       message += `In file: ${detection.detection_details.file_name}\n`;
-      message += `Secret SHA: ${detection.detection_details.sha512}\n`;
+      message += `Secret SHA: ${detection.detection_details.sha512}`;
 
       const diagnostic = new vscode.Diagnostic(
         new vscode.Range(startPosition, endPosition),
@@ -119,7 +123,7 @@ export const detectionsToDiagnostings = (
         vscode.DiagnosticSeverity.Error
       );
 
-      diagnostic.source = "Cycode";
+      diagnostic.source = extensionId;
       diagnostic.code = detection.detection_rule_id;
 
       return diagnostic;

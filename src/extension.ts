@@ -17,6 +17,7 @@ import extenstionContext from "./utils/context";
 import { checkCLI } from "./services/checkCli";
 import { CycodeActions } from "./providers/CodeActions";
 import { ignore } from "./services/ignore";
+import { CodelensProvider } from "./providers/CodelensProvider";
 
 export function activate(context: vscode.ExtensionContext) {
   console.log("Cycode extension is now active");
@@ -53,6 +54,11 @@ export function activate(context: vscode.ExtensionContext) {
         providedCodeActionKinds: [vscode.CodeActionKind.QuickFix],
       }
     )
+  );
+
+  vscode.languages.registerCodeLensProvider(
+    { scheme: "file", language: "*" },
+    new CodelensProvider()
   );
 
   context.subscriptions.push(newStatusBar, ...commands, scanOnSave);
