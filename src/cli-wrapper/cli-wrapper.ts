@@ -35,7 +35,14 @@ export const cliWrapper = {
     return await runCli(config.cliPath, commandParams);
   },
   runInstall: async (): Promise<CommandResult> => {
-    return await runCli("pip3", ["install", "--user", "cycode"], true);
+    const commandParams: string[] = [];
+    commandParams.push("install");
+    if (process.platform === "darwin") {
+      commandParams.push("--user");
+    }
+    commandParams.push("cycode");
+
+    return await runCli("pip3", commandParams, true);
   },
   runUninstall: async (): Promise<CommandResult> => {
     return await runCli("pip3", ["uninstall", "-y", "cycode"], true);
