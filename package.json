@@ -41,6 +41,16 @@
           "type": "string",
           "default": "",
           "description": "Additional parameters to pass to the Cycode CLI. See the [Cycode CLI documentation](https://github.com/cycodehq-public/cycode-cli#install-cycode-cli)"
+        },
+        "cycode.apiUrl": {
+          "type": "string",
+          "default": "",
+          "description": "Changes the API URL when running scans. Equivalent to setting CYCODE_API_URL env var in the CLI."
+        },
+        "cycode.appUrl": {
+          "type": "string",
+          "default": "",
+          "description": "Changes the app URL when running scans. Equivalent to setting CYCODE_APP_URL env var in the CLI."
         }
       }
     },

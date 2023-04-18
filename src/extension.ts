@@ -6,11 +6,7 @@ import { scan } from "./services/scanner";
 import { auth } from "./services/auth";
 import { install } from "./services/install";
 import { uninstall } from "./services/uninstall";
-import {
-  extensionName,
-  extensionId,
-  scanOnSavePropery as scanOnSaveProperty,
-} from "./utils/texts";
+import { extensionName, extensionId, scanOnSaveProperty } from "./utils/texts";
 import { VscodeCommands } from "./utils/commands";
 import statusBar from "./utils/status-bar";
 import extenstionContext from "./utils/context";

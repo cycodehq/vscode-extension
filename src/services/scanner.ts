@@ -140,13 +140,13 @@ const handleScanDetections = (
   let diagnostics = [];
   if (result.detections) {
     diagnostics = detectionsToDiagnostings(result.detections, document) || [];
+    const uri = vscode.Uri.file(filePath);
+    diagnosticCollection.set(uri, diagnostics); // Show in problems tab
 
     if (!diagnostics.length) {
       return;
     }
 
-    const uri = vscode.Uri.file(filePath);
-    diagnosticCollection.set(uri, diagnostics); // Show in problems tab
     if (result.detections.length && !getWorkspaceState("cycode.notifOpen")) {
       updateWorkspaceState("cycode.notifOpen", true);
       vscode.window

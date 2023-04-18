@@ -21,6 +21,7 @@ const parseResult = (stdout: string): string | object => {
 export const runCli = (
   cliPath: string,
   params: string[],
+  env: { [key: string]: string },
   printToOutput: boolean = false
 ): Promise<CommandResult> => {
   console.log("Running command: ", cliPath, params.join(" "));
@@ -38,14 +39,11 @@ export const runCli = (
       }
     };
 
-    const cws = os.homedir();
-
     childProcess = spawn(cliPath, params, {
       cwd: os.homedir(),
       env: {
         ...process.env,
-        CYCODE_API_URL: "https://api.cycode.xyz",
-        CYCODE_APP_URL: "https://app.cycode.xyz",
+        ...env,
       },
     });
 
