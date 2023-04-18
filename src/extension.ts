@@ -32,7 +32,9 @@ export function activate(context: vscode.ExtensionContext) {
   const newStatusBar = statusBar.create();
 
   extenstionContext.initContext(context);
+  extenstionContext.updateGlobalState("scan.isScanning", false); // reset just in case
   const isAuthed = extenstionContext.getGlobalState("auth.isAuthed");
+
   extenstionContext.setContext("auth.isAuthed", !!isAuthed);
   const commands = initCommands(context, diagnosticCollection);
 
