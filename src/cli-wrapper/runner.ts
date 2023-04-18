@@ -1,6 +1,7 @@
-import { CommandResult } from "./types";
 import { ChildProcess, spawn } from "child_process";
+import * as os from "os";
 import { extensionOutput } from "../logging/extension-output";
+import { CommandResult } from "./types";
 
 let childProcess: ChildProcess | undefined = undefined;
 
@@ -37,9 +38,14 @@ export const runCli = (
       }
     };
 
+    const cws = os.homedir();
+
     childProcess = spawn(cliPath, params, {
+      cwd: os.homedir(),
       env: {
         ...process.env,
+        CYCODE_API_URL: "https://api.cycode.xyz",
+        CYCODE_APP_URL: "https://app.cycode.xyz",
       },
     });
 

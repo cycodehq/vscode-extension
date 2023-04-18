@@ -15,6 +15,9 @@ import { VscodeCommands } from "./utils/commands";
 import statusBar from "./utils/status-bar";
 import extenstionContext from "./utils/context";
 import { checkCLI } from "./services/checkCli";
+import { CycodeActions } from "./providers/CodeActions";
+import { ignore } from "./services/ignore";
+import { CodelensProvider } from "./providers/CodelensProvider";
 
 export function activate(context: vscode.ExtensionContext) {
   console.log("Cycode extension is now active");
@@ -29,7 +32,9 @@ export function activate(context: vscode.ExtensionContext) {
   const newStatusBar = statusBar.create();
 
   extenstionContext.initContext(context);
+  extenstionContext.updateGlobalState("scan.isScanning", false); // reset just in case
   const isAuthed = extenstionContext.getGlobalState("auth.isAuthed");
+
   extenstionContext.setContext("auth.isAuthed", !!isAuthed);
   const commands = initCommands(context, diagnosticCollection);
 
@@ -42,6 +47,21 @@ export function activate(context: vscode.ExtensionContext) {
       scan(context, diagnosticCollection, document.fileName);
     }
   });
+
+  context.subscriptions.push(
+    vscode.languages.registerCodeActionsProvider(
+      { scheme: "file", language: "*" },
+      new CycodeActions(),
+      {
+        providedCodeActionKinds: [vscode.CodeActionKind.QuickFix],
+      }
+    )
+  );
+
+  vscode.languages.registerCodeLensProvider(
+    { scheme: "file", language: "*" },
+    new CodelensProvider()
+  );
 
   context.subscriptions.push(newStatusBar, ...commands, scanOnSave);
 }
@@ -77,6 +97,13 @@ function initCommands(
     }
   );
 
+  const ignoreCommand = vscode.commands.registerCommand(
+    VscodeCommands.IgnoreCommandId,
+    async (params) => {
+      await ignore(context, params);
+    }
+  );
+
   const openSettingsCommand = vscode.commands.registerCommand(
     VscodeCommands.openSettingsCommandId,
     async () => {
@@ -90,6 +117,7 @@ function initCommands(
     installCommand,
     uninstallCommand,
     openSettingsCommand,
+    ignoreCommand,
   ];
 }
 

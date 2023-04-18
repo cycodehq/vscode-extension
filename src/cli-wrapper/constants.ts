@@ -3,9 +3,11 @@ export enum CliCommands {
   Scan = "scan",
   Configure = "configure",
   Auth = "auth",
+  Ignore = "ignore",
 }
 
 export enum CommandParameters {
-  ScanInfoFormatJson = "--output=json",
+  OutputFormatJson = "--output=json",
   Usage = "--help",
+  ByRule = "--by-rule",
 }

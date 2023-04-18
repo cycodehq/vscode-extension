@@ -1,17 +1,21 @@
 import * as vscode from "vscode";
 import { extensionOutput } from "../logging/extension-output";
 import { cliWrapper } from "../cli-wrapper/cli-wrapper";
-import statusBar, { StatusBarColor } from "../utils/status-bar";
-import { StatusBarTexts, TrayNotificationTexts } from "../utils/texts";
+import statusBar from "../utils/status-bar";
+import {
+  StatusBarTexts,
+  TrayNotificationTexts,
+  extensionId,
+} from "../utils/texts";
 import { validateCliCommonErrors } from "./common";
 import { VscodeCommands } from "../utils/commands";
 import {
   getGlobalState,
   getWorkspaceState,
-  setContext,
   updateGlobalState,
   updateWorkspaceState,
 } from "../utils/context";
+import { Detection } from "../types/detection";
 
 const validateScanEnv = async (filePath: string) => {
   // Check if the active tab is the output tab instread of a file
@@ -35,6 +39,11 @@ export async function scan(
     statusBar.showScanningInProgress();
 
     const document = vscode.window.activeTextEditor?.document;
+
+    if (!document) {
+      return;
+    }
+
     let filePath = extFilePath || document?.fileName || "";
 
     //  validate
@@ -81,40 +90,60 @@ export async function scan(
 }
 
 export const detectionsToDiagnostings = (
-  detections: any,
-  document?: vscode.TextDocument
-) => {
-  return detections.map((detection: any) => {
-    const startPosition = document?.positionAt(
-      detection.detection_details.start_position
-    );
+  detections: Detection[],
+  document: vscode.TextDocument
+): vscode.Diagnostic[] => {
+  return detections
+    ?.map((detection) => {
+      const startPosition = document?.positionAt(
+        detection.detection_details.start_position
+      );
 
-    const endPosition = document?.positionAt(
-      detection.detection_details.start_position +
-        detection.detection_details.length
-    );
+      const endPosition = document?.positionAt(
+        detection.detection_details.start_position +
+          detection.detection_details.length
+      );
 
-    if (!startPosition || !endPosition) {
-      return;
-    }
+      if (!startPosition || !endPosition) {
+        return;
+      }
 
-    return new vscode.Diagnostic(
-      new vscode.Range(startPosition, endPosition),
-      `${detection.type}: ${detection.message}`,
-      vscode.DiagnosticSeverity.Error
-    );
-  });
+      let message = "Severity: High\n";
+      message += `${detection.type}: ${detection.message.replace(
+        "within '' repository",
+        ""
+      )}\n`;
+      message += `Rule ID: ${detection.detection_rule_id}\n`;
+      message += `In file: ${detection.detection_details.file_name}\n`;
+      message += `Secret SHA: ${detection.detection_details.sha512}`;
+
+      const diagnostic = new vscode.Diagnostic(
+        new vscode.Range(startPosition, endPosition),
+        message,
+        vscode.DiagnosticSeverity.Error
+      );
+
+      diagnostic.source = extensionId;
+      diagnostic.code = detection.detection_rule_id;
+
+      return diagnostic;
+    })
+    .filter((diagnostic) => diagnostic !== undefined) as vscode.Diagnostic[];
 };
 
 const handleScanDetections = (
   result: any,
   filePath: string,
   diagnosticCollection: vscode.DiagnosticCollection,
-  document?: vscode.TextDocument
+  document: vscode.TextDocument
 ) => {
   let diagnostics = [];
   if (result.detections) {
-    diagnostics = detectionsToDiagnostings(result.detections, document);
+    diagnostics = detectionsToDiagnostings(result.detections, document) || [];
+
+    if (!diagnostics.length) {
+      return;
+    }
 
     const uri = vscode.Uri.file(filePath);
     diagnosticCollection.set(uri, diagnostics); // Show in problems tab
