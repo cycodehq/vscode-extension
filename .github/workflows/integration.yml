@@ -1,0 +1,37 @@
+name: Integration Tests
+
+on: [push]
+
+jobs:
+  tests:
+    strategy:
+      max-parallel: 1
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+      - name: Install dependencies
+        run: npm install
+      - name: Code Linting
+        run: npm run lint
+      - name: Run tests
+        run: |
+          sudo apt-get install xvfb
+          export DISPLAY=:99.0
+          Xvfb -ac :99 -screen 0 1920x1080x16 &
+          npm run test
+      - name: Build extension
+        run: |
+          npm install -g @vscode/vsce
+          vsce package
+          mv *.vsix cycode-extension.vsix
+      - name: Upload extension package
+        uses: actions/upload-artifact@v3
+        with:
+          name: cycode-extension.vsix
+          path: cycode-extension.vsix
+          retention-days: 14

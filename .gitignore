@@ -8,6 +8,7 @@ tsconfig.lsif.json
 *.lsif
 *.db
 dist/
+.vscode-test/
 
 # Extension files
 *.vsix

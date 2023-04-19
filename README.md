@@ -25,7 +25,6 @@ To install the Cycode VSCode Extension, follow these steps:
 
 6. Reload the VSCode editor.
 
-
 # CLI Installation
 
 You might not have Cycode CLI installed on your machine. To install the Cycode VSCode Extension, follow these steps:
@@ -36,8 +35,6 @@ You might not have Cycode CLI installed on your machine. To install the Cycode V
 
 3. Type "Cycode: Install with pip3" and press enter.
 
-
-
 # Authentication
 
 To install the Cycode VSCode Extension, follow these steps:
@@ -47,8 +44,6 @@ To install the Cycode VSCode Extension, follow these steps:
 2. Click on the Cycode icon in the left-hand sidebar.
 
 3. Click on the "Authenticate" button.
-
-
 
 # Usage
 
@@ -70,4 +65,4 @@ If you encounter any issues or have any questions about the Cycode VSCode Extens
 
 # License
 
-The Cycode VSCode Extension is released under the Apache 2.0 license. See the LICENSE file for more details.
+The Cycode VSCode Extension is released under the MIT license. See the LICENSE file for more details.
