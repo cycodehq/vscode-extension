@@ -5,7 +5,10 @@ import statusBar from "../utils/status-bar";
 import { TrayNotificationTexts } from "../utils/texts";
 import { validateCliCommonErrors } from "./common";
 
-export async function install(context: vscode.ExtensionContext) {
+export async function install(
+  context: vscode.ExtensionContext,
+  params: { workspaceFolderPath: string }
+) {
   extensionOutput.showOutputTab();
 
   vscode.window.withProgress(
@@ -18,7 +21,7 @@ export async function install(context: vscode.ExtensionContext) {
           message: `Install with pip3...`,
         });
 
-        const { result, error, exitCode } = await cliWrapper.runInstall();
+        const { result, error, exitCode } = await cliWrapper.runInstall(params);
 
         if (validateCliCommonErrors(error, exitCode)) {
           return;

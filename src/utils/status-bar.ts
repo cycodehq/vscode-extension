@@ -67,6 +67,14 @@ export const showScanError = () => {
   });
 };
 
+export const showAuthIsRequired = () => {
+  update({
+    text: StatusBarTexts.AuthIsRequired,
+    color: StatusBarColor.warning,
+    command: "workbench.view.extension.cycode",
+  });
+};
+
 export const showAuthError = () => {
   update({
     text: StatusBarTexts.AuthError,
@@ -92,6 +100,7 @@ const module = {
   showScanError,
   showAuthError,
   showCliPathError,
+  showAuthIsRequired,
   get statusBar() {
     return getStatusBar();
   },

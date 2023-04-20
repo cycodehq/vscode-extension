@@ -6,10 +6,15 @@ import { scan } from "./services/scanner";
 import { auth } from "./services/auth";
 import { install } from "./services/install";
 import { uninstall } from "./services/uninstall";
-import { extensionName, extensionId, scanOnSaveProperty } from "./utils/texts";
+import {
+  extensionName,
+  extensionId,
+  scanOnSaveProperty,
+  TrayNotificationTexts,
+} from "./utils/texts";
 import { VscodeCommands } from "./utils/commands";
 import statusBar from "./utils/status-bar";
-import extenstionContext from "./utils/context";
+import extensionContext from "./utils/context";
 import { checkCLI } from "./services/checkCli";
 import { CycodeActions } from "./providers/CodeActions";
 import { ignore } from "./services/ignore";
@@ -18,6 +23,7 @@ import { CodelensProvider } from "./providers/CodelensProvider";
 export function activate(context: vscode.ExtensionContext) {
   console.log("Cycode extension is now active");
 
+  extensionContext.initContext(context);
   const outputChannel = vscode.window.createOutputChannel(extensionName);
   extensionOutput.setOpts({ output: outputChannel });
   extensionOutput.info("Cycode plugin is running");
@@ -25,22 +31,31 @@ export function activate(context: vscode.ExtensionContext) {
   const diagnosticCollection =
     vscode.languages.createDiagnosticCollection(extensionName);
 
+  const isAuthed = extensionContext.getGlobalState("auth.isAuthed");
+  extensionContext.setContext("auth.isAuthed", !!isAuthed);
+  const commands = initCommands(context, diagnosticCollection);
   const newStatusBar = statusBar.create();
 
-  extenstionContext.initContext(context);
-  extenstionContext.updateGlobalState("scan.isScanning", false); // reset just in case
-  const isAuthed = extenstionContext.getGlobalState("auth.isAuthed");
+  if (!isAuthed) {
+    statusBar.showAuthIsRequired();
+  }
 
-  extenstionContext.setContext("auth.isAuthed", !!isAuthed);
-  const commands = initCommands(context, diagnosticCollection);
-
-  checkCLI(context);
+  checkCLI(context, {
+    workspaceFolderPath:
+      vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || "",
+  });
 
   const scanOnSave = vscode.workspace.onDidSaveTextDocument((document) => {
     if (
       vscode.workspace.getConfiguration(extensionId).get(scanOnSaveProperty)
     ) {
-      scan(context, diagnosticCollection, document.fileName);
+      const workspaceFolderPath =
+        vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || "";
+      scan(
+        context,
+        { workspaceFolderPath, diagnosticCollection },
+        document.fileName
+      );
     }
   });
 
@@ -69,33 +84,70 @@ function initCommands(
   const scanCommand = vscode.commands.registerCommand(
     VscodeCommands.ScanCommandId,
     async () => {
-      await scan(context, diagnosticCollection);
+      if (
+        !vscode.window.activeTextEditor?.document ||
+        vscode.window?.activeTextEditor?.document?.uri.scheme === "output"
+      ) {
+        vscode.window.showInformationMessage(
+          TrayNotificationTexts.MustBeFocusedOnFile
+        );
+        return;
+      }
+
+      const params = {
+        workspaceFolderPath:
+          vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || "",
+        diagnosticCollection,
+      };
+      await scan(context, params);
     }
   );
   const authCommand = vscode.commands.registerCommand(
     VscodeCommands.AuthCommandId,
     async () => {
-      await auth(context);
+      const params = {
+        workspaceFolderPath:
+          vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || "",
+      };
+
+      await auth(context, params);
     }
   );
 
   const installCommand = vscode.commands.registerCommand(
     VscodeCommands.InstallCommandId,
     async () => {
-      await install(context);
+      const params = {
+        workspaceFolderPath:
+          vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || "",
+      };
+      await install(context, params);
     }
   );
 
   const uninstallCommand = vscode.commands.registerCommand(
     VscodeCommands.UninstallCommandId,
     async () => {
-      await uninstall(context);
+      const params = {
+        workspaceFolderPath:
+          vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || "",
+      };
+
+      // TODO:: find which workspace folder is the file in
+      await uninstall(context, params);
     }
   );
 
   const ignoreCommand = vscode.commands.registerCommand(
     VscodeCommands.IgnoreCommandId,
-    async (params) => {
+    async (rule) => {
+      // TODO:: find which workspace folder is the file in
+      const params = {
+        rule,
+        workspaceFolderPath:
+          vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || "",
+      };
+
       await ignore(context, params);
     }
   );

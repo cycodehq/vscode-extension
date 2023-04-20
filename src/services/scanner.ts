@@ -9,34 +9,22 @@ import {
 } from "../utils/texts";
 import { validateCliCommonErrors } from "./common";
 import { VscodeCommands } from "../utils/commands";
-import {
-  getGlobalState,
-  getWorkspaceState,
-  updateGlobalState,
-  updateWorkspaceState,
-} from "../utils/context";
+import { getWorkspaceState, updateWorkspaceState } from "../utils/context";
 import { Detection } from "../types/detection";
-
-const validateScanEnv = async (filePath: string) => {
-  // Check if the active tab is the output tab instread of a file
-  if (vscode.window?.activeTextEditor?.document?.uri.scheme === "output") {
-    return "Cannot scan output tab";
-  }
-};
 
 // Entry
 export async function scan(
   context: vscode.ExtensionContext,
-  diagnosticCollection: vscode.DiagnosticCollection,
+  params: {
+    workspaceFolderPath: string;
+    diagnosticCollection: vscode.DiagnosticCollection;
+  },
   extFilePath?: string
 ) {
   try {
-    if (getGlobalState("scan.isScanning")) {
+    if (getWorkspaceState("scan.isScanning")) {
       return;
     }
-
-    extensionOutput.info(StatusBarTexts.ScanWait);
-    statusBar.showScanningInProgress();
 
     const document = vscode.window.activeTextEditor?.document;
 
@@ -44,23 +32,22 @@ export async function scan(
       return;
     }
 
+    extensionOutput.info(StatusBarTexts.ScanWait);
+    statusBar.showScanningInProgress();
+
     let filePath = extFilePath || document?.fileName || "";
 
-    //  validate
-    const invalid = await validateScanEnv(filePath);
-
-    if (invalid) {
-      return;
-    }
-
     extensionOutput.info("Initiating scan for file: " + filePath);
-    updateGlobalState("scan.isScanning", true);
+    updateWorkspaceState("scan.isScanning", true);
 
-    // Run scan through cli
-    let params = { path: filePath };
-    const { result, error, exitCode } = await cliWrapper.runScan(params);
+    // Run scan through CLI
+    let cliParams = {
+      path: filePath,
+      workspaceFolderPath: params.workspaceFolderPath,
+    };
+    const { result, error, exitCode } = await cliWrapper.runScan(cliParams);
 
-    updateGlobalState("scan.isScanning", false);
+    updateWorkspaceState("scan.isScanning", false);
 
     if (validateCliCommonErrors(error, exitCode)) {
       return;
@@ -76,14 +63,19 @@ export async function scan(
     );
 
     // Show in problems tab
-    handleScanDetections(result, filePath, diagnosticCollection, document);
+    handleScanDetections(
+      result,
+      filePath,
+      params.diagnosticCollection,
+      document
+    );
 
     statusBar.showScanComplete();
   } catch (error) {
     console.error(error);
     extensionOutput.error("Error while creating scan: " + error);
     statusBar.showScanError();
-    updateGlobalState("scan.isScanning", false);
+    updateWorkspaceState("scan.isScanning", false);
 
     vscode.window.showErrorMessage(TrayNotificationTexts.ScanError);
   }

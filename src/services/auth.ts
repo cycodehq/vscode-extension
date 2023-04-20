@@ -5,8 +5,14 @@ import statusBar from "../utils/status-bar";
 import { TrayNotificationTexts } from "../utils/texts";
 import { validateCliCommonErrors } from "./common";
 import { setContext, updateGlobalState } from "../utils/context";
+import { VscodeCommands } from "../utils/commands";
 
-export async function auth(context: vscode.ExtensionContext) {
+export async function auth(
+  context: vscode.ExtensionContext,
+  params: {
+    workspaceFolderPath: string;
+  }
+) {
   extensionOutput.showOutputTab();
 
   vscode.window.withProgress(
@@ -22,7 +28,7 @@ export async function auth(context: vscode.ExtensionContext) {
           message: `Authenticating with Cycode...`,
         });
 
-        const { result, error, exitCode } = await cliWrapper.runAuth();
+        const { result, error, exitCode } = await cliWrapper.runAuth(params);
 
         setContext("auth.isAuthenticating", false);
 
@@ -53,8 +59,17 @@ function handleAuthStatus(exitCode: number, result: any, error: string) {
 
 export function onAuthFailed() {
   statusBar.showAuthError();
-  vscode.window.showErrorMessage(TrayNotificationTexts.AuthError);
+  vscode.window
+    .showInformationMessage(
+      TrayNotificationTexts.BadAuth,
+      TrayNotificationTexts.OpenCycodeViewText
+    )
+    .then((item) => {
+      item === TrayNotificationTexts.OpenCycodeViewText &&
+        vscode.commands.executeCommand(VscodeCommands.ShowCycodeView);
+    });
   setContext("auth.isAuthenticating", false);
+  setContext("auth.isAuthed", false);
   updateGlobalState("auth.isAuthed", false);
 }
 
@@ -63,5 +78,6 @@ function onAuthComplete() {
 
   // Hide the authenticate button
   setContext("auth.isAuthed", true);
+  setContext("auth.isAuthenticating", false);
   updateGlobalState("auth.isAuthed", true);
 }

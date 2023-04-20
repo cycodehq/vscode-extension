@@ -9,6 +9,10 @@ export const setContext = (key: string, value: any) => {
 
 export const initContext = (context: vscode.ExtensionContext) => {
   extensionContext = context;
+
+  // Reset states
+  updateWorkspaceState("scan.isScanning", false);
+  updateWorkspaceState("cycode.notifOpen", false);
 };
 
 export const getContext = (): vscode.ExtensionContext => {

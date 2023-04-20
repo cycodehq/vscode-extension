@@ -9,6 +9,7 @@ export enum StatusBarTexts {
   ScanComplete = "$(cycode-logo) Scan completed successfully",
   ScanError = "$(circle-slash) Cycode failed to scan, please try again",
   AuthError = "$(circle-slash) Authentication error, please try again",
+  AuthIsRequired = "$(circle-slash) Authentication is required",
   CliPathWarning = "$(warning) Cycode CLI not found, please install it",
 }
 
@@ -23,4 +24,7 @@ export enum TrayNotificationTexts {
   UninstallError = "Cycode CLI removing failed. Check output for more details.",
   IgnoreError = "Cycode failed to ignore the rule, please try again",
   IgnoreCompleted = "Cycode ignore completed successfully",
+  BadAuth = "Bad authentication. Please authenticate with Cycode",
+  OpenCycodeViewText = "Open Cycode view",
+  MustBeFocusedOnFile = "Cycode scans the file that is currently focused. Please focus on a file and try again",
 }

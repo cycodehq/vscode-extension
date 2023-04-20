@@ -19,10 +19,13 @@ export class CodelensProvider implements vscode.CodeLensProvider {
   ): vscode.CodeLens[] | Thenable<vscode.CodeLens[]> {
     const diagnostics = vscode.languages.getDiagnostics(document.uri);
 
-    this.codeLenses = diagnostics
+    const lineObj: { [key: number]: number } = {};
+
+    diagnostics
       .filter((diag) => diag.source === extensionId)
-      .map((diagnostic) => {
+      .forEach((diagnostic) => {
         const range = diagnostic.range;
+        lineObj[range.start.line] = (lineObj[range.start.line] || 0) + 1;
         const codeLens = new vscode.CodeLens(range);
         codeLens.command = {
           title: "Cycode secret detection",
@@ -33,6 +36,24 @@ export class CodelensProvider implements vscode.CodeLensProvider {
         return codeLens;
       });
 
+    this.codeLenses = Object.keys(lineObj).map((key: string) => {
+      const line = parseInt(key);
+      const range = new vscode.Range(
+        new vscode.Position(line, 0),
+        new vscode.Position(line, 0)
+      );
+      const codeLens = new vscode.CodeLens(range);
+      codeLens.command = {
+        title: `Cycode: ${lineObj[line]} ${
+          lineObj[line] === 1 ? "detection" : "detections"
+        }`,
+        tooltip: "Cycode secret detection",
+        command: "",
+        arguments: ["Argument 1", false],
+      };
+      return codeLens;
+    });
+
     return this.codeLenses;
   }
 
@@ -41,8 +62,8 @@ export class CodelensProvider implements vscode.CodeLensProvider {
     token: vscode.CancellationToken
   ) {
     codeLens.command = {
-      title: "Codelens provided by sample extension",
-      tooltip: "Tooltip provided by sample extension",
+      title: "Cycode secret detection",
+      tooltip: "Cycode secret detection",
       command: "codelens-sample.codelensAction",
       arguments: ["Argument 1", false],
     };
