@@ -8,7 +8,7 @@ import { validateCliCommonErrors } from "./common";
 
 export async function ignore(
   context: vscode.ExtensionContext,
-  params: { rule: string }
+  params: { rule: string, workspaceFolderPath: string }
 ) {
   extensionOutput.showOutputTab();
 

@@ -20,6 +20,7 @@ const parseResult = (stdout: string): string | object => {
 
 export const runCli = (
   cliPath: string,
+  workspaceFolderPath: string,
   params: string[],
   env: { [key: string]: string },
   printToOutput: boolean = false
@@ -40,7 +41,7 @@ export const runCli = (
     };
 
     childProcess = spawn(cliPath, params, {
-      cwd: os.homedir(),
+      cwd: workspaceFolderPath,
       env: {
         ...process.env,
         ...env,

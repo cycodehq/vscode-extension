@@ -26,9 +26,10 @@ export class CycodeActions implements vscode.CodeActionProvider {
       `ignore rule ${diagnostic.code}`,
       vscode.CodeActionKind.QuickFix
     );
+
     action.command = {
       command: VscodeCommands.IgnoreCommandId,
-      title: "Ignore rule ID: 12345667",
+      title: `Ignore rule ID: ${diagnostic.code}`,
       tooltip: "This will always ignore this rule type",
       arguments: [diagnostic.code],
     };

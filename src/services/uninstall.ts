@@ -4,7 +4,10 @@ import { cliWrapper } from "../cli-wrapper/cli-wrapper";
 import { TrayNotificationTexts } from "../utils/texts";
 import { validateCliCommonErrors } from "./common";
 
-export async function uninstall(context: vscode.ExtensionContext) {
+export async function uninstall(
+  context: vscode.ExtensionContext,
+  params: { workspaceFolderPath: string }
+) {
   extensionOutput.showOutputTab();
 
   vscode.window.withProgress(
@@ -14,10 +17,12 @@ export async function uninstall(context: vscode.ExtensionContext) {
     async (progress) => {
       try {
         progress.report({
-          message: `Uninstall cycode cli...`,
+          message: `Uninstall cycode CLI...`,
         });
 
-        const { result, error, exitCode } = await cliWrapper.runUninstall();
+        const { result, error, exitCode } = await cliWrapper.runUninstall(
+          params
+        );
 
         if (validateCliCommonErrors(error, exitCode)) {
           return;
