@@ -1,50 +1,27 @@
 import * as vscode from "vscode";
 import { CliCommands, CommandParameters } from "./constants";
-import { CommandResult } from "./types";
+import { CommandResult, IConfig } from "./types";
 import { runCli } from "./runner";
 import { extensionId } from "../utils/texts";
+import extensionOutput from "../logging/extension-output";
 
-const config = {
-  get cliPath() {
-    return (
-      (vscode.workspace
-        .getConfiguration(extensionId)
-        .get("cliPath") as string) || "cycode"
-    );
-  },
-  get cliEnv(): { [key: string]: string } {
-    const CYCODE_API_URL = vscode.workspace
-      .getConfiguration(extensionId)
-      .get("apiUrl") as string;
-
-    const CYCODE_APP_URL = vscode.workspace
-      .getConfiguration(extensionId)
-      .get("appUrl") as string;
-
-    const env = { CYCODE_API_URL, CYCODE_APP_URL };
-
-    // Remove entries with empty values
-    return Object.fromEntries(Object.entries(env).filter(([_, v]) => !!v));
-  },
-  get additionalParams() {
-    const additionalParams = vscode.workspace
-      .getConfiguration(extensionId)
-      .get("additionalParameters") as string;
-
-    return additionalParams ? additionalParams.split(" ") : [];
-  },
+const validateConfig = (config: IConfig) => {
+  const validateURL = (url: string) => {
+    if (url && !config.cliEnv.CYCODE_API_URL.startsWith("https")) {
+      throw new Error("Invalid CYCODE_API_URL, please use https");
+    }
+  };
 };
 
 export const cliWrapper = {
-  config,
-
   runScan: async (params: {
+    config: IConfig;
     path: string;
     workspaceFolderPath: string;
   }): Promise<CommandResult> => {
     const commandParams: string[] = [];
 
-    config.additionalParams.forEach((param) => {
+    params.config.additionalParams.forEach((param) => {
       commandParams.push(param);
     });
 
@@ -54,29 +31,32 @@ export const cliWrapper = {
     commandParams.push(params.path);
 
     return await runCli(
-      config.cliPath,
+      params.config.cliPath,
       params.workspaceFolderPath,
       commandParams,
-      config.cliEnv
+      params.config.cliEnv
     );
   },
   runAuth: async (params: {
+    config: IConfig;
     workspaceFolderPath: string;
   }): Promise<CommandResult> => {
     const commandParams: string[] = [];
-    config.additionalParams.forEach((param) => {
+
+    params.config.additionalParams.forEach((param) => {
       commandParams.push(param);
     });
     commandParams.push(CliCommands.Auth);
 
     return await runCli(
-      config.cliPath,
+      params.config.cliPath,
       params.workspaceFolderPath,
       commandParams,
-      config.cliEnv
+      params.config.cliEnv
     );
   },
   runInstall: async (params: {
+    config: IConfig;
     workspaceFolderPath: string;
   }): Promise<CommandResult> => {
     const commandParams: string[] = [];
@@ -90,38 +70,41 @@ export const cliWrapper = {
       "pip3",
       params.workspaceFolderPath,
       commandParams,
-      config.cliEnv,
+      params.config.cliEnv,
       true
     );
   },
   runUninstall: async (params: {
+    config: IConfig;
     workspaceFolderPath: string;
   }): Promise<CommandResult> => {
     return await runCli(
       "pip3",
       params.workspaceFolderPath,
       ["uninstall", "-y", "cycode"],
-      config.cliEnv,
+      params.config.cliEnv,
       true
     );
   },
   runUsage: async (params: {
+    config: IConfig;
     workspaceFolderPath: string;
   }): Promise<CommandResult> => {
     return await runCli(
-      config.cliPath,
+      params.config.cliPath,
       params.workspaceFolderPath,
       [CommandParameters.Usage],
-      config.cliEnv,
+      params.config.cliEnv,
       true
     );
   },
   runIgnore: async (params: {
-    rule: string;
+    config: IConfig;
     workspaceFolderPath: string;
+    rule: string;
   }): Promise<CommandResult> => {
     const commandParams: string[] = [];
-    config.additionalParams.forEach((param) => {
+    params.config.additionalParams.forEach((param) => {
       commandParams.push(param);
     });
     commandParams.push(CliCommands.Ignore);
@@ -129,10 +112,10 @@ export const cliWrapper = {
     commandParams.push(params.rule);
 
     return await runCli(
-      config.cliPath,
+      params.config.cliPath,
       params.workspaceFolderPath,
       commandParams,
-      config.cliEnv
+      params.config.cliEnv
     );
   },
 };

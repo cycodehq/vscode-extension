@@ -5,10 +5,12 @@ import { cliWrapper } from "../cli-wrapper/cli-wrapper";
 import statusBar from "../utils/status-bar";
 import { TrayNotificationTexts } from "../utils/texts";
 import { validateCliCommonErrors } from "./common";
+import { IConfig } from "../cli-wrapper/types";
+import { VscodeCommands } from "../utils/commands";
 
 export async function ignore(
   context: vscode.ExtensionContext,
-  params: { rule: string, workspaceFolderPath: string }
+  params: { rule: string; workspaceFolderPath: string; config: IConfig }
 ) {
   extensionOutput.showOutputTab();
 
@@ -42,4 +44,5 @@ export function onIgnoreFailed() {
 export function onIgnoreComplete() {
   vscode.window.showInformationMessage(TrayNotificationTexts.IgnoreCompleted);
   statusBar.showDefault();
+  vscode.commands.executeCommand(VscodeCommands.ScanCommandId); // scan after ignore
 }

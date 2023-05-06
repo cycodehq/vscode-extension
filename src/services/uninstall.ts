@@ -3,10 +3,11 @@ import { extensionOutput } from "../logging/extension-output";
 import { cliWrapper } from "../cli-wrapper/cli-wrapper";
 import { TrayNotificationTexts } from "../utils/texts";
 import { validateCliCommonErrors } from "./common";
+import { IConfig } from "../cli-wrapper/types";
 
 export async function uninstall(
   context: vscode.ExtensionContext,
-  params: { workspaceFolderPath: string }
+  params: { workspaceFolderPath: string; config: IConfig }
 ) {
   extensionOutput.showOutputTab();
 

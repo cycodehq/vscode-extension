@@ -3,10 +3,11 @@ import extensionOutput from "../logging/extension-output";
 import cliWrapper from "../cli-wrapper/cli-wrapper";
 import statusBar from "../utils/status-bar";
 import { TrayNotificationTexts } from "../utils/texts";
+import { IConfig } from "../cli-wrapper/types";
 
 export async function checkCLI(
   context: vscode.ExtensionContext,
-  params: { workspaceFolderPath: string }
+  params: { workspaceFolderPath: string; config: IConfig }
 ) {
   try {
     extensionOutput.info("Trying to run CLI...");

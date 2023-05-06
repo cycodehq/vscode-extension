@@ -11,7 +11,7 @@
   "version": "0.0.1",
   "publisher": "cycode",
   "engines": {
-    "vscode": "^1.76.0"
+    "vscode": "^1.56.0"
   },
   "categories": [
     "Other"
@@ -83,12 +83,12 @@
     ],
     "viewsWelcome": [
       {
-        "view": "cycode",
+        "view": "cycode:login",
         "contents": "Cycode extension requires pre-installed [Cycode CLI](https://github.com/cycodehq-public/cycode-cli#install-cycode-cli)\n [Authenticate](command:cycode.auth) \n To learn more about how to use Cycode in VSCode [read our docs](https://github.com/cycodehq-public/vscode-extension/blob/main/README.md).",
         "when": "!cycode:auth.isAuthed && !cycode:auth.isAuthenticating"
       },
       {
-        "view": "cycode",
+        "view": "cycode:login",
         "contents": "Cycode extension requires pre-installed [Cycode CLI](https://github.com/cycodehq-public/cycode-cli#install-cycode-cli)\n [Authenticating...](command:cycode.stub) \n ",
         "when": "cycode:auth.isAuthenticating"
       },
@@ -118,7 +118,15 @@
       "cycode": [
         {
           "id": "cycode",
-          "name": "Cycode"
+          "name": "Scan",
+          "when": "cycode:auth.isAuthed",
+          "icon": "$(cycode-logo)"
+        },
+        {
+          "id": "cycode:login",
+          "name": "Login",
+          "when": "!cycode:auth.isAuthed",
+          "icon": "$(cycode-logo)"
         }
       ]
     },
@@ -148,7 +156,7 @@
     "@types/mocha": "10.0.1",
     "@types/node": "16.x",
     "@types/shelljs": "0.8.11",
-    "@types/vscode": "1.76.0",
+    "@types/vscode": "1.56.0",
     "@typescript-eslint/eslint-plugin": "5.53.0",
     "@typescript-eslint/parser": "5.53.0",
     "@vscode/test-electron": "2.2.3",

@@ -4,6 +4,12 @@ export type CommandResult = {
   error: string;
 };
 
+export interface IConfig {
+  cliPath: string;
+  additionalParams: string[];
+  cliEnv: { [key: string]: string };
+}
+
 export type CliConfig = {
   cliPath: string;
 };
