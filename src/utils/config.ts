@@ -21,15 +21,6 @@ export const config = {
       .getConfiguration(extensionId)
       .get("appUrl") as string;
 
-    // check if url ends with / and remove it
-    if (CYCODE_API_URL.endsWith("/")) {
-      CYCODE_API_URL = CYCODE_API_URL.slice(0, -1);
-    }
-
-    if (CYCODE_APP_URL.endsWith("/")) {
-      CYCODE_APP_URL = CYCODE_APP_URL.slice(0, -1);
-    }
-
     const env = { CYCODE_API_URL, CYCODE_APP_URL };
 
     // Remove entries with empty values
@@ -52,6 +43,13 @@ export const validateConfig = () => {
 
     if (!url.startsWith("https")) {
       const message = `URLs must start with https: ${url}`;
+      showSettingsErrorTrayMessage(message);
+
+      return message;
+    }
+
+    if (!url.endsWith("/")) {
+      const message = `URLs must not end with '/': ${url}`;
       showSettingsErrorTrayMessage(message);
 
       return message;

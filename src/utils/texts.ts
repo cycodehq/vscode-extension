@@ -27,4 +27,5 @@ export enum TrayNotificationTexts {
   BadAuth = "Bad authentication. Please authenticate with Cycode",
   OpenCycodeViewText = "Open Cycode view",
   MustBeFocusedOnFile = "Cycode scans the file that is currently focused. Please focus on a file and try again",
+  OpenSettings = "Open settings",
 }

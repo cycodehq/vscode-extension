@@ -20,8 +20,9 @@ export const cliWrapper = {
     workspaceFolderPath: string;
   }): Promise<CommandResult> => {
     const commandParams: string[] = [];
+    const { config } = params;
 
-    params.config.additionalParams.forEach((param) => {
+    config.additionalParams.forEach((param) => {
       commandParams.push(param);
     });
 
@@ -31,10 +32,10 @@ export const cliWrapper = {
     commandParams.push(params.path);
 
     return await runCli(
-      params.config.cliPath,
+      config.cliPath,
       params.workspaceFolderPath,
       commandParams,
-      params.config.cliEnv
+      config.cliEnv
     );
   },
   runAuth: async (params: {
@@ -42,17 +43,18 @@ export const cliWrapper = {
     workspaceFolderPath: string;
   }): Promise<CommandResult> => {
     const commandParams: string[] = [];
+    const { config } = params;
 
-    params.config.additionalParams.forEach((param) => {
+    config.additionalParams.forEach((param) => {
       commandParams.push(param);
     });
     commandParams.push(CliCommands.Auth);
 
     return await runCli(
-      params.config.cliPath,
+      config.cliPath,
       params.workspaceFolderPath,
       commandParams,
-      params.config.cliEnv
+      config.cliEnv
     );
   },
   runInstall: async (params: {
@@ -60,6 +62,7 @@ export const cliWrapper = {
     workspaceFolderPath: string;
   }): Promise<CommandResult> => {
     const commandParams: string[] = [];
+    const { config } = params;
     commandParams.push("install");
     if (process.platform === "darwin") {
       commandParams.push("--user");
@@ -70,7 +73,7 @@ export const cliWrapper = {
       "pip3",
       params.workspaceFolderPath,
       commandParams,
-      params.config.cliEnv,
+      config.cliEnv,
       true
     );
   },
@@ -78,11 +81,12 @@ export const cliWrapper = {
     config: IConfig;
     workspaceFolderPath: string;
   }): Promise<CommandResult> => {
+    const { config } = params;
     return await runCli(
       "pip3",
       params.workspaceFolderPath,
       ["uninstall", "-y", "cycode"],
-      params.config.cliEnv,
+      config.cliEnv,
       true
     );
   },
@@ -90,11 +94,12 @@ export const cliWrapper = {
     config: IConfig;
     workspaceFolderPath: string;
   }): Promise<CommandResult> => {
+    const { config } = params;
     return await runCli(
-      params.config.cliPath,
+      config.cliPath,
       params.workspaceFolderPath,
       [CommandParameters.Usage],
-      params.config.cliEnv,
+      config.cliEnv,
       true
     );
   },
@@ -104,7 +109,8 @@ export const cliWrapper = {
     rule: string;
   }): Promise<CommandResult> => {
     const commandParams: string[] = [];
-    params.config.additionalParams.forEach((param) => {
+    const { config } = params;
+    config.additionalParams.forEach((param) => {
       commandParams.push(param);
     });
     commandParams.push(CliCommands.Ignore);
@@ -112,10 +118,10 @@ export const cliWrapper = {
     commandParams.push(params.rule);
 
     return await runCli(
-      params.config.cliPath,
+      config.cliPath,
       params.workspaceFolderPath,
       commandParams,
-      params.config.cliEnv
+      config.cliEnv
     );
   },
 };
