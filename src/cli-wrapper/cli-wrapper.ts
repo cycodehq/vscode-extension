@@ -2,16 +2,6 @@ import * as vscode from "vscode";
 import { CliCommands, CommandParameters } from "./constants";
 import { CommandResult, IConfig } from "./types";
 import { runCli } from "./runner";
-import { extensionId } from "../utils/texts";
-import extensionOutput from "../logging/extension-output";
-
-const validateConfig = (config: IConfig) => {
-  const validateURL = (url: string) => {
-    if (url && !config.cliEnv.CYCODE_API_URL.startsWith("https")) {
-      throw new Error("Invalid CYCODE_API_URL, please use https");
-    }
-  };
-};
 
 export const cliWrapper = {
   runScan: async (params: {

@@ -48,7 +48,7 @@ export const validateConfig = () => {
       return message;
     }
 
-    if (!url.endsWith("/")) {
+    if (url.endsWith("/")) {
       const message = `URLs must not end with '/': ${url}`;
       showSettingsErrorTrayMessage(message);
 

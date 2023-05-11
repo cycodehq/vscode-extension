@@ -173,6 +173,7 @@ function initCommands(
         workspaceFolderPath:
           vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || "",
         rule,
+        diagnosticCollection,
       };
 
       await ignore(context, params);

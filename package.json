@@ -25,7 +25,8 @@
       "title": "Cycode",
       "id": "cycode",
       "properties": {
-        "cycode.cliPath": {
+        "cycode.CLIPath": {
+          "name": "Path to Cycode CLI",
           "type": "string",
           "default": "",
           "description": "Path to the Cycode CLI executable. Run `which cycode` in your terminal to find the path.",
