@@ -19,6 +19,7 @@ import { checkCLI } from "./services/checkCli";
 import { CycodeActions } from "./providers/CodeActions";
 import { ignore } from "./services/ignore";
 import { CodelensProvider } from "./providers/CodelensProvider";
+import { config, validateConfig } from "./utils/config";
 
 export function activate(context: vscode.ExtensionContext) {
   console.log("Cycode extension is now active");
@@ -43,17 +44,22 @@ export function activate(context: vscode.ExtensionContext) {
   checkCLI(context, {
     workspaceFolderPath:
       vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || "",
+    config,
   });
 
   const scanOnSave = vscode.workspace.onDidSaveTextDocument((document) => {
     if (
       vscode.workspace.getConfiguration(extensionId).get(scanOnSaveProperty)
     ) {
+      if (validateConfig()) {
+        return;
+      }
+
       const workspaceFolderPath =
         vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || "";
       scan(
         context,
-        { workspaceFolderPath, diagnosticCollection },
+        { config, workspaceFolderPath, diagnosticCollection },
         document.fileName
       );
     }
@@ -94,7 +100,12 @@ function initCommands(
         return;
       }
 
+      if (validateConfig()) {
+        return;
+      }
+
       const params = {
+        config,
         workspaceFolderPath:
           vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || "",
         diagnosticCollection,
@@ -105,7 +116,12 @@ function initCommands(
   const authCommand = vscode.commands.registerCommand(
     VscodeCommands.AuthCommandId,
     async () => {
+      if (validateConfig()) {
+        return;
+      }
+
       const params = {
+        config,
         workspaceFolderPath:
           vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || "",
       };
@@ -117,7 +133,12 @@ function initCommands(
   const installCommand = vscode.commands.registerCommand(
     VscodeCommands.InstallCommandId,
     async () => {
+      if (validateConfig()) {
+        return;
+      }
+
       const params = {
+        config,
         workspaceFolderPath:
           vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || "",
       };
@@ -129,6 +150,7 @@ function initCommands(
     VscodeCommands.UninstallCommandId,
     async () => {
       const params = {
+        config,
         workspaceFolderPath:
           vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || "",
       };
@@ -141,11 +163,17 @@ function initCommands(
   const ignoreCommand = vscode.commands.registerCommand(
     VscodeCommands.IgnoreCommandId,
     async (rule) => {
+      if (validateConfig()) {
+        return;
+      }
+
       // TODO:: find which workspace folder is the file in
       const params = {
-        rule,
+        config,
         workspaceFolderPath:
           vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || "",
+        rule,
+        diagnosticCollection,
       };
 
       await ignore(context, params);

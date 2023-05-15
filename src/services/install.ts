@@ -4,10 +4,11 @@ import { cliWrapper } from "../cli-wrapper/cli-wrapper";
 import statusBar from "../utils/status-bar";
 import { TrayNotificationTexts } from "../utils/texts";
 import { validateCliCommonErrors } from "./common";
+import { IConfig } from "../cli-wrapper/types";
 
 export async function install(
   context: vscode.ExtensionContext,
-  params: { workspaceFolderPath: string }
+  params: { workspaceFolderPath: string; config: IConfig }
 ) {
   extensionOutput.showOutputTab();
 

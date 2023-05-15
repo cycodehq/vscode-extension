@@ -1,48 +1,16 @@
 import * as vscode from "vscode";
 import { CliCommands, CommandParameters } from "./constants";
-import { CommandResult } from "./types";
+import { CommandResult, IConfig } from "./types";
 import { runCli } from "./runner";
-import { extensionId } from "../utils/texts";
-
-const config = {
-  get cliPath() {
-    return (
-      (vscode.workspace
-        .getConfiguration(extensionId)
-        .get("cliPath") as string) || "cycode"
-    );
-  },
-  get cliEnv(): { [key: string]: string } {
-    const CYCODE_API_URL = vscode.workspace
-      .getConfiguration(extensionId)
-      .get("apiUrl") as string;
-
-    const CYCODE_APP_URL = vscode.workspace
-      .getConfiguration(extensionId)
-      .get("appUrl") as string;
-
-    const env = { CYCODE_API_URL, CYCODE_APP_URL };
-
-    // Remove entries with empty values
-    return Object.fromEntries(Object.entries(env).filter(([_, v]) => !!v));
-  },
-  get additionalParams() {
-    const additionalParams = vscode.workspace
-      .getConfiguration(extensionId)
-      .get("additionalParameters") as string;
-
-    return additionalParams ? additionalParams.split(" ") : [];
-  },
-};
 
 export const cliWrapper = {
-  config,
-
   runScan: async (params: {
+    config: IConfig;
     path: string;
     workspaceFolderPath: string;
   }): Promise<CommandResult> => {
     const commandParams: string[] = [];
+    const { config } = params;
 
     config.additionalParams.forEach((param) => {
       commandParams.push(param);
@@ -61,9 +29,12 @@ export const cliWrapper = {
     );
   },
   runAuth: async (params: {
+    config: IConfig;
     workspaceFolderPath: string;
   }): Promise<CommandResult> => {
     const commandParams: string[] = [];
+    const { config } = params;
+
     config.additionalParams.forEach((param) => {
       commandParams.push(param);
     });
@@ -77,9 +48,11 @@ export const cliWrapper = {
     );
   },
   runInstall: async (params: {
+    config: IConfig;
     workspaceFolderPath: string;
   }): Promise<CommandResult> => {
     const commandParams: string[] = [];
+    const { config } = params;
     commandParams.push("install");
     if (process.platform === "darwin") {
       commandParams.push("--user");
@@ -95,8 +68,10 @@ export const cliWrapper = {
     );
   },
   runUninstall: async (params: {
+    config: IConfig;
     workspaceFolderPath: string;
   }): Promise<CommandResult> => {
+    const { config } = params;
     return await runCli(
       "pip3",
       params.workspaceFolderPath,
@@ -106,8 +81,10 @@ export const cliWrapper = {
     );
   },
   runUsage: async (params: {
+    config: IConfig;
     workspaceFolderPath: string;
   }): Promise<CommandResult> => {
+    const { config } = params;
     return await runCli(
       config.cliPath,
       params.workspaceFolderPath,
@@ -117,10 +94,12 @@ export const cliWrapper = {
     );
   },
   runIgnore: async (params: {
-    rule: string;
+    config: IConfig;
     workspaceFolderPath: string;
+    rule: string;
   }): Promise<CommandResult> => {
     const commandParams: string[] = [];
+    const { config } = params;
     config.additionalParams.forEach((param) => {
       commandParams.push(param);
     });

@@ -6,10 +6,12 @@ import { TrayNotificationTexts } from "../utils/texts";
 import { validateCliCommonErrors } from "./common";
 import { setContext, updateGlobalState } from "../utils/context";
 import { VscodeCommands } from "../utils/commands";
+import { IConfig } from "../cli-wrapper/types";
 
 export async function auth(
   context: vscode.ExtensionContext,
   params: {
+    config: IConfig;
     workspaceFolderPath: string;
   }
 ) {
@@ -47,13 +49,13 @@ export async function auth(
 }
 
 function handleAuthStatus(exitCode: number, result: any, error: string) {
-  if (exitCode === 0) {
+  if (exitCode !== 0 || (result.data && result.data.includes("failed"))) {
+    onAuthFailed();
+  } else {
     onAuthComplete();
     extensionOutput.info(
       "Auth completed: " + JSON.stringify({ result, error }, null, 3)
     );
-  } else {
-    onAuthFailed();
   }
 }
 
@@ -80,4 +82,5 @@ function onAuthComplete() {
   setContext("auth.isAuthed", true);
   setContext("auth.isAuthenticating", false);
   updateGlobalState("auth.isAuthed", true);
+  statusBar.showDefault();
 }

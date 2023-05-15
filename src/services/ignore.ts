@@ -5,13 +5,19 @@ import { cliWrapper } from "../cli-wrapper/cli-wrapper";
 import statusBar from "../utils/status-bar";
 import { TrayNotificationTexts } from "../utils/texts";
 import { validateCliCommonErrors } from "./common";
+import { IConfig } from "../cli-wrapper/types";
+import { VscodeCommands } from "../utils/commands";
+import { scan } from "./scanner";
 
 export async function ignore(
   context: vscode.ExtensionContext,
-  params: { rule: string, workspaceFolderPath: string }
+  params: {
+    rule: string;
+    workspaceFolderPath: string;
+    config: IConfig;
+    diagnosticCollection: vscode.DiagnosticCollection;
+  }
 ) {
-  extensionOutput.showOutputTab();
-
   try {
     const { result, error, exitCode } = await cliWrapper.runIgnore(params);
 
@@ -28,6 +34,11 @@ export async function ignore(
     extensionOutput.info(
       "Ignore completed: " + JSON.stringify({ result, error }, null, 3)
     );
+    scan(context, {
+      workspaceFolderPath: params.workspaceFolderPath,
+      diagnosticCollection: params.diagnosticCollection,
+      config: params.config,
+    });
   } catch (error) {
     console.error(error);
     extensionOutput.error("Error while Ignoreing: " + error);

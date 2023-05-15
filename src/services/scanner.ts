@@ -11,6 +11,7 @@ import { validateCliCommonErrors } from "./common";
 import { VscodeCommands } from "../utils/commands";
 import { getWorkspaceState, updateWorkspaceState } from "../utils/context";
 import { Detection } from "../types/detection";
+import { IConfig } from "../cli-wrapper/types";
 
 // Entry
 export async function scan(
@@ -18,6 +19,7 @@ export async function scan(
   params: {
     workspaceFolderPath: string;
     diagnosticCollection: vscode.DiagnosticCollection;
+    config: IConfig;
   },
   extFilePath?: string
 ) {
@@ -44,6 +46,7 @@ export async function scan(
     let cliParams = {
       path: filePath,
       workspaceFolderPath: params.workspaceFolderPath,
+      config: params.config,
     };
     const { result, error, exitCode } = await cliWrapper.runScan(cliParams);
 

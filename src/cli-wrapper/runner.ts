@@ -41,7 +41,7 @@ export const runCli = (
     };
 
     childProcess = spawn(cliPath, params, {
-      cwd: workspaceFolderPath,
+      cwd: workspaceFolderPath || os.homedir(),
       env: {
         ...process.env,
         ...env,
