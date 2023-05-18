@@ -12,6 +12,7 @@ import { VscodeCommands } from "../utils/commands";
 import { getWorkspaceState, updateWorkspaceState } from "../utils/context";
 import { Detection } from "../types/detection";
 import { IConfig } from "../cli-wrapper/types";
+import TrayNotifications from "../utils/TrayNotifications";
 
 // Entry
 export async function scan(
@@ -75,7 +76,6 @@ export async function scan(
 
     statusBar.showScanComplete();
   } catch (error) {
-    console.error(error);
     extensionOutput.error("Error while creating scan: " + error);
     statusBar.showScanError();
     updateWorkspaceState("scan.isScanning", false);
@@ -144,17 +144,7 @@ const handleScanDetections = (
 
     if (result.detections.length && !getWorkspaceState("cycode.notifOpen")) {
       updateWorkspaceState("cycode.notifOpen", true);
-      vscode.window
-        .showInformationMessage(
-          `Cycode has detected ${diagnostics.length} secrets in your file. Check out your “Problems” tab to analyze.`,
-          "Open Problems tab"
-        )
-        .then((item) => {
-          if (item === "Open Problems tab") {
-            vscode.commands.executeCommand(VscodeCommands.ShowProblemsTab);
-          }
-          updateWorkspaceState("cycode.notifOpen", false);
-        });
+      TrayNotifications.showProblemsDetection(diagnostics.length);
     }
   }
 };

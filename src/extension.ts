@@ -20,9 +20,10 @@ import { CycodeActions } from "./providers/CodeActions";
 import { ignore } from "./services/ignore";
 import { CodelensProvider } from "./providers/CodelensProvider";
 import { config, validateConfig } from "./utils/config";
+import TrayNotifications from "./utils/TrayNotifications";
 
 export function activate(context: vscode.ExtensionContext) {
-  console.log("Cycode extension is now active");
+  extensionOutput.info("Cycode extension is now active");
 
   extensionContext.initContext(context);
   const outputChannel = vscode.window.createOutputChannel(extensionName);
@@ -94,9 +95,8 @@ function initCommands(
         !vscode.window.activeTextEditor?.document ||
         vscode.window?.activeTextEditor?.document?.uri.scheme === "output"
       ) {
-        vscode.window.showInformationMessage(
-          TrayNotificationTexts.MustBeFocusedOnFile
-        );
+        TrayNotifications.showMustBeFocusedOnFile();
+
         return;
       }
 

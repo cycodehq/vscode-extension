@@ -2,7 +2,7 @@ import * as vscode from "vscode";
 import { extensionOutput } from "../logging/extension-output";
 import { cliWrapper } from "../cli-wrapper/cli-wrapper";
 import statusBar from "../utils/status-bar";
-import { TrayNotificationTexts } from "../utils/texts";
+import TrayNotifications from "../utils/TrayNotifications";
 import { validateCliCommonErrors } from "./common";
 import { setContext, updateGlobalState } from "../utils/context";
 import { VscodeCommands } from "../utils/commands";
@@ -40,7 +40,6 @@ export async function auth(
 
         handleAuthStatus(exitCode, result, error);
       } catch (error) {
-        console.error(error);
         extensionOutput.error("Error while creating scan: " + error);
         onAuthFailed();
       }
@@ -61,26 +60,19 @@ function handleAuthStatus(exitCode: number, result: any, error: string) {
 
 export function onAuthFailed() {
   statusBar.showAuthError();
-  vscode.window
-    .showInformationMessage(
-      TrayNotificationTexts.BadAuth,
-      TrayNotificationTexts.OpenCycodeViewText
-    )
-    .then((item) => {
-      item === TrayNotificationTexts.OpenCycodeViewText &&
-        vscode.commands.executeCommand(VscodeCommands.ShowCycodeView);
-    });
+  TrayNotifications.showAuthFailed();
+
   setContext("auth.isAuthenticating", false);
   setContext("auth.isAuthed", false);
   updateGlobalState("auth.isAuthed", false);
 }
 
 function onAuthComplete() {
-  vscode.window.showInformationMessage(TrayNotificationTexts.AuthCompleted);
+  statusBar.showDefault();
+  TrayNotifications.showAuthSuccess();
 
   // Hide the authenticate button
   setContext("auth.isAuthed", true);
   setContext("auth.isAuthenticating", false);
   updateGlobalState("auth.isAuthed", true);
-  statusBar.showDefault();
 }

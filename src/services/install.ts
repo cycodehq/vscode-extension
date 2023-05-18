@@ -5,6 +5,7 @@ import statusBar from "../utils/status-bar";
 import { TrayNotificationTexts } from "../utils/texts";
 import { validateCliCommonErrors } from "./common";
 import { IConfig } from "../cli-wrapper/types";
+import TrayNotifications from "../utils/TrayNotifications";
 
 export async function install(
   context: vscode.ExtensionContext,
@@ -38,7 +39,6 @@ export async function install(
           "Install completed: " + JSON.stringify({ result, error }, null, 3)
         );
       } catch (error) {
-        console.error(error);
         extensionOutput.error("Error while installing: " + error);
         onInstallFailed();
       }
@@ -47,10 +47,10 @@ export async function install(
 }
 
 export function onInstallFailed() {
-  vscode.window.showErrorMessage(TrayNotificationTexts.InstallError);
+  TrayNotifications.showInstallFailed();
 }
 
 export function onInstallComplete() {
-  vscode.window.showInformationMessage(TrayNotificationTexts.InstallCompleted);
   statusBar.showDefault();
+  TrayNotifications.showInstallSuccess();
 }
