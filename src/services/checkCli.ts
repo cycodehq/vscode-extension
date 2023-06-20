@@ -36,7 +36,6 @@ export async function checkCLI(
     }
     extensionOutput.info("CLI Installed!");
   } catch (error) {
-    console.error(error);
     extensionOutput.error("Error while checking if CLI exists: " + error);
     vscode.window.showErrorMessage(TrayNotificationTexts.InstallError);
     statusBar.showCliPathError();

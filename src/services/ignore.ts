@@ -8,6 +8,7 @@ import { validateCliCommonErrors } from "./common";
 import { IConfig } from "../cli-wrapper/types";
 import { VscodeCommands } from "../utils/commands";
 import { scan } from "./scanner";
+import TrayNotifications from "../utils/TrayNotifications";
 
 export async function ignore(
   context: vscode.ExtensionContext,
@@ -40,17 +41,16 @@ export async function ignore(
       config: params.config,
     });
   } catch (error) {
-    console.error(error);
     extensionOutput.error("Error while Ignoreing: " + error);
     onIgnoreFailed();
   }
 }
 
 export function onIgnoreFailed() {
-  vscode.window.showErrorMessage(TrayNotificationTexts.IgnoreError);
+  TrayNotifications.showIgnoreFailed();
 }
 
 export function onIgnoreComplete() {
-  vscode.window.showInformationMessage(TrayNotificationTexts.IgnoreCompleted);
+  TrayNotifications.showIgnoreSuccess();
   statusBar.showDefault();
 }

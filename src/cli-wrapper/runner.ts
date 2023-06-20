@@ -25,7 +25,8 @@ export const runCli = (
   env: { [key: string]: string },
   printToOutput: boolean = false
 ): Promise<CommandResult> => {
-  console.log("Running command: ", cliPath, params.join(" "));
+  extensionOutput.info(`Running command: "${cliPath} ${params.join(" ")}`);
+
   return new Promise((resolve, reject) => {
     let stderr = "";
     let stdout = "";

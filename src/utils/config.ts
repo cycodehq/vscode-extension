@@ -1,8 +1,6 @@
 import * as vscode from "vscode";
 import { extensionId } from "./texts";
-import { updateWorkspaceState } from "./context";
-import { VscodeCommands } from "./commands";
-import { showSettingsErrorTrayMessage } from "./TrayNotifications";
+import { showSettingsError } from "./TrayNotifications";
 
 export const config = {
   get cliPath() {
@@ -43,14 +41,14 @@ export const validateConfig = () => {
 
     if (!url.startsWith("https")) {
       const message = `URLs must start with https: ${url}`;
-      showSettingsErrorTrayMessage(message);
+      showSettingsError(message);
 
       return message;
     }
 
     if (url.endsWith("/")) {
       const message = `URLs must not end with '/': ${url}`;
-      showSettingsErrorTrayMessage(message);
+      showSettingsError(message);
 
       return message;
     }
@@ -59,7 +57,7 @@ export const validateConfig = () => {
       new URL(url);
     } catch (e) {
       const message = `Invalid URL in settings: ${url}`;
-      showSettingsErrorTrayMessage(message);
+      showSettingsError(message);
       return message;
     }
   };

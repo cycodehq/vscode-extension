@@ -4,6 +4,7 @@ import { cliWrapper } from "../cli-wrapper/cli-wrapper";
 import { TrayNotificationTexts } from "../utils/texts";
 import { validateCliCommonErrors } from "./common";
 import { IConfig } from "../cli-wrapper/types";
+import TrayNotifications from "../utils/TrayNotifications";
 
 export async function uninstall(
   context: vscode.ExtensionContext,
@@ -39,19 +40,17 @@ export async function uninstall(
           "Uninstall completed: " + JSON.stringify({ result, error }, null, 3)
         );
       } catch (error) {
-        console.error(error);
         extensionOutput.error("Error while uninstalling: " + error);
         onUninstallFailed();
       }
     }
   );
 }
+
 function onUninstallFailed() {
-  vscode.window.showErrorMessage(TrayNotificationTexts.UninstallError);
+  TrayNotifications.showUninstallFailed();
 }
 
 function onUninstallComplete() {
-  vscode.window.showInformationMessage(
-    TrayNotificationTexts.UninstallCompleted
-  );
+  TrayNotifications.showUninstallSuccess();
 }
