@@ -16,11 +16,12 @@ import { VscodeCommands } from "./utils/commands";
 import statusBar from "./utils/status-bar";
 import extensionContext from "./utils/context";
 import { checkCLI } from "./services/checkCli";
-import { CycodeActions } from "./providers/CodeActions";
-import { ignore } from "./services/ignore";
-import { CodelensProvider } from "./providers/CodelensProvider";
 import { config, validateConfig } from "./utils/config";
 import TrayNotifications from "./utils/TrayNotifications";
+import { IgnoreCommandConfig } from "./types/commands";
+import { ignore } from "./services/ignore";
+import { CycodeActions } from "./providers/CodeActions";
+import { CodelensProvider } from "./providers/CodelensProvider";
 
 export function activate(context: vscode.ExtensionContext) {
   extensionOutput.info("Cycode extension is now active");
@@ -162,7 +163,7 @@ function initCommands(
 
   const ignoreCommand = vscode.commands.registerCommand(
     VscodeCommands.IgnoreCommandId,
-    async (rule) => {
+    async (ignoreConfig: IgnoreCommandConfig) => {
       if (validateConfig()) {
         return;
       }
@@ -172,7 +173,7 @@ function initCommands(
         config,
         workspaceFolderPath:
           vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || "",
-        rule,
+        ignoreConfig,
         diagnosticCollection,
       };
 
