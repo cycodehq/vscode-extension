@@ -10,4 +10,5 @@ export enum CommandParameters {
   OutputFormatJson = "--output=json",
   Usage = "--help",
   ByRule = "--by-rule",
+  ByValue = "--by-value",
 }

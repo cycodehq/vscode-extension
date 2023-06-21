@@ -1,4 +1,4 @@
-import * as vscode from "vscode";
+import { IgnoreCommandConfig } from "../types/commands";
 import { CliCommands, CommandParameters } from "./constants";
 import { CommandResult, IConfig } from "./types";
 import { runCli } from "./runner";
@@ -96,16 +96,17 @@ export const cliWrapper = {
   runIgnore: async (params: {
     config: IConfig;
     workspaceFolderPath: string;
-    rule: string;
+    ignoreConfig: IgnoreCommandConfig;
   }): Promise<CommandResult> => {
     const commandParams: string[] = [];
-    const { config } = params;
+    const { config, ignoreConfig } = params;
+    const { ignoreBy, param } = ignoreConfig;
     config.additionalParams.forEach((param) => {
       commandParams.push(param);
     });
     commandParams.push(CliCommands.Ignore);
-    commandParams.push(CommandParameters.ByRule);
-    commandParams.push(params.rule);
+    commandParams.push(ignoreBy);
+    commandParams.push(param);
 
     return await runCli(
       config.cliPath,

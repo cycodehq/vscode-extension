@@ -8,10 +8,10 @@
     "url": "https://github.com/cycodehq-public/vscode-extension"
   },
   "homepage": "https://cycode.com/",
-  "version": "0.0.1",
+  "version": "0.0.3",
   "publisher": "cycode",
   "engines": {
-    "vscode": "^1.56.0"
+    "vscode": "^1.63.0"
   },
   "categories": [
     "Other"
@@ -156,7 +156,7 @@
     "@types/mocha": "10.0.1",
     "@types/node": "16.x",
     "@types/shelljs": "0.8.11",
-    "@types/vscode": "1.56.0",
+    "@types/vscode": "1.63.0",
     "@typescript-eslint/eslint-plugin": "5.53.0",
     "@typescript-eslint/parser": "5.53.0",
     "@vscode/test-electron": "2.2.3",
