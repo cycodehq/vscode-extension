@@ -4,6 +4,8 @@ The Cycode VSCode Extension is a plugin for Microsoft's Visual Studio Code (VSCo
 
 # Features
 
+Cycode VS Code Extension scans your code for exposed secrets, passwords, tokens, keys, and other credentials.
+
 The Cycode VSCode Extension includes the following features:
 
 - Cycode CLI: The extension includes a built-in Cycode command-line interface (CLI) that allows users to interact with the Cycode platform directly from the VSCode editor.
