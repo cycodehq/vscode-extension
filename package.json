@@ -1,8 +1,8 @@
 {
   "name": "cycode",
-  "displayName": "Cycode",
+  "displayName": "Cycode (beta)",
   "icon": "resources/cycode124.png",
-  "description": "Cycode vscode extension",
+  "description": "Cycode vscode extension. This extension is currently in beta.",
   "repository": {
     "type": "git",
     "url": "https://github.com/cycodehq-public/vscode-extension"
