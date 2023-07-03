@@ -47,6 +47,7 @@ export const runCli = (
         ...process.env,
         ...env,
       },
+      shell: true,
     });
 
     childProcess.on("exit", (code: number) => {
