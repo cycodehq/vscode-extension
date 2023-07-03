@@ -1,7 +1,18 @@
 import { IgnoreCommandConfig } from "../types/commands";
 import { CliCommands, CommandParameters } from "./constants";
-import { CommandResult, IConfig } from "./types";
+import { CommandResult, IConfig, UserAgent } from "./types";
 import { runCli } from "./runner";
+
+export const generateUserAgentCommandParam = (config: IConfig) => {
+  const userAgent: UserAgent = {
+    app_name: config.agentName,
+    app_version: config.agentVersion,
+    env_name: config.envName,
+    env_version: config.envVersion,
+  };
+
+  return `${CommandParameters.UserAgent}='${JSON.stringify(userAgent)}'`;
+};
 
 export const cliWrapper = {
   runScan: async (params: {
@@ -16,6 +27,7 @@ export const cliWrapper = {
       commandParams.push(param);
     });
 
+    commandParams.push(generateUserAgentCommandParam(config));
     commandParams.push(CliCommands.Scan);
     commandParams.push(CommandParameters.OutputFormatJson);
     commandParams.push(CliCommands.Path);
@@ -38,6 +50,7 @@ export const cliWrapper = {
     config.additionalParams.forEach((param) => {
       commandParams.push(param);
     });
+    commandParams.push(generateUserAgentCommandParam(config));
     commandParams.push(CliCommands.Auth);
 
     return await runCli(
@@ -104,6 +117,7 @@ export const cliWrapper = {
     config.additionalParams.forEach((param) => {
       commandParams.push(param);
     });
+    commandParams.push(generateUserAgentCommandParam(config));
     commandParams.push(CliCommands.Ignore);
     commandParams.push(ignoreBy);
     commandParams.push(param);
