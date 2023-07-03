@@ -60,6 +60,10 @@
         "title": "Cycode: Scan for vulnerabilities"
       },
       {
+        "command": "cycode.scaScan",
+        "title": "Cycode: Scan for package vulnerabilities"
+      },
+      {
         "command": "cycode.auth",
         "title": "Cycode: Authenticate with service"
       },

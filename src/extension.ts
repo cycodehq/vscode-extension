@@ -17,6 +17,7 @@ import { IgnoreCommandConfig } from "./types/commands";
 import { ignore } from "./services/ignore";
 import { CycodeActions } from "./providers/CodeActions";
 import { CodelensProvider } from "./providers/CodelensProvider";
+import { scaScan } from "./services/scaScanner";
 
 export function activate(context: vscode.ExtensionContext) {
   extensionOutput.info("Cycode extension is now active");
@@ -109,6 +110,7 @@ function initCommands(
       await scan(context, params);
     }
   );
+
   const authCommand = vscode.commands.registerCommand(
     VscodeCommands.AuthCommandId,
     async () => {
@@ -183,8 +185,26 @@ function initCommands(
     }
   );
 
+  const scaScanCommand = vscode.commands.registerCommand(
+    VscodeCommands.ScaScanCommandId,
+    async () => {
+      if (validateConfig()) {
+        return;
+      }
+
+      const params = {
+        config,
+        workspaceFolderPath:
+          vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || "",
+        diagnosticCollection,
+      };
+      await scaScan(context, params);
+    }
+  );
+
   return [
     scanCommand,
+    scaScanCommand,
     authCommand,
     installCommand,
     uninstallCommand,
