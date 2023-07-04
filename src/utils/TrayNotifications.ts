@@ -70,6 +70,11 @@ export const showProblemsDetection = (numDetections: number) =>
       updateWorkspaceState("cycode.notifOpen", false);
     });
 
+  export const showInvalidCLIVersionError = (currentVersion: string, minVersion: string) =>
+  vscode.window.showErrorMessage(
+    `Cycode CLI version ${currentVersion} is not supported. Please upgrade to version ${minVersion} or higher.`
+  );
+
 export default {
   showSettingsError,
   showAuthFailed,

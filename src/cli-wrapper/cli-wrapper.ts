@@ -15,6 +15,19 @@ export const generateUserAgentCommandParam = (config: IConfig) => {
 };
 
 export const cliWrapper = {
+  runGetVersion: async (params: {
+    config: IConfig;
+    workspaceFolderPath: string;
+  }): Promise<CommandResult> => {
+    const { config } = params;
+    return await runCli(
+      config.cliPath,
+      params.workspaceFolderPath,
+      [CommandParameters.Version],
+      config.cliEnv,
+      true
+    );
+  },
   runScan: async (params: {
     config: IConfig;
     path: string;
