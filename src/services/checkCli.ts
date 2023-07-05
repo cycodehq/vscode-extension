@@ -1,9 +1,35 @@
 import * as vscode from "vscode";
+import * as semver from "semver";
 import extensionOutput from "../logging/extension-output";
 import cliWrapper from "../cli-wrapper/cli-wrapper";
 import statusBar from "../utils/status-bar";
 import { TrayNotificationTexts } from "../utils/texts";
 import { IConfig } from "../cli-wrapper/types";
+import { MinCLIVersion } from "../cli-wrapper/constants";
+import { showInvalidCLIVersionError } from "../utils/TrayNotifications";
+
+const validateCLI = async (params: {
+  workspaceFolderPath: string;
+  config: IConfig;
+}): Promise<boolean> => {
+  const { exitCode, result } = await cliWrapper.runGetVersion(params);
+
+  if (exitCode !== 0) {
+    return false;
+  }
+
+  extensionOutput.info("CLI found!");
+  const currentVersion = result.data.split(" ")[2].trim();
+
+  if (!semver.satisfies(currentVersion, `>=${MinCLIVersion}`)) {
+    extensionOutput.error(
+      `CLI version is ${result} but minimum required version is ${MinCLIVersion}`
+    );
+    showInvalidCLIVersionError(currentVersion, MinCLIVersion);
+  }
+
+  return true;
+};
 
 export async function checkCLI(
   context: vscode.ExtensionContext,
@@ -11,16 +37,15 @@ export async function checkCLI(
 ) {
   try {
     extensionOutput.info("Trying to run CLI...");
-    let { exitCode } = await cliWrapper.runUsage(params);
+    const cliExist = await validateCLI(params);
 
-    if (exitCode === 0) {
-      extensionOutput.info("CLI found!");
+    if (cliExist) {
       return;
     }
 
     // CLI is missing. try to install:
     extensionOutput.info("CLI not found. Trying to install...");
-    exitCode = (await cliWrapper.runInstall(params)).exitCode;
+    const exitCode = (await cliWrapper.runInstall(params)).exitCode;
 
     if (exitCode !== 0) {
       extensionOutput.error("Failed to install cycode CLI");
@@ -29,11 +54,12 @@ export async function checkCLI(
 
     // try again
     extensionOutput.info("Trying to run CLI after install...");
-    exitCode = (await cliWrapper.runUsage(params)).exitCode;
+    const cliExistAfterInstall = await validateCLI(params);
 
-    if (exitCode !== 0) {
+    if (!cliExistAfterInstall) {
       throw new Error("Failed to install cycode CLI");
     }
+
     extensionOutput.info("CLI Installed!");
   } catch (error) {
     extensionOutput.error("Error while checking if CLI exists: " + error);
