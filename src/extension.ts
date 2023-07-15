@@ -186,19 +186,21 @@ function initCommands(
   );
 
   const scaScanCommand = vscode.commands.registerCommand(
-    VscodeCommands.ScaScanCommandId,
+    VscodeCommands.scaScanCommandId,
     async () => {
       if (validateConfig()) {
         return;
       }
 
-      const params = {
-        config,
-        workspaceFolderPath:
-          vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || "",
-        diagnosticCollection,
-      };
-      await scaScan(context, params);
+      // iterate over workspace folders and scan each one
+      for (const workspaceFolder of vscode.workspace.workspaceFolders || []) {
+        const params = {
+          config,
+          workspaceFolderPath: workspaceFolder.uri.fsPath,
+          diagnosticCollection,
+        };
+        await scaScan(context, params);
+      }
     }
   );
 

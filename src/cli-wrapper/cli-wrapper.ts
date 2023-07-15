@@ -53,6 +53,30 @@ export const cliWrapper = {
       config.cliEnv
     );
   },
+  runScaScan: async (params: {
+    config: IConfig;
+    path: string;
+    workspaceFolderPath: string;
+  }): Promise<CommandResult> => {
+    const commandParams: string[] = [];
+    const { config } = params;
+
+    config.additionalParams.forEach((param) => {
+      commandParams.push(param);
+    });
+
+    commandParams.push(CliCommands.Scan);
+    commandParams.push(CommandParameters.OutputFormatJson);
+    commandParams.push(CliCommands.Path);
+    commandParams.push(params.path);
+
+    return await runCli(
+      config.cliPath,
+      params.workspaceFolderPath,
+      commandParams,
+      config.cliEnv
+    );
+  },
   runAuth: async (params: {
     config: IConfig;
     workspaceFolderPath: string;
