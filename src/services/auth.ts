@@ -7,6 +7,7 @@ import { validateCliCommonErrors } from "./common";
 import { setContext, updateGlobalState } from "../utils/context";
 import { VscodeCommands } from "../utils/commands";
 import { IConfig } from "../cli-wrapper/types";
+import { updateAuthState } from "../utils/auth/auth_common";
 
 export async function auth(
   context: vscode.ExtensionContext,
@@ -51,7 +52,7 @@ function handleAuthStatus(exitCode: number, result: any, error: string) {
   if (exitCode !== 0 || (result.data && result.data.includes("failed"))) {
     onAuthFailed();
   } else {
-    onAuthComplete();
+    updateAuthState(true);
     extensionOutput.info(
       "Auth completed: " + JSON.stringify({ result, error }, null, 3)
     );
@@ -62,17 +63,5 @@ export function onAuthFailed() {
   statusBar.showAuthError();
   TrayNotifications.showAuthFailed();
 
-  setContext("auth.isAuthenticating", false);
-  setContext("auth.isAuthed", false);
-  updateGlobalState("auth.isAuthed", false);
-}
-
-function onAuthComplete() {
-  statusBar.showDefault();
-  TrayNotifications.showAuthSuccess();
-
-  // Hide the authenticate button
-  setContext("auth.isAuthed", true);
-  setContext("auth.isAuthenticating", false);
-  updateGlobalState("auth.isAuthed", true);
+  updateAuthState(false);
 }
