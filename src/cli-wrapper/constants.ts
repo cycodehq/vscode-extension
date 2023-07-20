@@ -3,6 +3,7 @@ export enum CliCommands {
   Scan = "scan",
   Configure = "configure",
   Auth = "auth",
+  AuthCheck = "auth check",
   Ignore = "ignore",
 }
 

@@ -1,4 +1,4 @@
-import { IgnoreCommandConfig } from "../types/commands";
+import { CommandParams, IgnoreCommandConfig } from "../types/commands";
 import { CliCommands, CommandParameters } from "./constants";
 import { CommandResult, IConfig, UserAgent } from "./types";
 import { runCli } from "./runner";
@@ -65,6 +65,17 @@ export const cliWrapper = {
     });
     commandParams.push(generateUserAgentCommandParam(config));
     commandParams.push(CliCommands.Auth);
+
+    return await runCli(
+      config.cliPath,
+      params.workspaceFolderPath,
+      commandParams,
+      config.cliEnv
+    );
+  },
+  runAuthCheck: async (params: CommandParams): Promise<CommandResult> => {
+    const commandParams = [CliCommands.AuthCheck];
+    const { config } = params;
 
     return await runCli(
       config.cliPath,
