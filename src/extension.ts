@@ -17,6 +17,7 @@ import { IgnoreCommandConfig } from "./types/commands";
 import { ignore } from "./services/ignore";
 import { CycodeActions } from "./providers/CodeActions";
 import { CodelensProvider } from "./providers/CodelensProvider";
+import { authCheck } from "./services/auth_check";
 
 export function activate(context: vscode.ExtensionContext) {
   extensionOutput.info("Cycode extension is now active");
@@ -126,6 +127,23 @@ function initCommands(
     }
   );
 
+  const authCheckCommand = vscode.commands.registerCommand(
+    VscodeCommands.AuthCheck,
+    async () => {
+      if (validateConfig()) {
+        return;
+      }
+
+      const params = {
+        config,
+        workspaceFolderPath:
+          vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || "",
+      };
+
+      await authCheck(params);
+    }
+  );
+
   const installCommand = vscode.commands.registerCommand(
     VscodeCommands.InstallCommandId,
     async () => {
@@ -186,6 +204,7 @@ function initCommands(
   return [
     scanCommand,
     authCommand,
+    authCheckCommand,
     installCommand,
     uninstallCommand,
     openSettingsCommand,
