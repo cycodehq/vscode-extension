@@ -6,8 +6,8 @@ import { CommandParams } from "../types/commands";
 import {
   endAuthenticationProcess,
   onAuthFailure,
+  onAuthSuccess,
   startAuthenticationProcess,
-  updateAuthState,
 } from "../utils/auth/auth_common";
 import { prettyPrintJson } from "../utils/text_formatting";
 
@@ -58,10 +58,10 @@ export async function authCheck(params: CommandParams) {
 function handleAuthStatus<T extends object>(
   args: HandleAuthStatusArgs<T>
 ): void {
-  const { exitCode, result, error } = args;
+  const { exitCode, result } = args;
   isAuthCheckFailed({ exitCode, result })
     ? onAuthFailure()
-    : onAuthSuccess(result);
+    : onAuthCheckSuccess(result);
 }
 
 function isAuthCheckFailed(args: AuthCheckFailedArgs): boolean {
@@ -70,8 +70,8 @@ function isAuthCheckFailed(args: AuthCheckFailedArgs): boolean {
   return exitCode !== 0 || (data !== null && data.includes("failed"));
 }
 
-function onAuthSuccess(result: any): void {
-  updateAuthState(true);
+function onAuthCheckSuccess(result: any): void {
+  onAuthSuccess();
   const output = `Auth check completed with: ${prettyPrintJson(result)}`;
   extensionOutput.info(output);
 }

@@ -1,8 +1,8 @@
 import * as vscode from "vscode";
 import statusBar from "../utils/status-bar";
 import { TrayNotificationTexts } from "../utils/texts";
-import { onAuthFailed } from "./auth";
 import { getWorkspaceState, updateWorkspaceState } from "../utils/context";
+import { onAuthFailure } from "../utils/auth/auth_common";
 
 const cliBadAuthMessageId = "client id needed";
 const cliBadAuthMessageSecret = "client secret needed";
@@ -34,7 +34,7 @@ export const validateCliCommonErrors = (
     error.includes(cliBadAuthMessageSecret)
   ) {
     // update status bar
-    onAuthFailed();
+    onAuthFailure();
 
     return error;
   }

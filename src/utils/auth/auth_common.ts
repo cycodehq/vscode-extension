@@ -2,15 +2,6 @@ import TrayNotifications from "../TrayNotifications";
 import { setContext, updateGlobalState } from "../context";
 import statusBar from "../status-bar";
 
-export function updateAuthState(isAuthorized: boolean): void {
-  statusBar.showDefault();
-  TrayNotifications.showAuthSuccess();
-
-  // Hide the authenticate button
-  setContext("auth.isAuthed", isAuthorized);
-  updateGlobalState("auth.isAuthed", isAuthorized);
-}
-
 export function startAuthenticationProcess(): void {
   setContext("auth.isAuthenticating", true);
 }
@@ -20,8 +11,27 @@ export function endAuthenticationProcess(): void {
 }
 
 export function onAuthFailure(): void {
+  showAuthFailureNotification();
+  updateAuthState(false);
+}
+
+export function onAuthSuccess(): void {
+  showAuthSuccessNotification();
+  updateAuthState(true);
+}
+
+function showAuthFailureNotification(): void {
   statusBar.showAuthError();
   TrayNotifications.showAuthFailed();
+}
 
-  updateAuthState(false);
+function showAuthSuccessNotification(): void {
+  statusBar.showDefault();
+  TrayNotifications.showAuthSuccess();
+}
+
+function updateAuthState(isAuthorized: boolean): void {
+  // Hide the authenticate button
+  setContext("auth.isAuthed", isAuthorized);
+  updateGlobalState("auth.isAuthed", isAuthorized);
 }
