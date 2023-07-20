@@ -5,6 +5,7 @@ import { validateCliCommonErrors } from "./common";
 import { CommandParams } from "../types/commands";
 import {
   endAuthenticationProcess,
+  onAuthFailure,
   startAuthenticationProcess,
   updateAuthState,
 } from "../utils/auth/auth_common";
@@ -48,6 +49,7 @@ export async function authCheck(params: CommandParams) {
         handleAuthStatus(authCheckResult);
       } catch (error) {
         extensionOutput.error(`Error on a auth check: ${error}`);
+        onAuthFailure();
       }
     }
   );
@@ -58,8 +60,8 @@ function handleAuthStatus<T extends object>(
 ): void {
   const { exitCode, result, error } = args;
   isAuthCheckFailed({ exitCode, result })
-    ? onDeclineAuthCheck(error)
-    : onApproveAuthCheck(result);
+    ? onAuthFailure()
+    : onAuthSuccess(result);
 }
 
 function isAuthCheckFailed(args: AuthCheckFailedArgs): boolean {
@@ -68,14 +70,8 @@ function isAuthCheckFailed(args: AuthCheckFailedArgs): boolean {
   return exitCode !== 0 || (data !== null && data.includes("failed"));
 }
 
-function onApproveAuthCheck(result: any): void {
+function onAuthSuccess(result: any): void {
   updateAuthState(true);
   const output = `Auth check completed with: ${prettyPrintJson(result)}`;
-  extensionOutput.info(output);
-}
-
-function onDeclineAuthCheck(error: string): void {
-  updateAuthState(false);
-  const output = `Auth check completed with: ${prettyPrintJson({ error })}`;
   extensionOutput.info(output);
 }

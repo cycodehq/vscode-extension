@@ -123,7 +123,7 @@ function initCommands(
           vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || "",
       };
 
-      await auth(context, params);
+      await auth(params);
     }
   );
 

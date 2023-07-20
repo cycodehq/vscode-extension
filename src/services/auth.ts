@@ -1,21 +1,13 @@
 import * as vscode from "vscode";
 import { extensionOutput } from "../logging/extension-output";
 import { cliWrapper } from "../cli-wrapper/cli-wrapper";
-import statusBar from "../utils/status-bar";
-import TrayNotifications from "../utils/TrayNotifications";
 import { validateCliCommonErrors } from "./common";
 import { setContext, updateGlobalState } from "../utils/context";
-import { VscodeCommands } from "../utils/commands";
 import { IConfig } from "../cli-wrapper/types";
-import { updateAuthState } from "../utils/auth/auth_common";
+import { onAuthFailure, updateAuthState } from "../utils/auth/auth_common";
+import { CommandParams } from "../types/commands";
 
-export async function auth(
-  context: vscode.ExtensionContext,
-  params: {
-    config: IConfig;
-    workspaceFolderPath: string;
-  }
-) {
+export async function auth(params: CommandParams) {
   extensionOutput.showOutputTab();
 
   vscode.window.withProgress(
@@ -42,7 +34,7 @@ export async function auth(
         handleAuthStatus(exitCode, result, error);
       } catch (error) {
         extensionOutput.error("Error while creating scan: " + error);
-        onAuthFailed();
+        onAuthFailure();
       }
     }
   );
@@ -50,18 +42,11 @@ export async function auth(
 
 function handleAuthStatus(exitCode: number, result: any, error: string) {
   if (exitCode !== 0 || (result.data && result.data.includes("failed"))) {
-    onAuthFailed();
+    onAuthFailure();
   } else {
     updateAuthState(true);
     extensionOutput.info(
       "Auth completed: " + JSON.stringify({ result, error }, null, 3)
     );
   }
-}
-
-export function onAuthFailed() {
-  statusBar.showAuthError();
-  TrayNotifications.showAuthFailed();
-
-  updateAuthState(false);
 }
