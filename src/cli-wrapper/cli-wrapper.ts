@@ -74,8 +74,10 @@ export const cliWrapper = {
     );
   },
   runAuthCheck: async (params: CommandParams): Promise<CommandResult> => {
-    const commandParams = [CliCommands.AuthCheck];
+    const commandParams: string[] = [];
     const { config } = params;
+    commandParams.push(CommandParameters.OutputFormatJson);
+    commandParams.push(CliCommands.AuthCheck);
 
     return await runCli(
       config.cliPath,

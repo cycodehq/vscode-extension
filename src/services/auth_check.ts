@@ -11,17 +11,6 @@ import {
 } from "../utils/auth/auth_common";
 import { prettyPrintJson } from "../utils/text_formatting";
 
-interface AuthCheckFailedArgs {
-  exitCode: number;
-  result: any;
-}
-
-interface HandleAuthStatusArgs<T> {
-  exitCode: number;
-  result: T;
-  error: string;
-}
-
 export async function authCheck(params: CommandParams) {
   extensionOutput.showOutputTab();
 
@@ -38,7 +27,11 @@ export async function authCheck(params: CommandParams) {
         });
 
         const authCheckResult = await cliWrapper.runAuthCheck(params);
-        const { error, exitCode } = authCheckResult;
+        const {
+          error,
+          exitCode,
+          result: { result: isAuthenticated },
+        } = authCheckResult;
 
         endAuthenticationProcess();
 
@@ -46,32 +39,22 @@ export async function authCheck(params: CommandParams) {
           return;
         }
 
-        handleAuthStatus(authCheckResult);
+        handleAuthStatus(isAuthenticated);
       } catch (error) {
-        extensionOutput.error(`Error on a auth check: ${error}`);
+        const errorMessage = `Auth check failed to complete with the following error: ${error}`;
+        extensionOutput.error(prettyPrintJson({ errorMessage }));
         onAuthFailure();
       }
     }
   );
 }
 
-function handleAuthStatus<T extends object>(
-  args: HandleAuthStatusArgs<T>
-): void {
-  const { exitCode, result } = args;
-  isAuthCheckFailed({ exitCode, result })
-    ? onAuthFailure()
-    : onAuthCheckSuccess(result);
+function handleAuthStatus(isAuthenticated: boolean): void {
+  isAuthenticated === true ? onAuthCheckSuccess() : onAuthFailure();
 }
 
-function isAuthCheckFailed(args: AuthCheckFailedArgs): boolean {
-  const { exitCode, result } = args;
-  const { data } = result;
-  return exitCode !== 0 || (data !== null && data.includes("failed"));
-}
-
-function onAuthCheckSuccess(result: any): void {
+function onAuthCheckSuccess(): void {
   onAuthSuccess();
-  const output = `Auth check completed with: ${prettyPrintJson(result)}`;
+  const output = `Auth check completed successfully with an "authenticated" status`;
   extensionOutput.info(output);
 }
