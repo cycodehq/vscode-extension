@@ -32,7 +32,7 @@ export default class AuthenticatingView implements vscode.WebviewViewProvider {
       <html>
       <head>
         <meta charset="UTF-8">
-        <title>Login</title>
+        <title>Authenticating</title>
       </head>
       <style>
         #authenticating-container {
