@@ -27,15 +27,12 @@ const parseResult = (stdout: string): string | object => {
 };
 
 export const runCli = (args: RunCliArgs): Promise<CommandResult> => {
-  const {
-    cliPath,
-    cliEnv,
-    commandParams: params,
-    workspaceFolderPath,
-    printToOutput,
-  } = args;
+  const { cliPath, cliEnv, commandParams, workspaceFolderPath, printToOutput } =
+    args;
 
-  extensionOutput.info(`Running command: "${cliPath} ${params.join(" ")}`);
+  extensionOutput.info(
+    `Running command: "${cliPath} ${commandParams.join(" ")}`
+  );
 
   return new Promise((resolve, reject) => {
     let stderr = "";
@@ -51,7 +48,7 @@ export const runCli = (args: RunCliArgs): Promise<CommandResult> => {
       }
     };
 
-    childProcess = spawn(cliPath, params, {
+    childProcess = spawn(cliPath, commandParams, {
       cwd: workspaceFolderPath || os.homedir(),
       env: {
         ...process.env,

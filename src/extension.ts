@@ -39,11 +39,7 @@ export function activate(context: vscode.ExtensionContext) {
     statusBar.showAuthIsRequired();
   }
 
-  checkCLI(context, {
-    workspaceFolderPath:
-      vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || "",
-    config,
-  });
+  initExtension(context);
 
   const scanOnSave = vscode.workspace.onDidSaveTextDocument((document) => {
     if (
@@ -204,6 +200,14 @@ function initCommands(
     openSettingsCommand,
     ignoreCommand,
   ];
+}
+
+function initExtension(context: vscode.ExtensionContext): void {
+  checkCLI(context, {
+    workspaceFolderPath:
+      vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || "",
+    config,
+  }).then(() => authCheck(config));
 }
 
 // This method is called when your extension is deactivated
