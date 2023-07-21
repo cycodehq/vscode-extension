@@ -17,6 +17,9 @@ import { IgnoreCommandConfig } from "./types/commands";
 import { ignore } from "./services/ignore";
 import { CycodeActions } from "./providers/CodeActions";
 import { CodelensProvider } from "./providers/CodelensProvider";
+import ScanView from "./views/ScanView";
+import LoginView from "./views/LoginView";
+import AuthenticatingView from "./views/AuthenticatingView";
 
 export function activate(context: vscode.ExtensionContext) {
   extensionOutput.info("Cycode extension is now active");
@@ -61,6 +64,24 @@ export function activate(context: vscode.ExtensionContext) {
       );
     }
   });
+
+  const scanView = vscode.window.registerWebviewViewProvider(
+    ScanView.viewType,
+    new ScanView()
+  );
+  context.subscriptions.push(scanView);
+
+  const authenticatingView = vscode.window.registerWebviewViewProvider(
+    AuthenticatingView.viewType,
+    new AuthenticatingView()
+  );
+  context.subscriptions.push(authenticatingView);
+
+  const loginView = vscode.window.registerWebviewViewProvider(
+    LoginView.viewType,
+    new LoginView()
+  );
+  context.subscriptions.push(loginView);
 
   context.subscriptions.push(
     vscode.languages.registerCodeActionsProvider(
