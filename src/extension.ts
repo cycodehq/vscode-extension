@@ -65,23 +65,7 @@ export function activate(context: vscode.ExtensionContext) {
     }
   });
 
-  const scanView = vscode.window.registerWebviewViewProvider(
-    ScanView.viewType,
-    new ScanView()
-  );
-  context.subscriptions.push(scanView);
-
-  const authenticatingView = vscode.window.registerWebviewViewProvider(
-    AuthenticatingView.viewType,
-    new AuthenticatingView()
-  );
-  context.subscriptions.push(authenticatingView);
-
-  const loginView = vscode.window.registerWebviewViewProvider(
-    LoginView.viewType,
-    new LoginView()
-  );
-  context.subscriptions.push(loginView);
+  initActivityBar(context);
 
   context.subscriptions.push(
     vscode.languages.registerCodeActionsProvider(
@@ -99,6 +83,25 @@ export function activate(context: vscode.ExtensionContext) {
   );
 
   context.subscriptions.push(newStatusBar, ...commands, scanOnSave);
+}
+
+function initActivityBar(context: vscode.ExtensionContext): void {
+  const scanView = vscode.window.registerWebviewViewProvider(
+    ScanView.viewType,
+    new ScanView()
+  );
+
+  const authenticatingView = vscode.window.registerWebviewViewProvider(
+    AuthenticatingView.viewType,
+    new AuthenticatingView()
+  );
+
+  const loginView = vscode.window.registerWebviewViewProvider(
+    LoginView.viewType,
+    new LoginView()
+  );
+
+  context.subscriptions.push(...[scanView, authenticatingView, loginView]);
 }
 
 function initCommands(
