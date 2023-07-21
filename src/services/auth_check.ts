@@ -10,8 +10,9 @@ import {
   startAuthenticationProcess,
 } from "../utils/auth/auth_common";
 import { prettyPrintJson } from "../utils/text_formatting";
+import { IConfig } from "../cli-wrapper/types";
 
-export async function authCheck(params: CommandParams) {
+export async function authCheck(config: IConfig) {
   extensionOutput.showOutputTab();
 
   vscode.window.withProgress(
@@ -26,7 +27,7 @@ export async function authCheck(params: CommandParams) {
           message: `Authenticating check with Cycode...`,
         });
 
-        const authCheckResult = await cliWrapper.runAuthCheck(params);
+        const authCheckResult = await cliWrapper.runAuthCheck(config);
         const {
           error,
           exitCode,

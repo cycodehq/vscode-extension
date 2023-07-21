@@ -134,13 +134,7 @@ function initCommands(
         return;
       }
 
-      const params = {
-        config,
-        workspaceFolderPath:
-          vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || "",
-      };
-
-      await authCheck(params);
+      await authCheck(config);
     }
   );
 
