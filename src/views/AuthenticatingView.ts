@@ -25,13 +25,6 @@ export default class AuthenticatingView implements vscode.WebviewViewProvider {
 
     // Set the HTML content for the webview
     this._view.webview.html = this.getWebviewContent();
-
-    // Handle messages from the webview
-    this._view.webview.onDidReceiveMessage((message) => {
-      if (message.command === "runAuthCommand") {
-        vscode.commands.executeCommand("cycode.auth");
-      }
-    });
   }
 
   private getWebviewContent() {
