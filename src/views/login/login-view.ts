@@ -1,5 +1,7 @@
 import * as vscode from "vscode";
 import { loadHtmlFileInContext } from "../../utils/files";
+import { VscodeCommands } from "../../utils/commands";
+import { ExecuteCommandMessages } from "../utils";
 
 const htmlContentPath = "src/views/login/content.html";
 
@@ -40,8 +42,8 @@ export default class LoginView implements vscode.WebviewViewProvider {
 
     // Handle messages from the webview
     this._view.webview.onDidReceiveMessage((message) => {
-      if (message.command === "runAuthCommand") {
-        vscode.commands.executeCommand("cycode.auth");
+      if (message.command === ExecuteCommandMessages.Auth) {
+        vscode.commands.executeCommand(VscodeCommands.AuthCommandId);
       }
     });
   }

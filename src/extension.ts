@@ -204,7 +204,7 @@ function initCommands(
   );
 
   const openSettingsCommand = vscode.commands.registerCommand(
-    VscodeCommands.openSettingsCommandId,
+    VscodeCommands.OpenSettingsCommandId,
     async () => {
       vscode.commands.executeCommand("workbench.action.openSettings", "cycode");
     }

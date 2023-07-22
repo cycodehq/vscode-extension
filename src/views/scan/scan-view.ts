@@ -1,6 +1,8 @@
 import * as vscode from "vscode";
 import * as fs from "fs";
 import { loadHtmlFileInContext } from "../../utils/files";
+import { ExecuteCommandMessages } from "../utils";
+import { VscodeCommands } from "../../utils/commands";
 
 const htmlContentPath = "src/views/scan/content.html";
 
@@ -39,11 +41,11 @@ export default class ScanView implements vscode.WebviewViewProvider {
 
     // Handle messages from the webview
     this._view.webview.onDidReceiveMessage((message) => {
-      if (message.command === "runScanCommand") {
-        vscode.commands.executeCommand("cycode.scan");
+      if (message.command === ExecuteCommandMessages.Scan) {
+        vscode.commands.executeCommand(VscodeCommands.ScanCommandId);
       }
-      if (message.command === "runOpenCycodeSettingsCommand") {
-        vscode.commands.executeCommand("cycode.openSettings");
+      if (message.command === ExecuteCommandMessages.OpenCycodeSettings) {
+        vscode.commands.executeCommand(VscodeCommands.OpenSettingsCommandId);
       }
     });
   }
