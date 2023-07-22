@@ -84,7 +84,7 @@
     "viewsContainers": {
       "activitybar": [
         {
-          "id": "activitybar",
+          "id": "cycode",
           "title": "Cycode",
           "icon": "resources/cycode24.png"
         }
@@ -98,7 +98,7 @@
       ]
     },
     "views": {
-      "activitybar": [
+      "cycode": [
         {
           "type": "webview",
           "id": "activity_bar.login",
