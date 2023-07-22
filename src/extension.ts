@@ -17,9 +17,11 @@ import { IgnoreCommandConfig } from "./types/commands";
 import { ignore } from "./services/ignore";
 import { CycodeActions } from "./providers/CodeActions";
 import { CodelensProvider } from "./providers/CodelensProvider";
-import ScanView from "./views/ScanView";
-import LoginView from "./views/LoginView";
-import AuthenticatingView from "./views/AuthenticatingView";
+import ScanView from "./views/scan/scan-view";
+import LoginView from "./views/login/login-view";
+import AuthenticatingView from "./views/authenticating/authenticating-view";
+import * as path from "path";
+import * as fs from "fs";
 
 export function activate(context: vscode.ExtensionContext) {
   extensionOutput.info("Cycode extension is now active");
@@ -86,19 +88,20 @@ export function activate(context: vscode.ExtensionContext) {
 }
 
 function initActivityBar(context: vscode.ExtensionContext): void {
+  const { extensionUri } = context;
   const scanView = vscode.window.registerWebviewViewProvider(
     ScanView.viewType,
-    new ScanView()
+    new ScanView(extensionUri)
   );
 
   const authenticatingView = vscode.window.registerWebviewViewProvider(
     AuthenticatingView.viewType,
-    new AuthenticatingView()
+    new AuthenticatingView(extensionUri)
   );
 
   const loginView = vscode.window.registerWebviewViewProvider(
     LoginView.viewType,
-    new LoginView()
+    new LoginView(extensionUri)
   );
 
   context.subscriptions.push(...[scanView, authenticatingView, loginView]);
