@@ -11,4 +11,8 @@ export enum CommandParameters {
   Usage = "--help",
   ByRule = "--by-rule",
   ByValue = "--by-value",
+  UserAgent = "--user-agent",
+  Version = "--version",
 }
+
+export const MinCLIVersion = "0.2.3";

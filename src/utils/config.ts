@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { extensionId } from "./texts";
+import { extensionId, publisherId } from "./texts";
 import { showSettingsError } from "./TrayNotifications";
 
 export const config = {
@@ -30,6 +30,19 @@ export const config = {
       .get("additionalParameters") as string;
 
     return additionalParams ? additionalParams.split(" ") : [];
+  },
+  get agentName() {
+    return "vscode_extension";
+  },
+  get agentVersion() {
+    return vscode.extensions.getExtension(`${publisherId}.${extensionId}`)
+      ?.packageJSON.version;
+  },
+  get envName() {
+    return "vscode";
+  },
+  get envVersion() {
+    return vscode.version;
   },
 };
 

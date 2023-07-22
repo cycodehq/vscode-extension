@@ -1,4 +1,5 @@
 export const extensionId = "cycode";
+export const publisherId = "cycode";
 export const extensionName = "Cycode";
 export const scanOnSaveProperty = "scanOnSave";
 
