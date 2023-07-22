@@ -77,6 +77,7 @@ export function activate(context: vscode.ExtensionContext) {
     new CodelensProvider()
   );
 
+  //check verified commit
   context.subscriptions.push(newStatusBar, ...commands, scanOnSave);
 }
 
