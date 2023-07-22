@@ -1,14 +1,27 @@
 import * as vscode from "vscode";
 import { loadHtmlFileInContext } from "../utils/files";
+import { VscodeCommands } from "../utils/commands";
+import { ExecuteCommandMessages } from "./utils";
+
+export interface ActionCommandMapping {
+  commandMessage: ExecuteCommandMessages;
+  command: VscodeCommands;
+}
 
 export abstract class CycodeView implements vscode.WebviewViewProvider {
   private _view?: vscode.WebviewView;
   private extensionUri: vscode.Uri;
   private htmlContentPath: string;
+  private actionCommandMapping?: ActionCommandMapping[];
 
-  constructor(extensionUri: vscode.Uri, htmlContentPath: string) {
+  constructor(
+    extensionUri: vscode.Uri,
+    htmlContentPath: string,
+    actionCommandMapping?: ActionCommandMapping[]
+  ) {
     this.extensionUri = extensionUri;
     this.htmlContentPath = htmlContentPath;
+    this.actionCommandMapping = actionCommandMapping;
   }
 
   public resolveWebviewView(
@@ -35,5 +48,18 @@ export abstract class CycodeView implements vscode.WebviewViewProvider {
       extensionUri: this.extensionUri,
       path: this.htmlContentPath,
     });
+
+    // Register onDidReceiveMessage listeners for each command
+    this.actionCommandMapping?.forEach(({ commandMessage, command }) => {
+      this._view?.webview.onDidReceiveMessage((message) => {
+        if (message.command === commandMessage) {
+          vscode.commands.executeCommand(command);
+        }
+      });
+    });
+  }
+
+  public getView() {
+    return this._view;
   }
 }
