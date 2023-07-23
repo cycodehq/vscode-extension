@@ -17,8 +17,16 @@ export function loadHtmlFileInContext(args: LoadFileInContext): string {
   return loadFileInExtensionContext(filePathInContext).toString();
 }
 
-function loadFileInExtensionContext(filePath: string) {
-  return fs.readFileSync(filePath);
+function loadFileInExtensionContext(...filePath: string[]) {
+  for (const pathSegment of filePath) {
+    if (pathSegment.includes("..")) {
+      throw new Error(
+        `Couldn't load file in extension context, given invalid file - ${filePath}`
+      );
+    }
+  }
+
+  return fs.readFileSync(filePath.join("/"));
 }
 
 function getFilePathInExtensionContext(args: FilePathInContextArgs): string {
