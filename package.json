@@ -64,6 +64,10 @@
         "title": "Cycode: Authenticate with service"
       },
       {
+        "command": "cycode.auth.check",
+        "title": "Cycode: Auth Check"
+      },
+      {
         "command": "cycode.install",
         "title": "Cycode: Install CLI with pip3"
       },

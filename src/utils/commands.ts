@@ -7,4 +7,5 @@ export enum VscodeCommands {
   OpenSettingsCommandId = "cycode.openSettings",
   ShowProblemsTab = "workbench.action.problems.focus",
   ShowCycodeView = "workbench.view.extension.cycode",
+  AuthCheck = "cycode.auth.check",
 }
