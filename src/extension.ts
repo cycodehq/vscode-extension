@@ -17,6 +17,7 @@ import { IgnoreCommandConfig } from "./types/commands";
 import { ignore } from "./services/ignore";
 import { CycodeActions } from "./providers/CodeActions";
 import { CodelensProvider } from "./providers/CodelensProvider";
+import { authCheck } from "./services/auth_check";
 
 export function activate(context: vscode.ExtensionContext) {
   extensionOutput.info("Cycode extension is now active");
@@ -38,11 +39,7 @@ export function activate(context: vscode.ExtensionContext) {
     statusBar.showAuthIsRequired();
   }
 
-  checkCLI(context, {
-    workspaceFolderPath:
-      vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || "",
-    config,
-  });
+  initExtension(context);
 
   const scanOnSave = vscode.workspace.onDidSaveTextDocument((document) => {
     if (
@@ -122,7 +119,18 @@ function initCommands(
           vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || "",
       };
 
-      await auth(context, params);
+      await auth(params);
+    }
+  );
+
+  const authCheckCommand = vscode.commands.registerCommand(
+    VscodeCommands.AuthCheck,
+    async () => {
+      if (validateConfig()) {
+        return;
+      }
+
+      await authCheck(config);
     }
   );
 
@@ -186,11 +194,20 @@ function initCommands(
   return [
     scanCommand,
     authCommand,
+    authCheckCommand,
     installCommand,
     uninstallCommand,
     openSettingsCommand,
     ignoreCommand,
   ];
+}
+
+function initExtension(context: vscode.ExtensionContext): void {
+  checkCLI(context, {
+    workspaceFolderPath:
+      vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || "",
+    config,
+  }).then(() => authCheck(config));
 }
 
 // This method is called when your extension is deactivated
