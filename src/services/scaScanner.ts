@@ -71,7 +71,7 @@ export async function scaScan(
 
         // Show in problems tab
         await handleScanDetections(
-          staticResults,
+          staticResults, //TODO:: REMOVE
           // filePath,
           params.diagnosticCollection
           // document
@@ -84,6 +84,7 @@ export async function scaScan(
         updateWorkspaceState("scan.isScanning", false);
 
         vscode.window.showErrorMessage(TrayNotificationTexts.ScanError);
+        progress.report({ increment: 100 });
       }
     }
   );
@@ -102,7 +103,10 @@ export const detectionsToDiagnostings = async (
 
     let message = `Severity: ${detection.severity}\n`;
     message += `${detection.message}\n`;
-    message += `Rule ID: ${detection.detection_rule_id}\n`;
+    if (detection_details.alert?.first_patched_version) {
+      message += `First patched version: ${detection_details.alert?.first_patched_version}\n`;
+    }
+    message += `Rule ID: ${detection.detection_rule_id}`;
 
     const diagnostic = new vscode.Diagnostic(
       document.lineAt(detection_details.line_in_file).range,
@@ -121,9 +125,7 @@ export const detectionsToDiagnostings = async (
 
 const handleScanDetections = async (
   result: any,
-  // filePath: string,
   diagnosticCollection: vscode.DiagnosticCollection
-  // document: vscode.TextDocument
 ) => {
   if (result.detections) {
     const diagnostics = await detectionsToDiagnostings(result.detections);

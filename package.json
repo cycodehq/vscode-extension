@@ -46,6 +46,12 @@
           "description": "Scan your files for secrets upon save. If auto-scan disabled you can still trigger scans manually from the command palette. Open the command palette with `Ctrl+Shift+P` and search for `Cycode: Scan for vulnerabilities`.",
           "markdownDescription": "Perform a scan on save"
         },
+        "cycode.scaScanOnOpen": {
+          "type": "boolean",
+          "default": "true",
+          "description": "Scan your projects for vulnerabilities. If auto-scan disabled you can still trigger scans manually from the command palette. Open the command palette with `Ctrl+Shift+P` and search for `Cycode`.",
+          "markdownDescription": "Perform a scan on open"
+        },
         "cycode.additionalParameters": {
           "type": "string",
           "default": "",

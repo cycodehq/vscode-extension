@@ -6,7 +6,12 @@ import { scan } from "./services/scanner";
 import { auth } from "./services/auth";
 import { install } from "./services/install";
 import { uninstall } from "./services/uninstall";
-import { extensionName, extensionId, scanOnSaveProperty } from "./utils/texts";
+import {
+  extensionName,
+  extensionId,
+  scanOnSaveProperty,
+  scaScanOnOpenProperty,
+} from "./utils/texts";
 import { VscodeCommands } from "./utils/commands";
 import statusBar from "./utils/status-bar";
 import extensionContext from "./utils/context";
@@ -19,7 +24,7 @@ import { CycodeActions } from "./providers/CodeActions";
 import { CodelensProvider } from "./providers/CodelensProvider";
 import { scaScan } from "./services/scaScanner";
 
-export function activate(context: vscode.ExtensionContext) {
+export async function activate(context: vscode.ExtensionContext) {
   extensionOutput.info("Cycode extension is now active");
 
   extensionContext.initContext(context);
@@ -39,17 +44,52 @@ export function activate(context: vscode.ExtensionContext) {
     statusBar.showAuthIsRequired();
   }
 
-  checkCLI(context, {
+  await checkCLI(context, {
     workspaceFolderPath:
       vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || "",
     config,
   });
+
+  if (
+    vscode.workspace.getConfiguration(extensionId).get(scaScanOnOpenProperty)
+  ) {
+    // sca scan
+    if (validateConfig()) {
+      return;
+    }
+    const workspaceFolderPath =
+      vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || "";
+    scaScan(context, {
+      config,
+      workspaceFolderPath,
+      diagnosticCollection,
+    });
+  }
 
   const scanOnSave = vscode.workspace.onDidSaveTextDocument((document) => {
     if (
       vscode.workspace.getConfiguration(extensionId).get(scanOnSaveProperty)
     ) {
       if (validateConfig()) {
+        return;
+      }
+
+      // if file name is package.json or package-lock.json, run sca scan
+      if (
+        document.fileName.includes("package.json") ||
+        document.fileName.includes("package-lock.json")
+      ) {
+        scaScan(
+          context,
+          {
+            config,
+            workspaceFolderPath:
+              vscode.workspace.getWorkspaceFolder(document.uri)?.uri.fsPath ||
+              "",
+            diagnosticCollection,
+          },
+          document.fileName
+        );
         return;
       }
 

@@ -65,7 +65,10 @@ export const cliWrapper = {
       commandParams.push(param);
     });
 
+    commandParams.push(generateUserAgentCommandParam(config));
     commandParams.push(CliCommands.Scan);
+    commandParams.push(CommandParameters.scanType);
+    commandParams.push(CommandParameters.SCAScanType);
     commandParams.push(CommandParameters.OutputFormatJson);
     commandParams.push(CliCommands.Path);
     commandParams.push(params.path);
