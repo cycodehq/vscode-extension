@@ -9,7 +9,7 @@ export interface ActionCommandMapping {
 }
 
 export abstract class CycodeView implements vscode.WebviewViewProvider {
-  private _view?: vscode.WebviewView;
+  protected _view?: vscode.WebviewView;
   private extensionUri: vscode.Uri;
   private htmlContentPath: string;
   private actionCommandMapping?: ActionCommandMapping[];
@@ -57,9 +57,5 @@ export abstract class CycodeView implements vscode.WebviewViewProvider {
         }
       });
     });
-  }
-
-  public getView() {
-    return this._view;
   }
 }
