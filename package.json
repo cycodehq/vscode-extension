@@ -120,6 +120,12 @@
           "id": "activity_bar.scanView",
           "name": "scan",
           "when": "cycode:auth.isAuthed"
+        },
+        {
+          "type": "tree",
+          "id": "scan.treeView",
+          "name": "Hardcoded Secrets",
+          "when": "cycode:scan.hasDetections"
         }
       ]
     },
