@@ -8,11 +8,16 @@ import {
   extensionId,
 } from "../utils/texts";
 import { validateCliCommonErrors } from "./common";
-import { VscodeCommands } from "../utils/commands";
-import { getWorkspaceState, updateWorkspaceState } from "../utils/context";
+import {
+  getWorkspaceState,
+  setContext,
+  updateWorkspaceState,
+} from "../utils/context";
 import { Detection } from "../types/detection";
 import { IConfig } from "../cli-wrapper/types";
 import TrayNotifications from "../utils/TrayNotifications";
+import { refreshHardcodedSecretsTreeViewData } from "../providers/tree-data-providers/utils";
+import { HardcodedSecretsTree } from "../providers/tree-data-providers/types";
 
 // Entry
 export async function scan(
@@ -22,6 +27,7 @@ export async function scan(
     diagnosticCollection: vscode.DiagnosticCollection;
     config: IConfig;
   },
+  hardcodedSecretsTree?: HardcodedSecretsTree,
   extFilePath?: string
 ) {
   try {
@@ -71,7 +77,8 @@ export async function scan(
       result,
       filePath,
       params.diagnosticCollection,
-      document
+      document,
+      hardcodedSecretsTree
     );
 
     statusBar.showScanComplete();
@@ -103,7 +110,7 @@ export const detectionsToDiagnostings = (
         return;
       }
 
-      let message = "Severity: High\n";
+      let message = `Severity: ${detection.severity}\n`;
       message += `${detection.type}: ${detection.message.replace(
         "within '' repository",
         ""
@@ -127,14 +134,19 @@ export const detectionsToDiagnostings = (
 };
 
 const handleScanDetections = (
-  result: any,
+  result: { detections?: Detection[] },
   filePath: string,
   diagnosticCollection: vscode.DiagnosticCollection,
-  document: vscode.TextDocument
+  document: vscode.TextDocument,
+  hardcodedSecretsTree?: HardcodedSecretsTree
 ) => {
   let diagnostics = [];
-  if (result.detections) {
-    diagnostics = detectionsToDiagnostings(result.detections, document) || [];
+  const { detections } = result;
+  const hasDetections = detections !== undefined && detections.length > 0;
+  setContext("scan.hasDetections", hasDetections);
+
+  if (detections !== undefined) {
+    diagnostics = detectionsToDiagnostings(detections, document) || [];
     const uri = vscode.Uri.file(filePath);
     diagnosticCollection.set(uri, diagnostics); // Show in problems tab
 
@@ -142,9 +154,14 @@ const handleScanDetections = (
       return;
     }
 
-    if (result.detections.length && !getWorkspaceState("cycode.notifOpen")) {
+    if (detections.length && !getWorkspaceState("cycode.notifOpen")) {
       updateWorkspaceState("cycode.notifOpen", true);
       TrayNotifications.showProblemsDetection(diagnostics.length);
     }
+
+    refreshHardcodedSecretsTreeViewData({
+      detections,
+      hardcodedSecretsTree,
+    });
   }
 };

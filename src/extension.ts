@@ -21,6 +21,8 @@ import ScanView from "./views/scan/scan-view";
 import LoginView from "./views/login/login-view";
 import AuthenticatingView from "./views/authenticating/authenticating-view";
 import { authCheck } from "./services/auth_check";
+import { HardcodedSecretsTree } from "./providers/tree-data-providers/types";
+import { HardcodedSecretsTreeDataProvider } from "./providers/tree-data-providers/hardcoded-secrets";
 
 export function activate(context: vscode.ExtensionContext) {
   extensionOutput.info("Cycode extension is now active");
@@ -35,7 +37,14 @@ export function activate(context: vscode.ExtensionContext) {
 
   const isAuthed = extensionContext.getGlobalState("auth.isAuthed");
   extensionContext.setContext("auth.isAuthed", !!isAuthed);
-  const commands = initCommands(context, diagnosticCollection);
+
+  const hardCodedSecretsTree = createHardcodedSecretsTree(context);
+
+  const commands = initCommands(
+    context,
+    diagnosticCollection,
+    hardCodedSecretsTree
+  );
   const newStatusBar = statusBar.create();
 
   if (!isAuthed) {
@@ -43,24 +52,6 @@ export function activate(context: vscode.ExtensionContext) {
   }
 
   initExtension(context);
-
-  const scanOnSave = vscode.workspace.onDidSaveTextDocument((document) => {
-    if (
-      vscode.workspace.getConfiguration(extensionId).get(scanOnSaveProperty)
-    ) {
-      if (validateConfig()) {
-        return;
-      }
-
-      const workspaceFolderPath =
-        vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || "";
-      scan(
-        context,
-        { config, workspaceFolderPath, diagnosticCollection },
-        document.fileName
-      );
-    }
-  });
 
   initActivityBar(context);
 
@@ -79,7 +70,44 @@ export function activate(context: vscode.ExtensionContext) {
     new CodelensProvider()
   );
 
+  const scanOnSave = vscode.workspace.onDidSaveTextDocument((document) => {
+    if (
+      vscode.workspace.getConfiguration(extensionId).get(scanOnSaveProperty)
+    ) {
+      if (validateConfig()) {
+        return;
+      }
+
+      const workspaceFolderPath =
+        vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || "";
+      scan(
+        context,
+        { config, workspaceFolderPath, diagnosticCollection },
+        hardCodedSecretsTree,
+        document.fileName
+      );
+    }
+  });
+
   context.subscriptions.push(newStatusBar, ...commands, scanOnSave);
+}
+
+function createHardcodedSecretsTree(
+  context: vscode.ExtensionContext
+): HardcodedSecretsTree {
+  const provider = new HardcodedSecretsTreeDataProvider([]);
+  const view = vscode.window.createTreeView("scan.treeView", {
+    treeDataProvider: provider,
+    canSelectMany: true,
+  });
+
+  vscode.window.registerTreeDataProvider("scan.treeView", provider);
+  context.subscriptions.push(
+    vscode.commands.registerCommand("cycode.showTreeView", () => {
+      view;
+    })
+  );
+  return { view, provider };
 }
 
 function initActivityBar(context: vscode.ExtensionContext): void {
@@ -104,7 +132,8 @@ function initActivityBar(context: vscode.ExtensionContext): void {
 
 function initCommands(
   context: vscode.ExtensionContext,
-  diagnosticCollection: vscode.DiagnosticCollection
+  diagnosticCollection: vscode.DiagnosticCollection,
+  hardcodedSecretsTree: HardcodedSecretsTree
 ) {
   const scanCommand = vscode.commands.registerCommand(
     VscodeCommands.ScanCommandId,
@@ -128,7 +157,7 @@ function initCommands(
           vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || "",
         diagnosticCollection,
       };
-      await scan(context, params);
+      await scan(context, params, hardcodedSecretsTree);
     }
   );
   const authCommand = vscode.commands.registerCommand(
