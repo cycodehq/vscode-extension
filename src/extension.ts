@@ -99,7 +99,7 @@ function initActivityBar(context: vscode.ExtensionContext): void {
     new LoginView(extensionUri)
   );
 
-  context.subscriptions.push(...[scanView, authenticatingView, loginView]);
+  context.subscriptions.push(scanView, authenticatingView, loginView);
 }
 
 function initCommands(
