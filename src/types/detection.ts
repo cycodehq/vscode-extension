@@ -2,6 +2,7 @@ export type Detection = {
   type: string;
   detection_rule_id: string;
   detection_type_id: string;
+  severity: string;
   message: string;
   detection_details: {
     sha512: string;
