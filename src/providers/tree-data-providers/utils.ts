@@ -20,6 +20,8 @@ type HardcodedDisplayedData = {
 
 type SeverityCounted = { [severity: string]: number };
 
+const VSCODE_ENTRY_LINE_NUMBER = 1;
+
 export function refreshHardcodedSecretsTreeViewData(
   args: RefreshTreeViewDataArgs
 ): void {
@@ -49,7 +51,7 @@ function mapDetectionsByFileName(
 
     const valueItem: HardcodedDisplayedData = {
       severityFirstLetter: mapSeverityToFirstLetter(severity),
-      lineNumber: line,
+      lineNumber: line + VSCODE_ENTRY_LINE_NUMBER, // CLI starts counting from 0, although vscode starts from line 1.
       type,
     };
 
