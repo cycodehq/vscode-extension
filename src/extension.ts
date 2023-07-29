@@ -22,7 +22,8 @@ import LoginView from "./views/login/login-view";
 import AuthenticatingView from "./views/authenticating/authenticating-view";
 import { authCheck } from "./services/auth_check";
 import { HardcodedSecretsTree } from "./providers/tree-data-providers/types";
-import { HardcodedSecretsTreeDataProvider } from "./providers/tree-data-providers/hardcoded-secrets";
+import { HardcodedSecretsTreeDataProvider } from "./providers/tree-data-providers/hardcoded-secrets-provider";
+import { HardcodedSecretsTreeItem } from "./providers/tree-data-providers/hardcoded-secrets-item";
 
 export function activate(context: vscode.ExtensionContext) {
   extensionOutput.info("Cycode extension is now active");
@@ -96,16 +97,16 @@ function createHardcodedSecretsTree(
   context: vscode.ExtensionContext
 ): HardcodedSecretsTree {
   const provider = new HardcodedSecretsTreeDataProvider([]);
-  const view = vscode.window.createTreeView("scan.treeView", {
+  const view = vscode.window.createTreeView(HardcodedSecretsTreeItem.viewType, {
     treeDataProvider: provider,
     canSelectMany: true,
   });
 
-  vscode.window.registerTreeDataProvider("scan.treeView", provider);
   context.subscriptions.push(
-    vscode.commands.registerCommand("cycode.showTreeView", () => {
-      view;
-    })
+    vscode.window.registerTreeDataProvider(
+      HardcodedSecretsTreeItem.viewType,
+      provider
+    )
   );
   return { view, provider };
 }

@@ -1,7 +1,5 @@
-import {
-  HardcodedSecretsTreeDataProvider,
-  HardcodedSecretsTreeItem,
-} from "./hardcoded-secrets";
+import { HardcodedSecretsTreeItem } from "./hardcoded-secrets-item";
+import { HardcodedSecretsTreeDataProvider } from "./hardcoded-secrets-provider";
 
 import * as vscode from "vscode";
 

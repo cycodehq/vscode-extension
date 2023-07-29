@@ -1,10 +1,8 @@
 import * as vscode from "vscode";
-
-interface HardcodedSecret {
-  readonly severityFirstLetter: string;
-  readonly lineNumber: number;
-  readonly type: string;
-}
+import {
+  HardcodedSecret,
+  HardcodedSecretsTreeItem,
+} from "./hardcoded-secrets-item";
 
 interface SetViewTitleArgs {
   hardcodedSecretsTreeView: vscode.TreeView<HardcodedSecretsTreeItem>;
@@ -75,20 +73,5 @@ export class HardcodedSecretsTreeDataProvider
   setViewTitle(args: SetViewTitleArgs): void {
     const { hardcodedSecretsTreeView, title } = args;
     hardcodedSecretsTreeView.title = title;
-  }
-}
-
-export class HardcodedSecretsTreeItem extends vscode.TreeItem {
-  constructor(
-    public readonly title: string,
-    public readonly collapsibleState: vscode.TreeItemCollapsibleState,
-    public readonly hardcodedSecrets?: HardcodedSecret[]
-  ) {
-    super(title, collapsibleState);
-    this.tooltip = `${this.title}`;
-    this.description =
-      this.hardcodedSecrets !== undefined
-        ? `${this.hardcodedSecrets.length} vulnerabilities`
-        : "";
   }
 }

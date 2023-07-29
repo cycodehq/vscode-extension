@@ -1,5 +1,5 @@
 import { Detection } from "../../types/detection";
-import { FileScanResults } from "./hardcoded-secrets";
+import { FileScanResults } from "./hardcoded-secrets-provider";
 import { HardcodedSecretsTree, SeverityFirstLetter } from "./types";
 
 interface SetViewTitleArgs {
