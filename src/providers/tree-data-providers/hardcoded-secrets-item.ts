@@ -7,7 +7,7 @@ export interface HardcodedSecret {
 }
 
 export class HardcodedSecretsTreeItem extends vscode.TreeItem {
-  public static readonly viewType = "scan.treeView";
+  public static readonly viewType = "scan.hardcodedSecretsTreeView";
   constructor(
     public readonly title: string,
     public readonly collapsibleState: vscode.TreeItemCollapsibleState,
