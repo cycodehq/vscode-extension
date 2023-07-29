@@ -119,7 +119,7 @@
           "type": "webview",
           "id": "activity_bar.scanView",
           "name": "scan",
-          "when": "cycode:auth.isAuthed"
+          "when": "cycode:auth.isAuthed && !cycode:scan.hasDetections"
         },
         {
           "type": "tree",
