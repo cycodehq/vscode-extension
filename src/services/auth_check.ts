@@ -2,13 +2,7 @@ import * as vscode from "vscode";
 import { extensionOutput } from "../logging/extension-output";
 import { cliWrapper } from "../cli-wrapper/cli-wrapper";
 import { validateCliCommonErrors } from "./common";
-import { CommandParams } from "../types/commands";
-import {
-  endAuthenticationProcess,
-  onAuthFailure,
-  onAuthSuccess,
-  startAuthenticationProcess,
-} from "../utils/auth/auth_common";
+import { onAuthFailure, onAuthSuccess } from "../utils/auth/auth_common";
 import { prettyPrintJson } from "../utils/text_formatting";
 import { IConfig } from "../cli-wrapper/types";
 
@@ -21,8 +15,6 @@ export async function authCheck(config: IConfig) {
     },
     async (progress) => {
       try {
-        startAuthenticationProcess();
-
         progress.report({
           message: `Authenticating check with Cycode...`,
         });
@@ -33,8 +25,6 @@ export async function authCheck(config: IConfig) {
           exitCode,
           result: { result: isAuthenticated },
         } = authCheckResult;
-
-        endAuthenticationProcess();
 
         if (validateCliCommonErrors(error, exitCode)) {
           return;

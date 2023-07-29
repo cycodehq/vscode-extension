@@ -1,5 +1,6 @@
 import * as vscode from "vscode";
 import * as fs from "fs";
+import * as path from "path";
 
 interface FilePathInContextArgs {
   extensionUri: vscode.Uri;
@@ -17,16 +18,17 @@ export function loadHtmlFileInContext(args: LoadFileInContext): string {
   return loadFileInExtensionContext(filePathInContext).toString();
 }
 
-function loadFileInExtensionContext(...filePath: string[]) {
-  for (const pathSegment of filePath) {
-    if (pathSegment.includes("..")) {
-      throw new Error(
-        `Couldn't load file in extension context, given invalid file - ${filePath}`
-      );
-    }
+function loadFileInExtensionContext(filePath: string) {
+  const givenPath = path.join(filePath);
+  const normalizedPath = path.normalize(givenPath);
+
+  if (normalizedPath !== givenPath) {
+    throw new Error(
+      `Invalid file path ${filePath}. The path contains '..' or '.'.`
+    );
   }
 
-  return fs.readFileSync(filePath.join("/"));
+  return fs.readFileSync(givenPath);
 }
 
 function getFilePathInExtensionContext(args: FilePathInContextArgs): string {
