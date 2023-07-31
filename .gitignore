@@ -10,6 +10,7 @@ tsconfig.lsif.json
 dist/
 .vscode-test/
 *.log
+**/.vscode/
 
 # Extension files
 *.vsix

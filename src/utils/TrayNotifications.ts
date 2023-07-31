@@ -9,7 +9,7 @@ export const showSettingsError = (message: string) => {
     .showInformationMessage(message, TrayNotificationTexts.OpenSettings)
     .then((buttonPressed) => {
       if (buttonPressed === TrayNotificationTexts.OpenSettings) {
-        vscode.commands.executeCommand(VscodeCommands.openSettingsCommandId);
+        vscode.commands.executeCommand(VscodeCommands.OpenSettingsCommandId);
       }
       updateWorkspaceState("cycode.notifOpen", false);
     });
@@ -70,7 +70,10 @@ export const showProblemsDetection = (numDetections: number) =>
       updateWorkspaceState("cycode.notifOpen", false);
     });
 
-  export const showInvalidCLIVersionError = (currentVersion: string, minVersion: string) =>
+export const showInvalidCLIVersionError = (
+  currentVersion: string,
+  minVersion: string
+) =>
   vscode.window.showErrorMessage(
     `Cycode CLI version ${currentVersion} is not supported. Please upgrade to version ${minVersion} or higher.`
   );

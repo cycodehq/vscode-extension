@@ -17,6 +17,9 @@ import { IgnoreCommandConfig } from "./types/commands";
 import { ignore } from "./services/ignore";
 import { CycodeActions } from "./providers/CodeActions";
 import { CodelensProvider } from "./providers/CodelensProvider";
+import ScanView from "./views/scan/scan-view";
+import LoginView from "./views/login/login-view";
+import AuthenticatingView from "./views/authenticating/authenticating-view";
 import { authCheck } from "./services/auth_check";
 
 export function activate(context: vscode.ExtensionContext) {
@@ -59,6 +62,8 @@ export function activate(context: vscode.ExtensionContext) {
     }
   });
 
+  initActivityBar(context);
+
   context.subscriptions.push(
     vscode.languages.registerCodeActionsProvider(
       { scheme: "file", language: "*" },
@@ -75,6 +80,26 @@ export function activate(context: vscode.ExtensionContext) {
   );
 
   context.subscriptions.push(newStatusBar, ...commands, scanOnSave);
+}
+
+function initActivityBar(context: vscode.ExtensionContext): void {
+  const { extensionUri } = context;
+  const scanView = vscode.window.registerWebviewViewProvider(
+    ScanView.viewType,
+    new ScanView(extensionUri)
+  );
+
+  const authenticatingView = vscode.window.registerWebviewViewProvider(
+    AuthenticatingView.viewType,
+    new AuthenticatingView(extensionUri)
+  );
+
+  const loginView = vscode.window.registerWebviewViewProvider(
+    LoginView.viewType,
+    new LoginView(extensionUri)
+  );
+
+  context.subscriptions.push(scanView, authenticatingView, loginView);
 }
 
 function initCommands(
@@ -185,7 +210,7 @@ function initCommands(
   );
 
   const openSettingsCommand = vscode.commands.registerCommand(
-    VscodeCommands.openSettingsCommandId,
+    VscodeCommands.OpenSettingsCommandId,
     async () => {
       vscode.commands.executeCommand("workbench.action.openSettings", "cycode");
     }
