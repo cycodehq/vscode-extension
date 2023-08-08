@@ -9,5 +9,8 @@ export interface HardcodedSecretsTree {
 }
 
 export enum SeverityFirstLetter {
+  Low = "L",
   High = "H",
+  Medium = "M",
+  Critical = "C",
 }

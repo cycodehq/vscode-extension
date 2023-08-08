@@ -66,9 +66,15 @@ function mapDetectionsByFileName(
 }
 
 function mapSeverityToFirstLetter(severity: string): SeverityFirstLetter {
-  switch (severity) {
-    case "High":
+  switch (severity.toLowerCase()) {
+    case "low":
+      return SeverityFirstLetter.Low;
+    case "medium":
+      return SeverityFirstLetter.Medium;
+    case "high":
       return SeverityFirstLetter.High;
+    case "critical":
+      return SeverityFirstLetter.Critical;
     default:
       throw new Error(
         `Supplied unsupported severity ${severity}, can not map to severity first letter`
