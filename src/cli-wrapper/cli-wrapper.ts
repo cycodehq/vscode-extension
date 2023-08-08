@@ -15,6 +15,22 @@ export const generateUserAgentCommandParam = (config: IConfig) => {
 };
 
 export const cliWrapper = {
+  runGetVersionLegacy: async (params: {
+    config: IConfig;
+    workspaceFolderPath: string;
+  }): Promise<CommandResult> => {
+    // support for legacy versions of the CLI (< 1.0.0)
+    const { config, workspaceFolderPath } = params;
+    const { cliPath, cliEnv } = config;
+
+    return await runCli({
+      cliPath,
+      workspaceFolderPath,
+      commandParams: [CommandParameters.Version],
+      cliEnv,
+      printToOutput: true,
+    });
+  },
   runGetVersion: async (params: {
     config: IConfig;
     workspaceFolderPath: string;
@@ -25,7 +41,7 @@ export const cliWrapper = {
     return await runCli({
       cliPath,
       workspaceFolderPath,
-      commandParams: [CommandParameters.Version],
+      commandParams: [CliCommands.Version],
       cliEnv,
       printToOutput: true,
     });
@@ -44,8 +60,8 @@ export const cliWrapper = {
     });
 
     commandParams.push(generateUserAgentCommandParam(config));
-    commandParams.push(CliCommands.Scan);
     commandParams.push(CommandParameters.OutputFormatJson);
+    commandParams.push(CliCommands.Scan);
     commandParams.push(CliCommands.Path);
     commandParams.push(params.path);
 
@@ -94,13 +110,11 @@ export const cliWrapper = {
     const { config, workspaceFolderPath } = params;
     const { cliEnv } = config;
     commandParams.push("install");
-    if (process.platform === "darwin") {
-      commandParams.push("--user");
-    }
+    commandParams.push("--upgrade");
     commandParams.push("cycode");
 
     return await runCli({
-      cliPath: "pip3",
+      cliPath: "pip",
       workspaceFolderPath,
       commandParams,
       cliEnv,

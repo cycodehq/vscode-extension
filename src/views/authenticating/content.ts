@@ -1,5 +1,6 @@
+export default `
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <title>Authenticating</title>
@@ -37,3 +38,5 @@
     </div>
   </body>
 </html>
+  
+`;

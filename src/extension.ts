@@ -114,20 +114,19 @@ function createHardcodedSecretsTree(
 }
 
 function initActivityBar(context: vscode.ExtensionContext): void {
-  const { extensionUri } = context;
   const scanView = vscode.window.registerWebviewViewProvider(
     ScanView.viewType,
-    new ScanView(extensionUri)
+    new ScanView()
   );
 
   const authenticatingView = vscode.window.registerWebviewViewProvider(
     AuthenticatingView.viewType,
-    new AuthenticatingView(extensionUri)
+    new AuthenticatingView()
   );
 
   const loginView = vscode.window.registerWebviewViewProvider(
     LoginView.viewType,
-    new LoginView(extensionUri)
+    new LoginView()
   );
 
   context.subscriptions.push(scanView, authenticatingView, loginView);
@@ -264,7 +263,8 @@ function initExtension(context: vscode.ExtensionContext): void {
     workspaceFolderPath:
       vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || "",
     config,
-  }).then(() => authCheck(config));
+  }).then(() => authCheck(config))
+    .catch(() => extensionOutput.error("Cycode CLI is not installed"));
 }
 
 // This method is called when your extension is deactivated
