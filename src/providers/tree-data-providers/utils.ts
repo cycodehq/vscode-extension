@@ -96,13 +96,19 @@ function setViewTitle(args: SetViewTitleArgs): void {
 }
 
 function mapDetectionsToSeverityString(detections: Detection[]): string {
-  const severityCount = detections.reduce<SeverityCounted>((acc, detection) => {
-    const { severity } = detection;
-    acc[severity] = (acc[severity] || 0) + 1;
-    return acc;
-  }, {});
+  const severityToCount: SeverityCounted = {};
 
-  const severityStrings = Object.entries(severityCount).map(
+  for (const detection of detections) {
+    const { severity } = detection;
+
+    if (severityToCount[severity] === undefined) {
+      severityToCount[severity] = 1;
+    } else {
+      severityToCount[severity] += 1;
+    }
+  }
+
+  const severityStrings = Object.entries(severityToCount).map(
     ([severity, count]) => `${count} ${severity}`
   );
 
