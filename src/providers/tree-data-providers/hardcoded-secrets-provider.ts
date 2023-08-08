@@ -40,7 +40,7 @@ export class HardcodedSecretsTreeDataProvider
     element?: HardcodedSecretsTreeItem
   ): Thenable<HardcodedSecretsTreeItem[]> {
     if (!element) {
-      // If element is undefined, return top-level movies
+      // If the element is undefined, return files at top-level (root)
       return Promise.resolve(
         this.filesScanResults.map(
           (hardcodedFile) =>
@@ -51,18 +51,18 @@ export class HardcodedSecretsTreeDataProvider
             )
         )
       );
-    } else {
-      // If element is a movie, return characters as children
-      return Promise.resolve(
-        (element.hardcodedSecrets || []).map((hardCodedItem) => {
-          const { lineNumber, severityFirstLetter, type } = hardCodedItem;
-          return new HardcodedSecretsTreeItem(
-            `${severityFirstLetter} line ${lineNumber}: a hardcoded ${type} is used`,
-            vscode.TreeItemCollapsibleState.None
-          );
-        })
-      );
     }
+
+    // otherwise, the element is a file, return detections as its children
+    return Promise.resolve(
+      (element.hardcodedSecrets || []).map((hardCodedItem) => {
+        const { lineNumber, severityFirstLetter, type } = hardCodedItem;
+        return new HardcodedSecretsTreeItem(
+          `${severityFirstLetter} line ${lineNumber}: a hardcoded ${type} is used`,
+          vscode.TreeItemCollapsibleState.None
+        );
+      })
+    );
   }
 
   refresh(filesScanResults: FileScanResults[]): void {
