@@ -56,8 +56,6 @@ export function activate(context: vscode.ExtensionContext) {
 
   initActivityBar(context);
 
-  initActivityBar(context);
-
   context.subscriptions.push(
     vscode.languages.registerCodeActionsProvider(
       { scheme: "file", language: "*" },
