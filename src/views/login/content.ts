@@ -1,5 +1,6 @@
+export default `
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <title>Login</title>
@@ -56,3 +57,5 @@
     </script>
   </body>
 </html>
+
+`;

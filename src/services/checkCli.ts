@@ -12,20 +12,31 @@ const validateCLI = async (params: {
   workspaceFolderPath: string;
   config: IConfig;
 }): Promise<boolean> => {
-  const { exitCode, result } = await cliWrapper.runGetVersion(params);
+  let result;
 
-  if (exitCode !== 0) {
+  const getVersionMethods = [cliWrapper.runGetVersion, cliWrapper.runGetVersionLegacy];
+  for (const getVersion of getVersionMethods) {
+    const versionResult = await getVersion(params);
+    if (versionResult.exitCode === 0) {
+      result = versionResult.result;
+      break;
+    }
+  }
+
+  if (!result) {
     return false;
   }
 
   extensionOutput.info("CLI found!");
+  // we are using text output because runGetVersionLegacy doesn't support JSON output.
   const currentVersion = result.data.split(" ")[2].trim();
 
   if (!semver.satisfies(currentVersion, `>=${MinCLIVersion}`)) {
     extensionOutput.error(
-      `CLI version is ${result} but minimum required version is ${MinCLIVersion}`
+      `CLI version is ${currentVersion} but minimum required version is ${MinCLIVersion}`
     );
     showInvalidCLIVersionError(currentVersion, MinCLIVersion);
+    return false;
   }
 
   return true;
@@ -43,7 +54,7 @@ export async function checkCLI(
       return;
     }
 
-    // CLI is missing. try to install:
+    // CLI is missing or outdated. try to install/upgrade:
     extensionOutput.info("CLI not found. Trying to install...");
     const exitCode = (await cliWrapper.runInstall(params)).exitCode;
 
@@ -65,5 +76,7 @@ export async function checkCLI(
     extensionOutput.error("Error while checking if CLI exists: " + error);
     vscode.window.showErrorMessage(TrayNotificationTexts.InstallError);
     statusBar.showCliPathError();
+
+    throw( error );
   }
 }

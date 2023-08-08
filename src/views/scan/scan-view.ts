@@ -1,13 +1,13 @@
 import { ActionCommandMapping, CycodeView } from "../cycode-view";
-import * as vscode from "vscode";
 import { ExecuteCommandMessages } from "../utils";
 import { VscodeCommands } from "../../utils/commands";
+import content from './content';
+
 
 export default class ScanView extends CycodeView {
   public static readonly viewType = "activity_bar.scanView";
 
-  constructor(extensionUri: vscode.Uri) {
-    const htmlContentPath = "src/views/scan/content.html";
+  constructor() {
     const actionCommandMapping: ActionCommandMapping[] = [
       {
         command: VscodeCommands.ScanCommandId,
@@ -18,6 +18,6 @@ export default class ScanView extends CycodeView {
         commandMessage: ExecuteCommandMessages.OpenCycodeSettings,
       },
     ];
-    super(extensionUri, htmlContentPath, actionCommandMapping);
+    super(content, actionCommandMapping);
   }
 }
