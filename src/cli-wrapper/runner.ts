@@ -31,7 +31,7 @@ export const runCli = (args: RunCliArgs): Promise<CommandResult> => {
     args;
 
   extensionOutput.info(
-    `Running command: "${cliPath} ${commandParams.join(" ")}`
+    `Running command: "${cliPath} ${commandParams.join(" ")}"`
   );
 
   return new Promise((resolve, reject) => {
