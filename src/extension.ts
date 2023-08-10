@@ -22,6 +22,10 @@ import { IgnoreCommandConfig } from "./types/commands";
 import { ignore } from "./services/ignore";
 import { CycodeActions } from "./providers/CodeActions";
 import { CodelensProvider } from "./providers/CodelensProvider";
+import ScanView from "./views/scan/scan-view";
+import LoginView from "./views/login/login-view";
+import AuthenticatingView from "./views/authenticating/authenticating-view";
+import { authCheck } from "./services/auth_check";
 import { scaScan } from "./services/scaScanner";
 
 export async function activate(context: vscode.ExtensionContext) {
@@ -44,11 +48,7 @@ export async function activate(context: vscode.ExtensionContext) {
     statusBar.showAuthIsRequired();
   }
 
-  await checkCLI(context, {
-    workspaceFolderPath:
-      vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || "",
-    config,
-  });
+  initExtension(context);
 
   if (
     vscode.workspace.getConfiguration(extensionId).get(scaScanOnOpenProperty)
@@ -103,6 +103,8 @@ export async function activate(context: vscode.ExtensionContext) {
     }
   });
 
+  initActivityBar(context);
+
   context.subscriptions.push(
     vscode.languages.registerCodeActionsProvider(
       { scheme: "file", language: "*" },
@@ -119,6 +121,25 @@ export async function activate(context: vscode.ExtensionContext) {
   );
 
   context.subscriptions.push(newStatusBar, ...commands, scanOnSave);
+}
+
+function initActivityBar(context: vscode.ExtensionContext): void {
+  const scanView = vscode.window.registerWebviewViewProvider(
+    ScanView.viewType,
+    new ScanView()
+  );
+
+  const authenticatingView = vscode.window.registerWebviewViewProvider(
+    AuthenticatingView.viewType,
+    new AuthenticatingView()
+  );
+
+  const loginView = vscode.window.registerWebviewViewProvider(
+    LoginView.viewType,
+    new LoginView()
+  );
+
+  context.subscriptions.push(scanView, authenticatingView, loginView);
 }
 
 function initCommands(
@@ -164,7 +185,18 @@ function initCommands(
           vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || "",
       };
 
-      await auth(context, params);
+      await auth(params);
+    }
+  );
+
+  const authCheckCommand = vscode.commands.registerCommand(
+    VscodeCommands.AuthCheck,
+    async () => {
+      if (validateConfig()) {
+        return;
+      }
+
+      await authCheck(config);
     }
   );
 
@@ -219,7 +251,7 @@ function initCommands(
   );
 
   const openSettingsCommand = vscode.commands.registerCommand(
-    VscodeCommands.openSettingsCommandId,
+    VscodeCommands.OpenSettingsCommandId,
     async () => {
       vscode.commands.executeCommand("workbench.action.openSettings", "cycode");
     }
@@ -248,11 +280,21 @@ function initCommands(
     scanCommand,
     scaScanCommand,
     authCommand,
+    authCheckCommand,
     installCommand,
     uninstallCommand,
     openSettingsCommand,
     ignoreCommand,
   ];
+}
+
+function initExtension(context: vscode.ExtensionContext): void {
+  checkCLI(context, {
+    workspaceFolderPath:
+      vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || "",
+    config,
+  }).then(() => authCheck(config))
+    .catch(() => extensionOutput.error("Cycode CLI is not installed"));
 }
 
 // This method is called when your extension is deactivated

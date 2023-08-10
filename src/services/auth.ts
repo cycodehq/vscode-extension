@@ -1,20 +1,17 @@
 import * as vscode from "vscode";
 import { extensionOutput } from "../logging/extension-output";
 import { cliWrapper } from "../cli-wrapper/cli-wrapper";
-import statusBar from "../utils/status-bar";
-import TrayNotifications from "../utils/TrayNotifications";
 import { validateCliCommonErrors } from "./common";
-import { setContext, updateGlobalState } from "../utils/context";
-import { VscodeCommands } from "../utils/commands";
-import { IConfig } from "../cli-wrapper/types";
+import { setContext } from "../utils/context";
+import {
+  endAuthenticationProcess,
+  onAuthFailure,
+  onAuthSuccess,
+  startAuthenticationProcess,
+} from "../utils/auth/auth_common";
+import { CommandParams } from "../types/commands";
 
-export async function auth(
-  context: vscode.ExtensionContext,
-  params: {
-    config: IConfig;
-    workspaceFolderPath: string;
-  }
-) {
+export async function auth(params: CommandParams) {
   extensionOutput.showOutputTab();
 
   vscode.window.withProgress(
@@ -24,7 +21,7 @@ export async function auth(
     async (progress) => {
       try {
         // Controls pacakge.json -> viewsWelcome
-        setContext("auth.isAuthenticating", true);
+        startAuthenticationProcess();
 
         progress.report({
           message: `Authenticating with Cycode...`,
@@ -32,7 +29,7 @@ export async function auth(
 
         const { result, error, exitCode } = await cliWrapper.runAuth(params);
 
-        setContext("auth.isAuthenticating", false);
+        endAuthenticationProcess();
 
         if (validateCliCommonErrors(error, exitCode)) {
           return;
@@ -41,7 +38,7 @@ export async function auth(
         handleAuthStatus(exitCode, result, error);
       } catch (error) {
         extensionOutput.error("Error while creating scan: " + error);
-        onAuthFailed();
+        onAuthFailure();
       }
     }
   );
@@ -49,30 +46,11 @@ export async function auth(
 
 function handleAuthStatus(exitCode: number, result: any, error: string) {
   if (exitCode !== 0 || (result.data && result.data.includes("failed"))) {
-    onAuthFailed();
+    onAuthFailure();
   } else {
-    onAuthComplete();
+    onAuthSuccess();
     extensionOutput.info(
       "Auth completed: " + JSON.stringify({ result, error }, null, 3)
     );
   }
-}
-
-export function onAuthFailed() {
-  statusBar.showAuthError();
-  TrayNotifications.showAuthFailed();
-
-  setContext("auth.isAuthenticating", false);
-  setContext("auth.isAuthed", false);
-  updateGlobalState("auth.isAuthed", false);
-}
-
-function onAuthComplete() {
-  statusBar.showDefault();
-  TrayNotifications.showAuthSuccess();
-
-  // Hide the authenticate button
-  setContext("auth.isAuthed", true);
-  setContext("auth.isAuthenticating", false);
-  updateGlobalState("auth.isAuthed", true);
 }

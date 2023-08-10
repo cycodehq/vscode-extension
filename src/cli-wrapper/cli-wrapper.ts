@@ -1,4 +1,4 @@
-import { IgnoreCommandConfig } from "../types/commands";
+import { CommandParams, IgnoreCommandConfig } from "../types/commands";
 import { CliCommands, CommandParameters } from "./constants";
 import { CommandResult, IConfig, UserAgent } from "./types";
 import { runCli } from "./runner";
@@ -15,43 +15,62 @@ export const generateUserAgentCommandParam = (config: IConfig) => {
 };
 
 export const cliWrapper = {
+  runGetVersionLegacy: async (params: {
+    config: IConfig;
+    workspaceFolderPath: string;
+  }): Promise<CommandResult> => {
+    // support for legacy versions of the CLI (< 1.0.0)
+    const { config, workspaceFolderPath } = params;
+    const { cliPath, cliEnv } = config;
+
+    return await runCli({
+      cliPath,
+      workspaceFolderPath,
+      commandParams: [CommandParameters.Version],
+      cliEnv,
+      printToOutput: true,
+    });
+  },
   runGetVersion: async (params: {
     config: IConfig;
     workspaceFolderPath: string;
   }): Promise<CommandResult> => {
-    const { config } = params;
-    return await runCli(
-      config.cliPath,
-      params.workspaceFolderPath,
-      [CommandParameters.Version],
-      config.cliEnv,
-      true
-    );
+    const { config, workspaceFolderPath } = params;
+    const { cliPath, cliEnv } = config;
+
+    return await runCli({
+      cliPath,
+      workspaceFolderPath,
+      commandParams: [CliCommands.Version],
+      cliEnv,
+      printToOutput: true,
+    });
   },
   runScan: async (params: {
     config: IConfig;
     path: string;
     workspaceFolderPath: string;
   }): Promise<CommandResult> => {
-    const commandParams: string[] = [];
-    const { config } = params;
+    const { config, workspaceFolderPath } = params;
+    const { cliPath, cliEnv } = config;
 
+    const commandParams: string[] = [];
     config.additionalParams.forEach((param) => {
       commandParams.push(param);
     });
 
     commandParams.push(generateUserAgentCommandParam(config));
-    commandParams.push(CliCommands.Scan);
     commandParams.push(CommandParameters.OutputFormatJson);
+    commandParams.push(CliCommands.Scan);
     commandParams.push(CliCommands.Path);
     commandParams.push(params.path);
 
-    return await runCli(
-      config.cliPath,
-      params.workspaceFolderPath,
+    return await runCli({
+      cliPath,
+      workspaceFolderPath,
       commandParams,
-      config.cliEnv
-    );
+      cliEnv,
+    });
   },
   runScaScan: async (params: {
     config: IConfig;
@@ -84,8 +103,10 @@ export const cliWrapper = {
     config: IConfig;
     workspaceFolderPath: string;
   }): Promise<CommandResult> => {
+    const { config, workspaceFolderPath } = params;
+    const { cliEnv, cliPath } = config;
+
     const commandParams: string[] = [];
-    const { config } = params;
 
     config.additionalParams.forEach((param) => {
       commandParams.push(param);
@@ -93,67 +114,80 @@ export const cliWrapper = {
     commandParams.push(generateUserAgentCommandParam(config));
     commandParams.push(CliCommands.Auth);
 
-    return await runCli(
-      config.cliPath,
-      params.workspaceFolderPath,
+    return await runCli({
+      cliPath,
+      workspaceFolderPath,
       commandParams,
-      config.cliEnv
-    );
+      cliEnv,
+    });
+  },
+  runAuthCheck: async (config: IConfig): Promise<CommandResult> => {
+    const commandParams: string[] = [];
+    const { cliPath, cliEnv } = config;
+    commandParams.push(CommandParameters.OutputFormatJson);
+    commandParams.push(CliCommands.AuthCheck);
+
+    return await runCli({ cliPath, cliEnv, commandParams });
   },
   runInstall: async (params: {
     config: IConfig;
     workspaceFolderPath: string;
   }): Promise<CommandResult> => {
     const commandParams: string[] = [];
-    const { config } = params;
+    const { config, workspaceFolderPath } = params;
+    const { cliEnv } = config;
     commandParams.push("install");
-    if (process.platform === "darwin") {
-      commandParams.push("--user");
-    }
+    commandParams.push("--upgrade");
     commandParams.push("cycode");
 
-    return await runCli(
-      "pip3",
-      params.workspaceFolderPath,
+    return await runCli({
+      cliPath: "pip",
+      workspaceFolderPath,
       commandParams,
-      config.cliEnv,
-      true
-    );
+      cliEnv,
+      printToOutput: true,
+    });
   },
   runUninstall: async (params: {
     config: IConfig;
     workspaceFolderPath: string;
   }): Promise<CommandResult> => {
-    const { config } = params;
-    return await runCli(
-      "pip3",
-      params.workspaceFolderPath,
-      ["uninstall", "-y", "cycode"],
-      config.cliEnv,
-      true
-    );
+    const { config, workspaceFolderPath } = params;
+    const { cliEnv } = config;
+
+    return await runCli({
+      cliPath: "pip3",
+      workspaceFolderPath,
+      commandParams: ["uninstall", "-y", "cycode"],
+      cliEnv,
+      printToOutput: true,
+    });
   },
   runUsage: async (params: {
     config: IConfig;
     workspaceFolderPath: string;
   }): Promise<CommandResult> => {
-    const { config } = params;
-    return await runCli(
-      config.cliPath,
-      params.workspaceFolderPath,
-      [CommandParameters.Usage],
-      config.cliEnv,
-      true
-    );
+    const { config, workspaceFolderPath } = params;
+    const { cliEnv, cliPath } = config;
+
+    return await runCli({
+      cliPath,
+      workspaceFolderPath,
+      commandParams: [CommandParameters.Usage],
+      cliEnv,
+      printToOutput: true,
+    });
   },
   runIgnore: async (params: {
     config: IConfig;
     workspaceFolderPath: string;
     ignoreConfig: IgnoreCommandConfig;
   }): Promise<CommandResult> => {
-    const commandParams: string[] = [];
-    const { config, ignoreConfig } = params;
+    const { config, ignoreConfig, workspaceFolderPath } = params;
+    const { cliPath, cliEnv } = config;
     const { ignoreBy, param } = ignoreConfig;
+
+    const commandParams: string[] = [];
     config.additionalParams.forEach((param) => {
       commandParams.push(param);
     });
@@ -162,12 +196,12 @@ export const cliWrapper = {
     commandParams.push(ignoreBy);
     commandParams.push(param);
 
-    return await runCli(
-      config.cliPath,
-      params.workspaceFolderPath,
+    return await runCli({
+      cliPath,
+      workspaceFolderPath,
       commandParams,
-      config.cliEnv
-    );
+      cliEnv,
+    });
   },
 };
 

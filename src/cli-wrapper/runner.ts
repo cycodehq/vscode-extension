@@ -3,6 +3,14 @@ import * as os from "os";
 import { extensionOutput } from "../logging/extension-output";
 import { CommandResult } from "./types";
 
+interface RunCliArgs {
+  cliPath: string;
+  cliEnv: { [key: string]: string };
+  commandParams: string[];
+  workspaceFolderPath?: string;
+  printToOutput?: boolean;
+}
+
 let childProcess: ChildProcess | undefined = undefined;
 
 const parseResult = (stdout: string): string | object => {
@@ -18,14 +26,13 @@ const parseResult = (stdout: string): string | object => {
   return result;
 };
 
-export const runCli = (
-  cliPath: string,
-  workspaceFolderPath: string,
-  params: string[],
-  env: { [key: string]: string },
-  printToOutput: boolean = false
-): Promise<CommandResult> => {
-  extensionOutput.info(`Running command: "${cliPath} ${params.join(" ")}"`);
+export const runCli = (args: RunCliArgs): Promise<CommandResult> => {
+  const { cliPath, cliEnv, commandParams, workspaceFolderPath, printToOutput } =
+    args;
+
+  extensionOutput.info(
+    `Running command: "${cliPath} ${commandParams.join(" ")}"`
+  );
 
   return new Promise((resolve, reject) => {
     let stderr = "";
@@ -41,11 +48,11 @@ export const runCli = (
       }
     };
 
-    childProcess = spawn(cliPath, params, {
+    childProcess = spawn(cliPath, commandParams, {
       cwd: workspaceFolderPath || os.homedir(),
       env: {
         ...process.env,
-        ...env,
+        ...cliEnv,
       },
       shell: true,
     });

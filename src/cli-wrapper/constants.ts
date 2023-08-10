@@ -3,7 +3,9 @@ export enum CliCommands {
   Scan = "scan",
   Configure = "configure",
   Auth = "auth",
+  AuthCheck = "auth check",
   Ignore = "ignore",
+  Version = "version",
 }
 
 export enum CommandParameters {
@@ -17,4 +19,4 @@ export enum CommandParameters {
   SCAScanType = "sca",
 }
 
-export const MinCLIVersion = "0.2.3";
+export const MinCLIVersion = "1.0.0";
