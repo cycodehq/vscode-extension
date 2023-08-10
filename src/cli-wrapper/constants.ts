@@ -15,7 +15,7 @@ export enum CommandParameters {
   ByValue = "--by-value",
   UserAgent = "--user-agent",
   Version = "--version",
-  scanType = "-t",
+  scanType = "--scan-type",
   SCAScanType = "sca",
 }
 

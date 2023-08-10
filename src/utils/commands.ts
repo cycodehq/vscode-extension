@@ -1,6 +1,6 @@
 export enum VscodeCommands {
   ScanCommandId = "cycode.scan",
-  scaScanCommandId = "cycode.scaScan",
+  ScaScanCommandId = "cycode.scaScan",
   AuthCommandId = "cycode.auth",
   InstallCommandId = "cycode.install",
   UninstallCommandId = "cycode.uninstall",

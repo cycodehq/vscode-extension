@@ -258,7 +258,7 @@ function initCommands(
   );
 
   const scaScanCommand = vscode.commands.registerCommand(
-    VscodeCommands.scaScanCommandId,
+    VscodeCommands.ScaScanCommandId,
     async () => {
       if (validateConfig()) {
         return;

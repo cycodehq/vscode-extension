@@ -78,26 +78,27 @@ export const cliWrapper = {
     workspaceFolderPath: string;
   }): Promise<CommandResult> => {
     const commandParams: string[] = [];
-    const { config } = params;
+    const { config, workspaceFolderPath } = params;
+    const { cliEnv, cliPath } = config;
 
     config.additionalParams.forEach((param) => {
       commandParams.push(param);
     });
 
     commandParams.push(generateUserAgentCommandParam(config));
+    commandParams.push(CommandParameters.OutputFormatJson);
     commandParams.push(CliCommands.Scan);
     commandParams.push(CommandParameters.scanType);
     commandParams.push(CommandParameters.SCAScanType);
-    commandParams.push(CommandParameters.OutputFormatJson);
     commandParams.push(CliCommands.Path);
     commandParams.push(params.path);
 
-    return await runCli(
-      config.cliPath,
-      params.workspaceFolderPath,
+    return await runCli({
+      cliPath,
+      workspaceFolderPath,
       commandParams,
-      config.cliEnv
-    );
+      cliEnv
+    });
   },
   runAuth: async (params: {
     config: IConfig;
