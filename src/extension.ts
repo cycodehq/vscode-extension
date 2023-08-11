@@ -79,22 +79,6 @@ export async function activate(context: vscode.ExtensionContext) {
     new CodelensProvider()
   );
 
-  if (
-    vscode.workspace.getConfiguration(extensionId).get(scaScanOnOpenProperty)
-  ) {
-    // sca scan
-    if (validateConfig()) {
-      return;
-    }
-    const workspaceFolderPath =
-      vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || "";
-    scaScan(context, {
-      config,
-      workspaceFolderPath,
-      diagnosticCollection,
-    }, treeView);
-  }
-
   const scanOnSave = vscode.workspace.onDidSaveTextDocument((document) => {
     if (
       vscode.workspace.getConfiguration(extensionId).get(scanOnSaveProperty)
@@ -133,6 +117,9 @@ export async function activate(context: vscode.ExtensionContext) {
   });
 
   context.subscriptions.push(newStatusBar, ...commands, scanOnSave);
+
+  // FIXME(MarshalX): call only after successful auth check!
+  _runScaScanOnProjectOpen(context, diagnosticCollection, treeView);
 }
 
 function createTreeView(
@@ -152,6 +139,34 @@ function createTreeView(
   );
   return { view, provider };
 }
+
+const _runScaScanOnProjectOpen = async (
+  context: vscode.ExtensionContext,
+  diagnosticCollection: vscode.DiagnosticCollection,
+  treeView: TreeView
+) => {
+  if (
+    vscode.workspace.getConfiguration(extensionId).get(scaScanOnOpenProperty)
+  ) {
+    // sca scan
+    if (validateConfig()) {
+      return;
+    }
+    const workspaceFolderPath =
+      vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+
+    // we should run sca scan only if the project is open!
+    if (!workspaceFolderPath) {
+      return;
+    }
+
+    scaScan(context, {
+      config,
+      workspaceFolderPath,
+      diagnosticCollection,
+    }, treeView);
+  }
+};
 
 function initActivityBar(context: vscode.ExtensionContext): void {
   const scanView = vscode.window.registerWebviewViewProvider(
