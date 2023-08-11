@@ -13,14 +13,19 @@ import { ScaDetection } from "../types/detection";
 import { IConfig } from "../cli-wrapper/types";
 import TrayNotifications from "../utils/TrayNotifications";
 
+
+interface ScaScanParams {
+  workspaceFolderPath: string;
+  diagnosticCollection: vscode.DiagnosticCollection;
+  config: IConfig;
+}
+
+type ProgressBar = vscode.Progress<{ message?: string; increment?: number }>;
+
 // Entry
 export async function scaScan(
   context: vscode.ExtensionContext,
-  params: {
-    workspaceFolderPath: string;
-    diagnosticCollection: vscode.DiagnosticCollection;
-    config: IConfig;
-  },
+  params: ScaScanParams,
 ) {
   if (getWorkspaceState("scan.isScanning")) {
     return;
@@ -30,64 +35,82 @@ export async function scaScan(
       location: vscode.ProgressLocation.Notification,
     },
     async (progress) => {
-      try {
-        extensionOutput.info(StatusBarTexts.ScanWait);
-        statusBar.showScanningInProgress();
-
-        extensionOutput.info(
-          "Initiating SCA scan for path: " + params.workspaceFolderPath
-        );
-        updateWorkspaceState("scan.isScanning", true);
-
-        // Run scan through CLI
-        let cliParams = {
-          path: params.workspaceFolderPath,
-          workspaceFolderPath: params.workspaceFolderPath,
-          config: params.config,
-        };
-
-        progress.report({
-          message: `Scanning ${params.workspaceFolderPath}...`,
-        });
-
-        updateWorkspaceState("scan.isScanning", false);
-        const { result, error, exitCode } = await cliWrapper.runScaScan(
-          cliParams
-        );
-
-        if (validateCliCommonErrors(error, exitCode)) {
-          return;
-        }
-
-        // Check if an error occurred
-        if (error && !result.detections?.length) {
-          throw new Error(error);
-        }
-
-        extensionOutput.info(
-          "Scan complete: " + JSON.stringify({ result, error }, null, 3)
-        );
-
-        // Show in "problems" tab
-        await handleScanDetections(
-          result,
-          // filePath,
-          params.diagnosticCollection
-          // document
-        );
-
-        statusBar.showScanComplete();
-      } catch (error) {
-        extensionOutput.error("Error while creating scan: " + error);
-        statusBar.showScanError();
-        updateWorkspaceState("scan.isScanning", false);
-
-        vscode.window.showErrorMessage(TrayNotificationTexts.ScanError);
-        progress.report({ increment: 100 });
-      }
+      await _scaScanWithProgress(params, progress);
     }
   );
 }
+
+const _initScanState = (params: ScaScanParams, progress: ProgressBar) => {
+  extensionOutput.info(StatusBarTexts.ScanWait);
+  statusBar.showScanningInProgress();
+
+  extensionOutput.info(
+    "Initiating SCA scan for path: " + params.workspaceFolderPath
+  );
+  updateWorkspaceState("scan.isScanning", true);
+
+  progress.report({
+    message: `Scanning ${params.workspaceFolderPath}...`,
+  });
+};
+
+const _finalizeScanState = (success: boolean, progress?: ProgressBar) => {
+  updateWorkspaceState("scan.isScanning", false);
+
+  if (success) {
+    statusBar.showScanComplete();
+  }
+  if (progress && !success) {
+    statusBar.showScanError();
+    vscode.window.showErrorMessage(TrayNotificationTexts.ScanError);
+    progress.report({ increment: 100 });
+  }
+};
+
+const _runCliScaScan = async (params: ScaScanParams): Promise<any> => {
+  // Run scan through CLI
+  let cliParams = {
+    path: params.workspaceFolderPath,
+    workspaceFolderPath: params.workspaceFolderPath,
+    config: params.config,
+  };
+
+
+  const { result, error, exitCode } = await cliWrapper.runScaScan(
+    cliParams
+  );
+
+  if (validateCliCommonErrors(error, exitCode)) {
+    return;
+  }
+
+  // Check if an error occurred
+  if (error && !result.detections?.length) {
+    throw new Error(error);
+  }
+
+  extensionOutput.info(
+    "Scan complete: " + JSON.stringify({ result, error }, null, 3)
+  );
+
+  return result;
+};
+
+
+const _scaScanWithProgress = async (params: ScaScanParams, progress: ProgressBar) => {
+  try {
+    _initScanState(params, progress);
+
+    const scanResult = await _runCliScaScan(params);
+    await handleScanDetections(scanResult, params.diagnosticCollection);
+
+    _finalizeScanState(true);
+  } catch (error) {
+    _finalizeScanState(false, progress);
+
+    extensionOutput.error("Error while creating scan: " + error);
+  }
+};
 
 export const detectionsToDiagnostics = async (
   detections: ScaDetection[]
