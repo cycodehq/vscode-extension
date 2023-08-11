@@ -20,7 +20,7 @@ import { refreshHardcodedSecretsTreeViewData } from "../providers/tree-data-prov
 import { HardcodedSecretsTree } from "../providers/tree-data-providers/types";
 
 // Entry
-export async function scan(
+export async function secretScan(
   context: vscode.ExtensionContext,
   params: {
     workspaceFolderPath: string;

@@ -16,3 +16,23 @@ export type Detection = {
     should_resolve_upon_branch_deletion: boolean;
   };
 };
+
+export type ScaDetection = {
+  type: string;
+  detection_rule_id: string;
+  detection_type_id: string;
+  message: string;
+  severity: string;
+  detection_details: {
+    file_name: string;
+    start_position: number;
+    end_position: number;
+    line_in_file: number;
+    alert?: {
+      severity: string;
+      summary: string;
+      vulnerable_requirements: string;
+      first_patched_version: string;
+    };
+  };
+};

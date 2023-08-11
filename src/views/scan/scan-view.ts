@@ -14,6 +14,10 @@ export default class ScanView extends CycodeView {
         commandMessage: ExecuteCommandMessages.Scan,
       },
       {
+        command: VscodeCommands.ScaScanCommandId,
+        commandMessage: ExecuteCommandMessages.ScaScan,
+      },
+      {
         command: VscodeCommands.OpenSettingsCommandId,
         commandMessage: ExecuteCommandMessages.OpenCycodeSettings,
       },

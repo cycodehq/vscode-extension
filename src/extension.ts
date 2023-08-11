@@ -2,11 +2,16 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from "vscode";
 import { extensionOutput } from "./logging/extension-output";
-import { scan } from "./services/scanner";
+import { secretScan } from "./services/scanner";
 import { auth } from "./services/auth";
 import { install } from "./services/install";
 import { uninstall } from "./services/uninstall";
-import { extensionName, extensionId, scanOnSaveProperty } from "./utils/texts";
+import {
+  extensionName,
+  extensionId,
+  scanOnSaveProperty,
+  scaScanOnOpenProperty,
+} from "./utils/texts";
 import { VscodeCommands } from "./utils/commands";
 import statusBar from "./utils/status-bar";
 import extensionContext from "./utils/context";
@@ -24,8 +29,11 @@ import { authCheck } from "./services/auth_check";
 import { HardcodedSecretsTree } from "./providers/tree-data-providers/types";
 import { HardcodedSecretsTreeDataProvider } from "./providers/tree-data-providers/hardcoded-secrets-provider";
 import { HardcodedSecretsTreeItem } from "./providers/tree-data-providers/hardcoded-secrets-item";
+import { scaScan } from "./services/scaScanner";
+import { SCA_CONFIGURATION_SCAN_SUPPORTED_FILES } from './constants';
 
-export function activate(context: vscode.ExtensionContext) {
+
+export async function activate(context: vscode.ExtensionContext) {
   extensionOutput.info("Cycode extension is now active");
 
   extensionContext.initContext(context);
@@ -71,6 +79,22 @@ export function activate(context: vscode.ExtensionContext) {
     new CodelensProvider()
   );
 
+  if (
+    vscode.workspace.getConfiguration(extensionId).get(scaScanOnOpenProperty)
+  ) {
+    // sca scan
+    if (validateConfig()) {
+      return;
+    }
+    const workspaceFolderPath =
+      vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || "";
+    scaScan(context, {
+      config,
+      workspaceFolderPath,
+      diagnosticCollection,
+    });
+  }
+
   const scanOnSave = vscode.workspace.onDidSaveTextDocument((document) => {
     if (
       vscode.workspace.getConfiguration(extensionId).get(scanOnSaveProperty)
@@ -79,9 +103,26 @@ export function activate(context: vscode.ExtensionContext) {
         return;
       }
 
+      // if the file name is related SCA file, run SCA scan
+      if (
+        SCA_CONFIGURATION_SCAN_SUPPORTED_FILES.some(fileSuffix => document.fileName.endsWith(fileSuffix))
+      ) {
+        scaScan(
+          context,
+          {
+            config,
+            workspaceFolderPath:
+              vscode.workspace.getWorkspaceFolder(document.uri)?.uri.fsPath ||
+              "",
+            diagnosticCollection,
+          },
+        );
+      }
+
+      // run secrets scan on any file. CLI will exclude irrelevant files
       const workspaceFolderPath =
         vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || "";
-      scan(
+      secretScan(
         context,
         { config, workspaceFolderPath, diagnosticCollection },
         hardCodedSecretsTree,
@@ -157,9 +198,10 @@ function initCommands(
           vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || "",
         diagnosticCollection,
       };
-      await scan(context, params, hardcodedSecretsTree);
+      await secretScan(context, params, hardcodedSecretsTree);
     }
   );
+
   const authCommand = vscode.commands.registerCommand(
     VscodeCommands.AuthCommandId,
     async () => {
@@ -245,8 +287,28 @@ function initCommands(
     }
   );
 
+  const scaScanCommand = vscode.commands.registerCommand(
+    VscodeCommands.ScaScanCommandId,
+    async () => {
+      if (validateConfig()) {
+        return;
+      }
+
+      // iterate over workspace folders and scan each one
+      for (const workspaceFolder of vscode.workspace.workspaceFolders || []) {
+        const params = {
+          config,
+          workspaceFolderPath: workspaceFolder.uri.fsPath,
+          diagnosticCollection,
+        };
+        await scaScan(context, params);
+      }
+    }
+  );
+
   return [
     scanCommand,
+    scaScanCommand,
     authCommand,
     authCheckCommand,
     installCommand,

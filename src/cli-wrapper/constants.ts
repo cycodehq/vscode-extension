@@ -15,6 +15,8 @@ export enum CommandParameters {
   ByValue = "--by-value",
   UserAgent = "--user-agent",
   Version = "--version",
+  scanType = "--scan-type",
+  SCAScanType = "sca",
 }
 
 export const MinCLIVersion = "1.0.0";

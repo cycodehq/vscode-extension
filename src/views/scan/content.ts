@@ -10,7 +10,7 @@ export default `
       display: flex;
       flex-direction: column;
     }
-    #scan-vulnerabilities-button {
+    button {
       background-color: #2376e5;
       color: white;
       outline: none;
@@ -33,6 +33,8 @@ export default `
         Open a file for editing and then hit the button:
       </p>
       <button id="scan-vulnerabilities-button">Scan for vulnerabilities</button>
+      <br />
+      <button id="scan-package-vulnerabilities-button">Scan for package vulnerabilities</button>
 
       <p>
         To easily scan your files, enable ScanOnSave in
@@ -56,6 +58,13 @@ export default `
         .addEventListener("click", () => {
           // Send a message to the extension code when the button is clicked
           vscode.postMessage({ command: "runScanCommand" });
+        });
+      
+      document
+        .getElementById("scan-package-vulnerabilities-button")
+        .addEventListener("click", () => {
+          // Send a message to the extension code when the button is clicked
+          vscode.postMessage({ command: "runScaScanCommand" });
         });
 
       document
