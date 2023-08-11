@@ -59,8 +59,7 @@ const _finalizeScanState = (success: boolean, progress?: ProgressBar) => {
 
   if (success) {
     statusBar.showScanComplete();
-  }
-  if (progress && !success) {
+  } else if (!success && progress) {
     statusBar.showScanError();
     vscode.window.showErrorMessage(TrayNotificationTexts.ScanError);
     progress.report({ increment: 100 });
