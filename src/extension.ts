@@ -14,7 +14,7 @@ import {
 } from "./utils/texts";
 import { VscodeCommands } from "./utils/commands";
 import statusBar from "./utils/status-bar";
-import extensionContext from "./utils/context";
+import extensionContext, { setContext } from './utils/context';
 import { checkCLI } from "./services/checkCli";
 import { config, validateConfig } from "./utils/config";
 import TrayNotifications from "./utils/TrayNotifications";
@@ -288,6 +288,14 @@ function initCommands(
     }
   );
 
+  const openMainMenuCommand = vscode.commands.registerCommand(
+    VscodeCommands.OpenMainMenuCommandId,
+    async () => {
+      // this is negative clause of tree view to close it and back to webview
+      setContext("scan.hasDetections", false);
+    }
+  );
+
   const scaScanCommand = vscode.commands.registerCommand(
     VscodeCommands.ScaScanCommandId,
     async () => {
@@ -315,6 +323,7 @@ function initCommands(
     installCommand,
     uninstallCommand,
     openSettingsCommand,
+    openMainMenuCommand,
     ignoreCommand,
   ];
 }

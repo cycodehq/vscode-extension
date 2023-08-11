@@ -28,6 +28,30 @@
           "command": "cycode.scaScan",
           "group": "Cycode@1"
         }
+      ],
+      "view/title": [
+        {
+          "command": "cycode.openMainMenu",
+          "when": "view == scan.treeView",
+          "group": "navigation@1"
+        },
+        {
+          "command": "cycode.openSettings",
+          "when": "true",
+          "group": "navigation@2"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "cycode.scan",
+          "when": "viewItem == Secrets",
+          "group": "inline"
+        },
+        {
+          "command": "cycode.scaScan",
+          "when": "viewItem == SCA",
+          "group": "inline"
+        }
       ]
     },
     "configuration": {
@@ -72,11 +96,13 @@
     "commands": [
       {
         "command": "cycode.scan",
-        "title": "Cycode: Scan for vulnerabilities"
+        "title": "Cycode: Scan for vulnerabilities",
+        "icon": "$(testing-run-icon)"
       },
       {
         "command": "cycode.scaScan",
-        "title": "Cycode: Scan for package vulnerabilities"
+        "title": "Cycode: Scan for package vulnerabilities",
+        "icon": "$(testing-run-icon)"
       },
       {
         "command": "cycode.auth",
@@ -101,7 +127,13 @@
       },
       {
         "command": "cycode.openSettings",
-        "title": "Cycode: Open Cycode settings"
+        "title": "Cycode: Open Cycode settings",
+        "icon": "$(settings-view-bar-icon)"
+      },
+      {
+        "command": "cycode.openMainMenu",
+        "title": "Cycode: Open main menu",
+        "icon": "$(home)"
       }
     ],
     "viewsContainers": {

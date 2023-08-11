@@ -6,6 +6,7 @@ export enum VscodeCommands {
   UninstallCommandId = "cycode.uninstall",
   IgnoreCommandId = "cycode.ignore",
   OpenSettingsCommandId = "cycode.openSettings",
+  OpenMainMenuCommandId = "cycode.openMainMenu",
   ShowProblemsTab = "workbench.action.problems.focus",
   ShowCycodeView = "workbench.view.extension.cycode",
   AuthCheck = "cycode.auth.check",

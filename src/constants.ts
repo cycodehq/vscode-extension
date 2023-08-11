@@ -34,7 +34,7 @@ export const SCA_CONFIGURATION_SCAN_SUPPORTED_FILES: ReadonlyArray<string> = [
 ];
 
 export enum ScanType {
-  Secrets = "secrets",
+  Secrets = "Secrets",
   Sca = "SCA",
   Sast = "SAST",
   Iac = "IaC",

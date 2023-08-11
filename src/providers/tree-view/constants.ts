@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import * as path from 'path';
 import { TreeViewItem } from './item';
 import { ScanType } from '../../constants';
 
@@ -7,6 +8,7 @@ const SECRETS_SECTION = new TreeViewItem(
   vscode.TreeItemCollapsibleState.Collapsed,
   undefined,
   ScanType.Secrets,
+  path.join(__filename, '..', '..', 'resources', 'scan-type', 'secrets.svg'),
 );
 
 const SCA_SECTION = new TreeViewItem(
@@ -14,6 +16,7 @@ const SCA_SECTION = new TreeViewItem(
   vscode.TreeItemCollapsibleState.Collapsed,
   undefined,
   ScanType.Sca,
+  path.join(__filename, '..', '..', 'resources', 'scan-type', 'sca.svg'),
 );
 
 const SAST_SECTION = new TreeViewItem(
@@ -21,6 +24,7 @@ const SAST_SECTION = new TreeViewItem(
   vscode.TreeItemCollapsibleState.Collapsed,
   undefined,
   ScanType.Sast,
+  path.join(__filename, '..', '..', 'resources', 'scan-type', 'sast.svg'),
 );
 
 const IAC_SECTION = new TreeViewItem(
@@ -28,6 +32,7 @@ const IAC_SECTION = new TreeViewItem(
   vscode.TreeItemCollapsibleState.Collapsed,
   undefined,
   ScanType.Iac,
+  path.join(__filename, '..', '..', 'resources', 'scan-type', 'iac.svg'),
 );
 
 export const TREE_VIEW_TOP_LEVEL_ITEMS = [SECRETS_SECTION, SCA_SECTION];
