@@ -96,7 +96,7 @@
       },
       {
         "command": "cycode.ignore",
-        "title": "Cycode: ignore rule",
+        "title": "Cycode: Ignore rule",
         "when": "false"
       },
       {
