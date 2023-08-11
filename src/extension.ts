@@ -26,8 +26,12 @@ import ScanView from "./views/scan/scan-view";
 import LoginView from "./views/login/login-view";
 import AuthenticatingView from "./views/authenticating/authenticating-view";
 import { authCheck } from "./services/auth_check";
+import { HardcodedSecretsTree } from "./providers/tree-data-providers/types";
+import { HardcodedSecretsTreeDataProvider } from "./providers/tree-data-providers/hardcoded-secrets-provider";
+import { HardcodedSecretsTreeItem } from "./providers/tree-data-providers/hardcoded-secrets-item";
 import { scaScan } from "./services/scaScanner";
 import { SCA_CONFIGURATION_SCAN_SUPPORTED_FILES } from './constants';
+
 
 export async function activate(context: vscode.ExtensionContext) {
   extensionOutput.info("Cycode extension is now active");
@@ -42,7 +46,14 @@ export async function activate(context: vscode.ExtensionContext) {
 
   const isAuthed = extensionContext.getGlobalState("auth.isAuthed");
   extensionContext.setContext("auth.isAuthed", !!isAuthed);
-  const commands = initCommands(context, diagnosticCollection);
+
+  const hardCodedSecretsTree = createHardcodedSecretsTree(context);
+
+  const commands = initCommands(
+    context,
+    diagnosticCollection,
+    hardCodedSecretsTree
+  );
   const newStatusBar = statusBar.create();
 
   if (!isAuthed) {
@@ -50,6 +61,23 @@ export async function activate(context: vscode.ExtensionContext) {
   }
 
   initExtension(context);
+
+  initActivityBar(context);
+
+  context.subscriptions.push(
+    vscode.languages.registerCodeActionsProvider(
+      { scheme: "file", language: "*" },
+      new CycodeActions(),
+      {
+        providedCodeActionKinds: [vscode.CodeActionKind.QuickFix],
+      }
+    )
+  );
+
+  vscode.languages.registerCodeLensProvider(
+    { scheme: "file", language: "*" },
+    new CodelensProvider()
+  );
 
   if (
     vscode.workspace.getConfiguration(extensionId).get(scaScanOnOpenProperty)
@@ -97,29 +125,31 @@ export async function activate(context: vscode.ExtensionContext) {
       secretScan(
         context,
         { config, workspaceFolderPath, diagnosticCollection },
+        hardCodedSecretsTree,
         document.fileName
       );
     }
   });
 
-  initActivityBar(context);
+  context.subscriptions.push(newStatusBar, ...commands, scanOnSave);
+}
+
+function createHardcodedSecretsTree(
+  context: vscode.ExtensionContext
+): HardcodedSecretsTree {
+  const provider = new HardcodedSecretsTreeDataProvider([]);
+  const view = vscode.window.createTreeView(HardcodedSecretsTreeItem.viewType, {
+    treeDataProvider: provider,
+    canSelectMany: true,
+  });
 
   context.subscriptions.push(
-    vscode.languages.registerCodeActionsProvider(
-      { scheme: "file", language: "*" },
-      new CycodeActions(),
-      {
-        providedCodeActionKinds: [vscode.CodeActionKind.QuickFix],
-      }
+    vscode.window.registerTreeDataProvider(
+      HardcodedSecretsTreeItem.viewType,
+      provider
     )
   );
-
-  vscode.languages.registerCodeLensProvider(
-    { scheme: "file", language: "*" },
-    new CodelensProvider()
-  );
-
-  context.subscriptions.push(newStatusBar, ...commands, scanOnSave);
+  return { view, provider };
 }
 
 function initActivityBar(context: vscode.ExtensionContext): void {
@@ -143,7 +173,8 @@ function initActivityBar(context: vscode.ExtensionContext): void {
 
 function initCommands(
   context: vscode.ExtensionContext,
-  diagnosticCollection: vscode.DiagnosticCollection
+  diagnosticCollection: vscode.DiagnosticCollection,
+  hardcodedSecretsTree: HardcodedSecretsTree
 ) {
   const scanCommand = vscode.commands.registerCommand(
     VscodeCommands.ScanCommandId,
@@ -167,7 +198,7 @@ function initCommands(
           vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || "",
         diagnosticCollection,
       };
-      await secretScan(context, params);
+      await secretScan(context, params, hardcodedSecretsTree);
     }
   );
 

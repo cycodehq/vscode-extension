@@ -138,7 +138,13 @@
           "type": "webview",
           "id": "activity_bar.scanView",
           "name": "scan",
-          "when": "cycode:auth.isAuthed"
+          "when": "cycode:auth.isAuthed && !cycode:scan.hasDetections"
+        },
+        {
+          "type": "tree",
+          "id": "scan.hardcodedSecretsTreeView",
+          "name": "Hardcoded Secrets",
+          "when": "cycode:scan.hasDetections"
         }
       ]
     },
