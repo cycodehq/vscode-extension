@@ -8,6 +8,13 @@ export interface TreeView {
   view: vscode.TreeView<TreeViewItem>;
 }
 
+export interface TreeViewDisplayedData {
+  severityFirstLetter: SeverityFirstLetter;
+  severity: string;
+  lineNumber: number;
+  type: string;
+}
+
 export enum SeverityFirstLetter {
   Low = "L",
   High = "H",

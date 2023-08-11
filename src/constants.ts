@@ -32,3 +32,10 @@ export const SCA_CONFIGURATION_SCAN_SUPPORTED_FILES: ReadonlyArray<string> = [
   'requirements.txt',
   'setup.py',
 ];
+
+export enum ScanType {
+  Secrets = "secrets",
+  Sca = "SCA",
+  Sast = "SAST",
+  Iac = "IaC",
+}

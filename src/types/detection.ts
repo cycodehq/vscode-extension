@@ -27,6 +27,7 @@ export type ScaDetection = {
     file_name: string;
     start_position: number;
     end_position: number;
+    line: number;
     line_in_file: number;
     alert?: {
       severity: string;
@@ -36,3 +37,5 @@ export type ScaDetection = {
     };
   };
 };
+
+export type AnyDetection = Detection | ScaDetection;

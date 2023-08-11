@@ -1,18 +1,15 @@
 import * as vscode from "vscode";
-import {
-  Vulnerability,
-  TreeViewItem,
-} from "./item";
+import { TreeViewItem } from "./item";
+import { TREE_VIEW_TOP_LEVEL_ITEMS } from './constants';
+import { ScanType } from '../../constants';
+import { TreeViewDisplayedData } from './types';
 
-interface SetViewTitleArgs {
-  treeViewItem: vscode.TreeView<TreeViewItem>;
-  title: string;
-}
+type TreeDataDatabase = { [key:string]: FileScanResult[]};
 
-export class FileScanResults {
+export class FileScanResult {
   constructor(
     public fileName: string,
-    public vulnerabilities: Vulnerability[]
+    public vulnerabilities: TreeViewDisplayedData[]
   ) {}
 }
 
@@ -26,11 +23,12 @@ export class TreeViewDataProvider
     TreeViewItem | undefined | void
   > = this._onDidChangeTreeData.event;
 
-  private filesScanResults: FileScanResults[] = [];
-
-  constructor(filesScanResults: FileScanResults[]) {
-    this.filesScanResults = filesScanResults;
-  }
+  private filesScanResults: TreeDataDatabase = {
+    [ScanType.Secrets]: [],
+    [ScanType.Sca]: [],
+    [ScanType.Sast]: [],
+    [ScanType.Iac]: [],
+  };
 
   getTreeItem(element: TreeViewItem): vscode.TreeItem {
     return element;
@@ -40,38 +38,41 @@ export class TreeViewDataProvider
     element?: TreeViewItem
   ): Thenable<TreeViewItem[]> {
     if (!element) {
-      // If the element is undefined, return files at top-level (root)
+      return Promise.resolve(TREE_VIEW_TOP_LEVEL_ITEMS);
+    }
+
+    if (element.scanSectionType) {
+      const scanResults = this.filesScanResults[element.scanSectionType];
+
       return Promise.resolve(
-        this.filesScanResults.map(
-          (file) =>
+        scanResults.map(
+          (scanResult) =>
             new TreeViewItem(
-              file.fileName,
+              scanResult.fileName,
               vscode.TreeItemCollapsibleState.Collapsed,
-              file.vulnerabilities
+              scanResult.vulnerabilities,
             )
         )
       );
     }
 
-    // otherwise, the element is a file, return detections as its children
-    return Promise.resolve(
-      (element.vulnerabilities || []).map((vulnerability) => {
-        const { lineNumber, severityFirstLetter, type } = vulnerability;
-        return new TreeViewItem(
-          `${severityFirstLetter} line ${lineNumber}: a hardcoded ${type} is used`,
-          vscode.TreeItemCollapsibleState.None
-        );
-      })
-    );
+    if (element.vulnerabilities) {
+      return Promise.resolve(
+        (element.vulnerabilities || []).map((vulnerability) => {
+          const {lineNumber, severityFirstLetter, type} = vulnerability;
+          return new TreeViewItem(
+            `${severityFirstLetter} line ${lineNumber}: ${type}`,
+            vscode.TreeItemCollapsibleState.None,
+          );
+        })
+      );
+    }
+
+    return Promise.resolve([]);
   }
 
-  refresh(filesScanResults: FileScanResults[]): void {
-    this.filesScanResults = filesScanResults;
+  refresh(filesScanResults: FileScanResult[], scanType: ScanType): void {
+    this.filesScanResults[scanType] = filesScanResults;
     this._onDidChangeTreeData.fire();
-  }
-
-  setViewTitle(args: SetViewTitleArgs): void {
-    const { treeViewItem, title } = args;
-    treeViewItem.title = title;
   }
 }

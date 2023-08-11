@@ -18,6 +18,7 @@ import { IConfig } from "../cli-wrapper/types";
 import TrayNotifications from "../utils/TrayNotifications";
 import { refreshTreeViewData } from "../providers/tree-view/utils";
 import { TreeView } from "../providers/tree-view/types";
+import { ScanType } from '../constants';
 
 // Entry
 export async function secretScan(
@@ -162,6 +163,7 @@ const handleScanDetections = (
     refreshTreeViewData({
       detections,
       treeView: treeView,
+      scanType: ScanType.Secrets
     });
   }
 };

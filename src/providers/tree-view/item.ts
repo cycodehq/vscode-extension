@@ -1,17 +1,15 @@
 import * as vscode from "vscode";
+import { ScanType } from '../../constants';
+import { TreeViewDisplayedData } from './types';
 
-export interface Vulnerability {
-  readonly severityFirstLetter: string;
-  readonly lineNumber: number;
-  readonly type: string;
-}
 
 export class TreeViewItem extends vscode.TreeItem {
   public static readonly viewType = "scan.treeView";
   constructor(
     public readonly title: string,
     public readonly collapsibleState: vscode.TreeItemCollapsibleState,
-    public readonly vulnerabilities?: Vulnerability[]
+    public readonly vulnerabilities?: TreeViewDisplayedData[],
+    public readonly scanSectionType?: ScanType,
   ) {
     super(title, collapsibleState);
     this.tooltip = `${this.title}`;

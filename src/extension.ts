@@ -92,7 +92,7 @@ export async function activate(context: vscode.ExtensionContext) {
       config,
       workspaceFolderPath,
       diagnosticCollection,
-    });
+    }, treeView);
   }
 
   const scanOnSave = vscode.workspace.onDidSaveTextDocument((document) => {
@@ -116,6 +116,7 @@ export async function activate(context: vscode.ExtensionContext) {
               "",
             diagnosticCollection,
           },
+          treeView,
         );
       }
 
@@ -137,7 +138,7 @@ export async function activate(context: vscode.ExtensionContext) {
 function createTreeView(
   context: vscode.ExtensionContext
 ): TreeView {
-  const provider = new TreeViewDataProvider([]);
+  const provider = new TreeViewDataProvider();
   const view = vscode.window.createTreeView(TreeViewItem.viewType, {
     treeDataProvider: provider,
     canSelectMany: true,
@@ -301,7 +302,7 @@ function initCommands(
           workspaceFolderPath: workspaceFolder.uri.fsPath,
           diagnosticCollection,
         };
-        await scaScan(context, params);
+        await scaScan(context, params, treeView);
       }
     }
   );
