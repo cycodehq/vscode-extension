@@ -74,7 +74,7 @@ export async function activate(context: vscode.ExtensionContext) {
         return;
       }
 
-      // if file name is package.json or package-lock.json, run sca scan
+      // if the file name is package.json or package-lock.json, run sca scan
       if (
         document.fileName.includes("package.json") ||
         document.fileName.includes("package-lock.json")
@@ -88,7 +88,6 @@ export async function activate(context: vscode.ExtensionContext) {
               "",
             diagnosticCollection,
           },
-          document.fileName
         );
         return;
       }
