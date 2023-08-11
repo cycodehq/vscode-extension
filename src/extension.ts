@@ -2,7 +2,7 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from "vscode";
 import { extensionOutput } from "./logging/extension-output";
-import { scan } from "./services/scanner";
+import { secretScan } from "./services/scanner";
 import { auth } from "./services/auth";
 import { install } from "./services/install";
 import { uninstall } from "./services/uninstall";
@@ -27,6 +27,7 @@ import LoginView from "./views/login/login-view";
 import AuthenticatingView from "./views/authenticating/authenticating-view";
 import { authCheck } from "./services/auth_check";
 import { scaScan } from "./services/scaScanner";
+import { SCA_CONFIGURATION_SCAN_SUPPORTED_FILES } from './constants';
 
 export async function activate(context: vscode.ExtensionContext) {
   extensionOutput.info("Cycode extension is now active");
@@ -74,10 +75,9 @@ export async function activate(context: vscode.ExtensionContext) {
         return;
       }
 
-      // if the file name is package.json or package-lock.json, run sca scan
+      // if the file name is related SCA file, run SCA scan
       if (
-        document.fileName.includes("package.json") ||
-        document.fileName.includes("package-lock.json")
+        SCA_CONFIGURATION_SCAN_SUPPORTED_FILES.some(fileSuffix => document.fileName.endsWith(fileSuffix))
       ) {
         scaScan(
           context,
@@ -89,12 +89,12 @@ export async function activate(context: vscode.ExtensionContext) {
             diagnosticCollection,
           },
         );
-        return;
       }
 
+      // run secrets scan on any file. CLI will exclude irrelevant files
       const workspaceFolderPath =
         vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || "";
-      scan(
+      secretScan(
         context,
         { config, workspaceFolderPath, diagnosticCollection },
         document.fileName
@@ -167,7 +167,7 @@ function initCommands(
           vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || "",
         diagnosticCollection,
       };
-      await scan(context, params);
+      await secretScan(context, params);
     }
   );
 
