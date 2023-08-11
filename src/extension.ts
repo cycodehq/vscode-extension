@@ -26,9 +26,9 @@ import ScanView from "./views/scan/scan-view";
 import LoginView from "./views/login/login-view";
 import AuthenticatingView from "./views/authenticating/authenticating-view";
 import { authCheck } from "./services/auth_check";
-import { HardcodedSecretsTree } from "./providers/tree-data-providers/types";
-import { HardcodedSecretsTreeDataProvider } from "./providers/tree-data-providers/hardcoded-secrets-provider";
-import { HardcodedSecretsTreeItem } from "./providers/tree-data-providers/hardcoded-secrets-item";
+import { TreeView } from "./providers/tree-view/types";
+import { TreeViewDataProvider } from "./providers/tree-view/provider";
+import { TreeViewItem } from "./providers/tree-view/item";
 import { scaScan } from "./services/scaScanner";
 import { SCA_CONFIGURATION_SCAN_SUPPORTED_FILES } from './constants';
 
@@ -47,12 +47,12 @@ export async function activate(context: vscode.ExtensionContext) {
   const isAuthed = extensionContext.getGlobalState("auth.isAuthed");
   extensionContext.setContext("auth.isAuthed", !!isAuthed);
 
-  const hardCodedSecretsTree = createHardcodedSecretsTree(context);
+  const treeView = createTreeView(context);
 
   const commands = initCommands(
     context,
     diagnosticCollection,
-    hardCodedSecretsTree
+    treeView
   );
   const newStatusBar = statusBar.create();
 
@@ -92,7 +92,7 @@ export async function activate(context: vscode.ExtensionContext) {
       config,
       workspaceFolderPath,
       diagnosticCollection,
-    });
+    }, treeView);
   }
 
   const scanOnSave = vscode.workspace.onDidSaveTextDocument((document) => {
@@ -116,6 +116,7 @@ export async function activate(context: vscode.ExtensionContext) {
               "",
             diagnosticCollection,
           },
+          treeView,
         );
       }
 
@@ -125,7 +126,7 @@ export async function activate(context: vscode.ExtensionContext) {
       secretScan(
         context,
         { config, workspaceFolderPath, diagnosticCollection },
-        hardCodedSecretsTree,
+        treeView,
         document.fileName
       );
     }
@@ -134,18 +135,18 @@ export async function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(newStatusBar, ...commands, scanOnSave);
 }
 
-function createHardcodedSecretsTree(
+function createTreeView(
   context: vscode.ExtensionContext
-): HardcodedSecretsTree {
-  const provider = new HardcodedSecretsTreeDataProvider([]);
-  const view = vscode.window.createTreeView(HardcodedSecretsTreeItem.viewType, {
+): TreeView {
+  const provider = new TreeViewDataProvider();
+  const view = vscode.window.createTreeView(TreeViewItem.viewType, {
     treeDataProvider: provider,
     canSelectMany: true,
   });
 
   context.subscriptions.push(
     vscode.window.registerTreeDataProvider(
-      HardcodedSecretsTreeItem.viewType,
+      TreeViewItem.viewType,
       provider
     )
   );
@@ -174,7 +175,7 @@ function initActivityBar(context: vscode.ExtensionContext): void {
 function initCommands(
   context: vscode.ExtensionContext,
   diagnosticCollection: vscode.DiagnosticCollection,
-  hardcodedSecretsTree: HardcodedSecretsTree
+  treeView: TreeView
 ) {
   const scanCommand = vscode.commands.registerCommand(
     VscodeCommands.ScanCommandId,
@@ -198,7 +199,7 @@ function initCommands(
           vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || "",
         diagnosticCollection,
       };
-      await secretScan(context, params, hardcodedSecretsTree);
+      await secretScan(context, params, treeView);
     }
   );
 
@@ -301,7 +302,7 @@ function initCommands(
           workspaceFolderPath: workspaceFolder.uri.fsPath,
           diagnosticCollection,
         };
-        await scaScan(context, params);
+        await scaScan(context, params, treeView);
       }
     }
   );

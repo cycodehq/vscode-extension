@@ -142,8 +142,8 @@
         },
         {
           "type": "tree",
-          "id": "scan.hardcodedSecretsTreeView",
-          "name": "Hardcoded Secrets",
+          "id": "scan.treeView",
+          "name": "Scan Results",
           "when": "cycode:scan.hasDetections"
         }
       ]

@@ -8,10 +8,13 @@ import {
   extensionId,
 } from "../utils/texts";
 import { validateCliCommonErrors } from "./common";
-import { getWorkspaceState, updateWorkspaceState } from "../utils/context";
+import { getWorkspaceState, setContext, updateWorkspaceState } from '../utils/context';
 import { ScaDetection } from "../types/detection";
 import { IConfig } from "../cli-wrapper/types";
 import TrayNotifications from "../utils/TrayNotifications";
+import { TreeView } from '../providers/tree-view/types';
+import { refreshTreeViewData } from '../providers/tree-view/utils';
+import { ScanType } from '../constants';
 
 
 interface ScaScanParams {
@@ -26,6 +29,7 @@ type ProgressBar = vscode.Progress<{ message?: string; increment?: number }>;
 export async function scaScan(
   context: vscode.ExtensionContext,
   params: ScaScanParams,
+  treeView: TreeView,
 ) {
   if (getWorkspaceState("scan.isScanning")) {
     return;
@@ -35,7 +39,7 @@ export async function scaScan(
       location: vscode.ProgressLocation.Notification,
     },
     async (progress) => {
-      await _scaScanWithProgress(params, progress);
+      await _scaScanWithProgress(params, progress, treeView);
     }
   );
 }
@@ -99,12 +103,12 @@ const _runCliScaScan = async (params: ScaScanParams): Promise<any> => {
 };
 
 
-const _scaScanWithProgress = async (params: ScaScanParams, progress: ProgressBar) => {
+const _scaScanWithProgress = async (params: ScaScanParams, progress: ProgressBar, treeView: TreeView) => {
   try {
     _initScanState(params, progress);
 
     const scanResult = await _runCliScaScan(params);
-    await handleScanDetections(scanResult, params.diagnosticCollection);
+    await handleScanDetections(scanResult, params.diagnosticCollection, treeView);
 
     _finalizeScanState(true);
   } catch (error) {
@@ -149,21 +153,34 @@ export const detectionsToDiagnostics = async (
 
 const handleScanDetections = async (
   result: any,
-  diagnosticCollection: vscode.DiagnosticCollection
+  diagnosticCollection: vscode.DiagnosticCollection,
+  treeView: TreeView
 ) => {
-  if (result.detections) {
-    const diagnostics = await detectionsToDiagnostics(result.detections);
-
-    // iterate over diagnostics
-    // add the diagnostics to the diagnostic collection
-    for (const [filePath, fileDiagnostics] of Object.entries(diagnostics)) {
-      const uri = vscode.Uri.file(filePath);
-      diagnosticCollection.set(uri, fileDiagnostics); // Show in "problems" tab
-    }
-
-    if (result.detections.length && !getWorkspaceState("cycode.notifOpen")) {
-      updateWorkspaceState("cycode.notifOpen", true);
-      TrayNotifications.showProblemsDetection(Object.keys(diagnostics).length);
-    }
+  const { detections } = result;
+  const hasDetections = detections.length > 0;
+  if (!hasDetections) {
+    return;
   }
+
+  setContext("scan.hasDetections", hasDetections);
+
+  const diagnostics = await detectionsToDiagnostics(result.detections);
+
+  // iterate over diagnostics
+  // add the diagnostics to the diagnostic collection
+  for (const [filePath, fileDiagnostics] of Object.entries(diagnostics)) {
+    const uri = vscode.Uri.file(filePath);
+    diagnosticCollection.set(uri, fileDiagnostics); // Show in "problems" tab
+  }
+
+  if (result.detections.length && !getWorkspaceState("cycode.notifOpen")) {
+    updateWorkspaceState("cycode.notifOpen", true);
+    TrayNotifications.showProblemsDetection(Object.keys(diagnostics).length);
+  }
+
+  refreshTreeViewData({
+    detections,
+    treeView,
+    scanType: ScanType.Sca,
+  });
 };

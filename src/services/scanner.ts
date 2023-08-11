@@ -16,8 +16,9 @@ import {
 import { Detection } from "../types/detection";
 import { IConfig } from "../cli-wrapper/types";
 import TrayNotifications from "../utils/TrayNotifications";
-import { refreshHardcodedSecretsTreeViewData } from "../providers/tree-data-providers/utils";
-import { HardcodedSecretsTree } from "../providers/tree-data-providers/types";
+import { refreshTreeViewData } from "../providers/tree-view/utils";
+import { TreeView } from "../providers/tree-view/types";
+import { ScanType } from '../constants';
 
 // Entry
 export async function secretScan(
@@ -27,7 +28,7 @@ export async function secretScan(
     diagnosticCollection: vscode.DiagnosticCollection;
     config: IConfig;
   },
-  hardcodedSecretsTree?: HardcodedSecretsTree,
+  treeView?: TreeView,
   extFilePath?: string
 ) {
   try {
@@ -72,13 +73,13 @@ export async function secretScan(
       "Scan complete: " + JSON.stringify({ result, error }, null, 3)
     );
 
-    // Show in problems tab
+    // Show in "problems" tab
     handleScanDetections(
       result,
       filePath,
       params.diagnosticCollection,
       document,
-      hardcodedSecretsTree
+      treeView
     );
 
     statusBar.showScanComplete();
@@ -91,7 +92,7 @@ export async function secretScan(
   }
 }
 
-export const detectionsToDiagnostings = (
+export const detectionsToDiagnostics = (
   detections: Detection[],
   document: vscode.TextDocument
 ): vscode.Diagnostic[] => {
@@ -138,7 +139,7 @@ const handleScanDetections = (
   filePath: string,
   diagnosticCollection: vscode.DiagnosticCollection,
   document: vscode.TextDocument,
-  hardcodedSecretsTree?: HardcodedSecretsTree
+  treeView?: TreeView
 ) => {
   let diagnostics = [];
   const { detections } = result;
@@ -146,9 +147,9 @@ const handleScanDetections = (
   setContext("scan.hasDetections", hasDetections);
 
   if (detections !== undefined) {
-    diagnostics = detectionsToDiagnostings(detections, document) || [];
+    diagnostics = detectionsToDiagnostics(detections, document) || [];
     const uri = vscode.Uri.file(filePath);
-    diagnosticCollection.set(uri, diagnostics); // Show in problems tab
+    diagnosticCollection.set(uri, diagnostics); // Show in "problems" tab
 
     if (!diagnostics.length) {
       return;
@@ -159,9 +160,10 @@ const handleScanDetections = (
       TrayNotifications.showProblemsDetection(diagnostics.length);
     }
 
-    refreshHardcodedSecretsTreeViewData({
+    refreshTreeViewData({
       detections,
-      hardcodedSecretsTree,
+      treeView: treeView,
+      scanType: ScanType.Secrets
     });
   }
 };
