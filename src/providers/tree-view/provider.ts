@@ -1,29 +1,29 @@
 import * as vscode from "vscode";
 import {
-  HardcodedSecret,
-  HardcodedSecretsTreeItem,
-} from "./hardcoded-secrets-item";
+  Vulnerability,
+  TreeViewItem,
+} from "./item";
 
 interface SetViewTitleArgs {
-  hardcodedSecretsTreeView: vscode.TreeView<HardcodedSecretsTreeItem>;
+  treeViewItem: vscode.TreeView<TreeViewItem>;
   title: string;
 }
 
 export class FileScanResults {
   constructor(
     public fileName: string,
-    public hardcodedSecrets: HardcodedSecret[]
+    public vulnerabilities: Vulnerability[]
   ) {}
 }
 
-export class HardcodedSecretsTreeDataProvider
-  implements vscode.TreeDataProvider<HardcodedSecretsTreeItem>
+export class TreeViewDataProvider
+  implements vscode.TreeDataProvider<TreeViewItem>
 {
   private _onDidChangeTreeData: vscode.EventEmitter<
-    HardcodedSecretsTreeItem | undefined | void
-  > = new vscode.EventEmitter<HardcodedSecretsTreeItem | undefined | void>();
+    TreeViewItem | undefined | void
+  > = new vscode.EventEmitter<TreeViewItem | undefined | void>();
   readonly onDidChangeTreeData: vscode.Event<
-    HardcodedSecretsTreeItem | undefined | void
+    TreeViewItem | undefined | void
   > = this._onDidChangeTreeData.event;
 
   private filesScanResults: FileScanResults[] = [];
@@ -32,22 +32,22 @@ export class HardcodedSecretsTreeDataProvider
     this.filesScanResults = filesScanResults;
   }
 
-  getTreeItem(element: HardcodedSecretsTreeItem): vscode.TreeItem {
+  getTreeItem(element: TreeViewItem): vscode.TreeItem {
     return element;
   }
 
   getChildren(
-    element?: HardcodedSecretsTreeItem
-  ): Thenable<HardcodedSecretsTreeItem[]> {
+    element?: TreeViewItem
+  ): Thenable<TreeViewItem[]> {
     if (!element) {
       // If the element is undefined, return files at top-level (root)
       return Promise.resolve(
         this.filesScanResults.map(
-          (hardcodedFile) =>
-            new HardcodedSecretsTreeItem(
-              hardcodedFile.fileName,
+          (file) =>
+            new TreeViewItem(
+              file.fileName,
               vscode.TreeItemCollapsibleState.Collapsed,
-              hardcodedFile.hardcodedSecrets
+              file.vulnerabilities
             )
         )
       );
@@ -55,9 +55,9 @@ export class HardcodedSecretsTreeDataProvider
 
     // otherwise, the element is a file, return detections as its children
     return Promise.resolve(
-      (element.hardcodedSecrets || []).map((hardCodedItem) => {
-        const { lineNumber, severityFirstLetter, type } = hardCodedItem;
-        return new HardcodedSecretsTreeItem(
+      (element.vulnerabilities || []).map((vulnerability) => {
+        const { lineNumber, severityFirstLetter, type } = vulnerability;
+        return new TreeViewItem(
           `${severityFirstLetter} line ${lineNumber}: a hardcoded ${type} is used`,
           vscode.TreeItemCollapsibleState.None
         );
@@ -71,7 +71,7 @@ export class HardcodedSecretsTreeDataProvider
   }
 
   setViewTitle(args: SetViewTitleArgs): void {
-    const { hardcodedSecretsTreeView, title } = args;
-    hardcodedSecretsTreeView.title = title;
+    const { treeViewItem, title } = args;
+    treeViewItem.title = title;
   }
 }

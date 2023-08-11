@@ -1,18 +1,18 @@
 import { Detection } from "../../types/detection";
-import { FileScanResults } from "./hardcoded-secrets-provider";
-import { HardcodedSecretsTree, SeverityFirstLetter } from "./types";
+import { FileScanResults } from "./provider";
+import { TreeView, SeverityFirstLetter } from "./types";
 
 interface SetViewTitleArgs {
-  hardcodedSecretsTree: HardcodedSecretsTree;
+  treeView: TreeView;
   detections: Detection[];
 }
 
 interface RefreshTreeViewDataArgs {
   detections: Detection[];
-  hardcodedSecretsTree?: HardcodedSecretsTree;
+  treeView?: TreeView;
 }
 
-type HardcodedDisplayedData = {
+type TreeViewDisplayedData = {
   severityFirstLetter: SeverityFirstLetter;
   lineNumber: number;
   type: string;
@@ -22,34 +22,34 @@ type SeverityCounted = { [severity: string]: number };
 
 const VSCODE_ENTRY_LINE_NUMBER = 1;
 
-export function refreshHardcodedSecretsTreeViewData(
+export function refreshTreeViewData(
   args: RefreshTreeViewDataArgs
 ): void {
-  const { detections, hardcodedSecretsTree } = args;
-  if (hardcodedSecretsTree === undefined) {
+  const { detections, treeView } = args;
+  if (treeView === undefined) {
     return;
   }
 
-  const { provider } = hardcodedSecretsTree;
-  setViewTitle({ detections, hardcodedSecretsTree });
-  const hardCodedFiles: FileScanResults[] = [];
+  const { provider } = treeView;
+  setViewTitle({ detections, treeView: treeView });
+  const affectedFiles: FileScanResults[] = [];
   const detectionsMapped = mapDetectionsByFileName(detections);
-  detectionsMapped.forEach((hardcodedSecrets, fileName) => {
-    hardCodedFiles.push(new FileScanResults(fileName, hardcodedSecrets));
+  detectionsMapped.forEach((vulnerabilities, fileName) => {
+    affectedFiles.push(new FileScanResults(fileName, vulnerabilities));
   });
-  provider.refresh(hardCodedFiles);
+  provider.refresh(affectedFiles);
 }
 
 function mapDetectionsByFileName(
   detections: Detection[]
-): Map<string, HardcodedDisplayedData[]> {
-  const resultMap: Map<string, HardcodedDisplayedData[]> = new Map();
+): Map<string, TreeViewDisplayedData[]> {
+  const resultMap: Map<string, TreeViewDisplayedData[]> = new Map();
 
   detections.forEach((detection) => {
     const { type, detection_details, severity } = detection;
     const { line, file_name } = detection_details;
 
-    const valueItem: HardcodedDisplayedData = {
+    const valueItem: TreeViewDisplayedData = {
       severityFirstLetter: mapSeverityToFirstLetter(severity),
       lineNumber: line + VSCODE_ENTRY_LINE_NUMBER, // CLI starts counting from 0, although vscode starts from line 1.
       type,
@@ -83,14 +83,14 @@ function mapSeverityToFirstLetter(severity: string): SeverityFirstLetter {
 }
 
 function setViewTitle(args: SetViewTitleArgs): void {
-  const { detections, hardcodedSecretsTree } = args;
-  const { provider, view } = hardcodedSecretsTree;
+  const { detections, treeView } = args;
+  const { provider, view } = treeView;
   const totalDetections = detections.length;
   const treeViewTitle = `Hardcoded Secrets - ${totalDetections} vulnerabilities: ${mapDetectionsToSeverityString(
     detections
   )}`;
   provider.setViewTitle({
-    hardcodedSecretsTreeView: view,
+    treeViewItem: view,
     title: treeViewTitle,
   });
 }

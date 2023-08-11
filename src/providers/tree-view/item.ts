@@ -1,23 +1,23 @@
 import * as vscode from "vscode";
 
-export interface HardcodedSecret {
+export interface Vulnerability {
   readonly severityFirstLetter: string;
   readonly lineNumber: number;
   readonly type: string;
 }
 
-export class HardcodedSecretsTreeItem extends vscode.TreeItem {
-  public static readonly viewType = "scan.hardcodedSecretsTreeView";
+export class TreeViewItem extends vscode.TreeItem {
+  public static readonly viewType = "scan.treeView";
   constructor(
     public readonly title: string,
     public readonly collapsibleState: vscode.TreeItemCollapsibleState,
-    public readonly hardcodedSecrets?: HardcodedSecret[]
+    public readonly vulnerabilities?: Vulnerability[]
   ) {
     super(title, collapsibleState);
     this.tooltip = `${this.title}`;
     this.description =
-      this.hardcodedSecrets !== undefined
-        ? `${this.hardcodedSecrets.length} vulnerabilities`
+      this.vulnerabilities !== undefined
+        ? `${this.vulnerabilities.length} vulnerabilities`
         : "";
   }
 }
