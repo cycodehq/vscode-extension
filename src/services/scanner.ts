@@ -15,7 +15,7 @@ import { IConfig } from "../cli-wrapper/types";
 import TrayNotifications from "../utils/TrayNotifications";
 
 // Entry
-export async function scan(
+export async function secretScan(
   context: vscode.ExtensionContext,
   params: {
     workspaceFolderPath: string;
