@@ -306,8 +306,7 @@ function initCommands(
   const openMainMenuCommand = vscode.commands.registerCommand(
     VscodeCommands.OpenMainMenuCommandId,
     async () => {
-      // this is negative clause of tree view to close it and back to webview
-      setContext("scan.hasDetections", false);
+      setContext("treeView.isShowed", false);
     }
   );
 

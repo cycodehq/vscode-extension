@@ -170,13 +170,13 @@
           "type": "webview",
           "id": "activity_bar.scanView",
           "name": "scan",
-          "when": "cycode:auth.isAuthed && !cycode:scan.hasDetections"
+          "when": "cycode:auth.isAuthed && (!cycode:scan.hasDetections || !cycode:treeView.isShowed)"
         },
         {
           "type": "tree",
           "id": "scan.treeView",
           "name": "Scan Results",
-          "when": "cycode:scan.hasDetections"
+          "when": "cycode:scan.hasDetections && cycode:treeView.isShowed"
         }
       ]
     },
