@@ -145,6 +145,7 @@ const handleScanDetections = (
   const { detections } = result;
   const hasDetections = detections !== undefined && detections.length > 0;
   setContext("scan.hasDetections", hasDetections);
+  setContext("treeView.isShowed", hasDetections);
 
   if (detections !== undefined) {
     diagnostics = detectionsToDiagnostics(detections, document) || [];

@@ -63,7 +63,7 @@ export const cliWrapper = {
     commandParams.push(CommandParameters.OutputFormatJson);
     commandParams.push(CliCommands.Scan);
     commandParams.push(CliCommands.Path);
-    commandParams.push(params.path);
+    commandParams.push(`"${params.path}"`);
 
     return await runCli({
       cliPath,
@@ -91,7 +91,7 @@ export const cliWrapper = {
     commandParams.push(CommandParameters.scanType);
     commandParams.push(CommandParameters.SCAScanType);
     commandParams.push(CliCommands.Path);
-    commandParams.push(params.path);
+    commandParams.push(`"${params.path}"`);
 
     return await runCli({
       cliPath,

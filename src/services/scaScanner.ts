@@ -163,6 +163,7 @@ const handleScanDetections = async (
   }
 
   setContext("scan.hasDetections", hasDetections);
+  setContext("treeView.isShowed", hasDetections);
 
   const diagnostics = await detectionsToDiagnostics(result.detections);
 
