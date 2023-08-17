@@ -149,27 +149,28 @@ const _runScaScanOnProjectOpen = async (
   diagnosticCollection: vscode.DiagnosticCollection,
   treeView: TreeView
 ) => {
-  if (
-    vscode.workspace.getConfiguration(extensionId).get(scaScanOnOpenProperty)
-  ) {
-    // sca scan
-    if (validateConfig()) {
-      return;
-    }
-    const workspaceFolderPath =
-      vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
-
-    // we should run sca scan only if the project is open!
-    if (!workspaceFolderPath) {
-      return;
-    }
-
-    scaScan(context, {
-      config,
-      workspaceFolderPath,
-      diagnosticCollection,
-    }, treeView);
+  const scaScanOnOpen = vscode.workspace.getConfiguration(extensionId).get(scaScanOnOpenProperty);
+  if (!scaScanOnOpen) {
+    return;
   }
+
+  // sca scan
+  if (validateConfig()) {
+    return;
+  }
+  const workspaceFolderPath =
+    vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+
+  // we should run sca scan only if the project is open!
+  if (!workspaceFolderPath) {
+    return;
+  }
+
+  scaScan(context, {
+    config,
+    workspaceFolderPath,
+    diagnosticCollection,
+  }, treeView);
 };
 
 function initActivityBar(context: vscode.ExtensionContext): void {
