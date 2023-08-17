@@ -31,6 +31,7 @@ export type ScaDetection = {
     line_in_file: number;
     package_name: string;
     package_version: string;
+    vulnerability_description: string;
     alert?: {
       severity: string;
       summary: string;

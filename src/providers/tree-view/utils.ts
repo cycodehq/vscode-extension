@@ -49,10 +49,16 @@ const _getSecretValueItem = (detection: Detection): { filename: string, data: Tr
 
 const _getScaValueItem = (detection: ScaDetection): { filename: string, data: TreeViewDisplayedData } => {
   const { message, detection_details, severity } = detection;
-  const { package_name, package_version, line_in_file, file_name } = detection_details;
+  const { package_name, package_version, vulnerability_description, line_in_file, file_name } = detection_details;
+
+  let description = vulnerability_description;
+  if (!description) {
+    // if detection is about non-premise licence
+    description = message;
+  }
 
   const valueItem: TreeViewDisplayedData = {
-    title: `${package_name}@${package_version}: ${message}`,
+    title: `${package_name}@${package_version}: ${description}`,
     severityFirstLetter: mapSeverityToFirstLetter(severity),
     severity: severity,
     lineNumber: line_in_file,
