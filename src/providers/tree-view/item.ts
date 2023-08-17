@@ -11,6 +11,7 @@ export class TreeViewItem extends vscode.TreeItem {
     public readonly vulnerabilities?: TreeViewDisplayedData[],
     public readonly scanSectionType?: ScanType,
     public readonly customIconPath?: string,
+    public readonly description?: string,
   ) {
     super(title, collapsibleState);
     this.tooltip = `${this.title}`;
@@ -22,9 +23,13 @@ export class TreeViewItem extends vscode.TreeItem {
         dark: customIconPath,
       };
     }
-    this.description =
-      this.vulnerabilities !== undefined
-        ? `${this.vulnerabilities.length} vulnerabilities`
-        : "";
+
+    if (description) {
+      this.description = description;
+    } else if (vulnerabilities) {
+      this.description = `${vulnerabilities.length} vulnerabilities`;
+    } else {
+      this.description = "";
+    }
   }
 }

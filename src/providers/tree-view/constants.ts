@@ -21,6 +21,8 @@ const SAST_SECTION = new TreeViewItem(
   vscode.TreeItemCollapsibleState.Collapsed,
   undefined,
   ScanType.Sast,
+  undefined,
+  "(coming soon)",
 );
 
 const IAC_SECTION = new TreeViewItem(
@@ -28,9 +30,8 @@ const IAC_SECTION = new TreeViewItem(
   vscode.TreeItemCollapsibleState.Collapsed,
   undefined,
   ScanType.Iac,
+  undefined,
+  "(coming soon)",
 );
 
-export const TREE_VIEW_TOP_LEVEL_ITEMS = [SECRETS_SECTION, SCA_SECTION];
-
-// for testing purposes. SAST and IaC are not yet supported
-// export const TREE_VIEW_TOP_LEVEL_ITEMS = [SECRETS_SECTION, SCA_SECTION, SAST_SECTION, IAC_SECTION];
+export const TREE_VIEW_TOP_LEVEL_ITEMS = [SECRETS_SECTION, SCA_SECTION, SAST_SECTION, IAC_SECTION];
