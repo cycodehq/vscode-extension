@@ -35,25 +35,27 @@ const _getSecretValueItem = (detection: Detection): { filename: string, data: Tr
   const { type, detection_details, severity } = detection;
   const { line, file_name } = detection_details;
 
+  const lineNumber = line + VSCODE_ENTRY_LINE_NUMBER; // CLI starts counting from 0, although vscode starts from line 1.
+
   const valueItem: TreeViewDisplayedData = {
+    title: `line ${lineNumber}: a hardcoded ${type} is used`,
     severityFirstLetter: mapSeverityToFirstLetter(severity),
     severity: severity,
-    lineNumber: line + VSCODE_ENTRY_LINE_NUMBER, // CLI starts counting from 0, although vscode starts from line 1.
-    type,
+    lineNumber: lineNumber,
   };
 
   return {filename: file_name, data: valueItem};
 };
 
 const _getScaValueItem = (detection: ScaDetection): { filename: string, data: TreeViewDisplayedData } => {
-  const { type, detection_details, severity } = detection;
-  const { line_in_file, file_name } = detection_details;
+  const { message, detection_details, severity } = detection;
+  const { package_name, package_version, line_in_file, file_name } = detection_details;
 
   const valueItem: TreeViewDisplayedData = {
+    title: `${package_name}@${package_version}: ${message}`,
     severityFirstLetter: mapSeverityToFirstLetter(severity),
     severity: severity,
     lineNumber: line_in_file,
-    type,
   };
 
   return {filename: path.basename(file_name), data: valueItem};
