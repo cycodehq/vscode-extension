@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 import { TreeViewItem } from "./item";
-import { TREE_VIEW_TOP_LEVEL_ITEMS } from './constants';
+import { getSeverityIconPath, TREE_VIEW_TOP_LEVEL_ITEMS } from './constants';
 import { ScanType } from '../../constants';
 import { TreeViewDisplayedData } from './types';
 
@@ -61,8 +61,11 @@ export class TreeViewDataProvider
         (element.vulnerabilities || []).map((vulnerability) => {
           const {lineNumber, severityFirstLetter, type} = vulnerability;
           return new TreeViewItem(
-            `${severityFirstLetter} line ${lineNumber}: ${type}`,
+            `line ${lineNumber}: ${type}`,
             vscode.TreeItemCollapsibleState.None,
+            undefined,
+            undefined,
+            getSeverityIconPath(severityFirstLetter),
           );
         })
       );
