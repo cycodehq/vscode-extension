@@ -1,8 +1,9 @@
 import * as vscode from "vscode";
 import { TreeViewItem } from "./item";
-import { getSeverityIconPath, TREE_VIEW_TOP_LEVEL_ITEMS } from './constants';
+import { getSectionItem, getSeverityIconPath } from './constants';
 import { ScanType } from '../../constants';
 import { TreeViewDisplayedData } from './types';
+import { mapScanResultsToSeverityStatsString } from './utils';
 
 type TreeDataDatabase = { [key:string]: FileScanResult[]};
 
@@ -23,6 +24,7 @@ export class TreeViewDataProvider
     TreeViewItem | undefined | void
   > = this._onDidChangeTreeData.event;
 
+  // order of keys is important. represents the order of the sections in the tree view
   private filesScanResults: TreeDataDatabase = {
     [ScanType.Secrets]: [],
     [ScanType.Sca]: [],
@@ -38,7 +40,12 @@ export class TreeViewDataProvider
     element?: TreeViewItem
   ): Thenable<TreeViewItem[]> {
     if (!element) {
-      return Promise.resolve(TREE_VIEW_TOP_LEVEL_ITEMS);
+      const treeViewTopLevelItems = [];
+      for (const scanType of Object.keys(this.filesScanResults)) {
+        const description = mapScanResultsToSeverityStatsString(this.filesScanResults[scanType]);
+        treeViewTopLevelItems.push(getSectionItem(scanType, description));
+      }
+      return Promise.resolve(treeViewTopLevelItems);
     }
 
     if (element.scanSectionType) {

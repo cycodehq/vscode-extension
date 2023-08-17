@@ -11,7 +11,6 @@ export interface TreeView {
 export interface TreeViewDisplayedData {
   title: string;
   severityFirstLetter: SeverityFirstLetter;
-  severity: string;
   lineNumber: number;
 }
 

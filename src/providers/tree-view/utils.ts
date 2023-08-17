@@ -40,7 +40,6 @@ const _getSecretValueItem = (detection: Detection): { filename: string, data: Tr
   const valueItem: TreeViewDisplayedData = {
     title: `line ${lineNumber}: a hardcoded ${type} is used`,
     severityFirstLetter: mapSeverityToFirstLetter(severity),
-    severity: severity,
     lineNumber: lineNumber,
   };
 
@@ -60,7 +59,6 @@ const _getScaValueItem = (detection: ScaDetection): { filename: string, data: Tr
   const valueItem: TreeViewDisplayedData = {
     title: `${package_name}@${package_version}: ${description}`,
     severityFirstLetter: mapSeverityToFirstLetter(severity),
-    severity: severity,
     lineNumber: line_in_file,
   };
 
@@ -114,23 +112,32 @@ function mapSeverityToFirstLetter(severity: string): SeverityFirstLetter {
   }
 }
 
-export const mapDetectionsToSeverityString = (vulnerabilities: TreeViewDisplayedData[]): string => {
-  // FIXME(MarshalX): return to UI somehow?
+export const mapScanResultsToSeverityStatsString = (scanResults: FileScanResult[]): string => {
   const severityToCount: SeverityCounted = {};
 
-  for (const vulnerability of vulnerabilities) {
-    const { severity } = vulnerability;
+  for (const scanResult of scanResults) {
+    const { vulnerabilities } = scanResult;
+    for (const vulnerability of vulnerabilities) {
+      const {severityFirstLetter} = vulnerability;
 
-    if (severityToCount[severity] === undefined) {
-      severityToCount[severity] = 1;
-    } else {
-      severityToCount[severity] += 1;
+      if (severityToCount[severityFirstLetter] === undefined) {
+        severityToCount[severityFirstLetter] = 1;
+      } else {
+        severityToCount[severityFirstLetter] += 1;
+      }
     }
   }
 
-  const severityStrings = Object.entries(severityToCount).map(
-    ([severity, count]) => `${count} ${severity}`
-  );
+  const severityStrings: string[] = [];
+
+  // add severity stats strings in severity priority order
+  const severityPriority = ["C", "H", "M", "L", "I"];
+  severityPriority.forEach((severity) => {
+    const count = severityToCount[severity];
+    if (count !== undefined) {
+      severityStrings.push(`${severity} - ${count}`);
+    }
+  });
 
   return severityStrings.join(" | ");
 };
