@@ -118,6 +118,10 @@ export async function activate(context: vscode.ExtensionContext) {
 
   context.subscriptions.push(newStatusBar, ...commands, scanOnSave);
 
+  if (isDebugMode()) {
+    return;
+  }
+
   // FIXME(MarshalX): call only after successful auth check!
   _runScaScanOnProjectOpen(context, diagnosticCollection, treeView);
 }
@@ -353,3 +357,5 @@ function initExtension(context: vscode.ExtensionContext): void {
 
 // This method is called when your extension is deactivated
 export function deactivate() {}
+
+const isDebugMode = () => process.env.VSCODE_DEBUG_MODE === "true";

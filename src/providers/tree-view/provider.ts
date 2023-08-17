@@ -59,9 +59,9 @@ export class TreeViewDataProvider
     if (element.vulnerabilities) {
       return Promise.resolve(
         (element.vulnerabilities || []).map((vulnerability) => {
-          const {lineNumber, severityFirstLetter, type} = vulnerability;
+          const {title, severityFirstLetter} = vulnerability;
           return new TreeViewItem(
-            `line ${lineNumber}: ${type}`,
+            title,
             vscode.TreeItemCollapsibleState.None,
             undefined,
             undefined,
