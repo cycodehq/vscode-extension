@@ -37,7 +37,7 @@ const getSecretsSectionItem = (description: string): TreeViewItem => new TreeVie
 );
 
 const getScaSectionItem = (description: string): TreeViewItem => new TreeViewItem(
-  "Software Composition Analysis",
+  "Open Source Threat",
   vscode.TreeItemCollapsibleState.Collapsed,
   undefined,
   ScanType.Sca,
@@ -46,7 +46,7 @@ const getScaSectionItem = (description: string): TreeViewItem => new TreeViewIte
 );
 
 const getSastSectionItem = (_: string): TreeViewItem => new TreeViewItem(
-  "Static Application Security Testing",
+  "Code Security",
   vscode.TreeItemCollapsibleState.Collapsed,
   undefined,
   ScanType.Sast,
@@ -71,6 +71,8 @@ const _SCAN_TYPE_TO_SECTION_ITEM_CREATOR: { [key: string]: ((description: string
 };
 
 export const SECTIONS_ORDER: ReadonlyArray<ScanType> = [ScanType.Secrets, ScanType.Sca, ScanType.Sast, ScanType.Iac];
+
+export const SEVERITY_PRIORITIES: ReadonlyArray<string> = ["C", "H", "M", "L", "I"];
 
 export const getSectionItem = (scanType: string, description: string): TreeViewItem => {
   if (!_SCAN_TYPE_TO_SECTION_ITEM_CREATOR.hasOwnProperty(scanType)) {

@@ -72,7 +72,7 @@
         },
         "cycode.scaScanOnOpen": {
           "type": "boolean",
-          "default": "true",
+          "default": "false",
           "description": "Scan your projects for vulnerabilities. If auto-scan disabled you can still trigger scans manually from the command palette. Open the command palette with `Ctrl+Shift+P` and search for `Cycode`.",
           "markdownDescription": "Perform a scan on open"
         },
