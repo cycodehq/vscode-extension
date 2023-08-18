@@ -137,13 +137,14 @@ export const detectionsToDiagnostics = async (
     message += `Rule ID: ${detection.detection_rule_id}`;
 
     const diagnostic = new vscode.Diagnostic(
-      document.lineAt(detection_details.line_in_file).range,
+      document.lineAt(detection_details.line_in_file - 1).range, // BE of SCA counts lines from 1, while VSCode counts from 0
       message,
       vscode.DiagnosticSeverity.Error
     );
 
     diagnostic.source = extensionId;
     diagnostic.code = detection.detection_rule_id;
+
     result[file_name] = result[file_name] || [];
     result[file_name].push(diagnostic);
   }
@@ -157,6 +158,7 @@ const handleScanDetections = async (
   treeView: TreeView
 ) => {
   const { detections } = result;
+
   const hasDetections = detections.length > 0;
   if (!hasDetections) {
     return;
@@ -167,7 +169,6 @@ const handleScanDetections = async (
 
   const diagnostics = await detectionsToDiagnostics(result.detections);
 
-  // iterate over diagnostics
   // add the diagnostics to the diagnostic collection
   for (const [filePath, fileDiagnostics] of Object.entries(diagnostics)) {
     const uri = vscode.Uri.file(filePath);
