@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 import { TreeViewItem } from "./item";
-import { getSectionItem, getSeverityIconPath, SECTIONS_ORDER } from './constants';
+import { getSectionItem, getSeverityIconPath, SECTIONS_ORDER, SEVERITY_PRIORITIES } from './constants';
 import { ScanType } from '../../constants';
 import { TreeViewDisplayedData } from './types';
 import { mapScanResultsToSeverityStatsString } from './utils';
@@ -63,18 +63,7 @@ export class TreeViewDataProvider
     }
 
     if (element.vulnerabilities) {
-      return Promise.resolve(
-        (element.vulnerabilities || []).map((vulnerability) => {
-          const {title, severityFirstLetter} = vulnerability;
-          return new TreeViewItem(
-            title,
-            vscode.TreeItemCollapsibleState.None,
-            undefined,
-            undefined,
-            getSeverityIconPath(severityFirstLetter),
-          );
-        })
-      );
+      return Promise.resolve(_createSeveritySortedTreeViewItems(element.vulnerabilities));
     }
 
     return Promise.resolve([]);
@@ -85,3 +74,38 @@ export class TreeViewDataProvider
     this._onDidChangeTreeData.fire();
   }
 }
+
+const _mapSeverityToDisplayedData = (treeViewDisplayedData: TreeViewDisplayedData[]): { [key: string]: TreeViewDisplayedData[] } => {
+  const severityToDisplayData: { [key: string]: TreeViewDisplayedData[] } = {};
+  for (const displayedData of treeViewDisplayedData) {
+    const { severityFirstLetter } = displayedData;
+    if (!severityToDisplayData.hasOwnProperty(severityFirstLetter)) {
+      severityToDisplayData[severityFirstLetter] = [displayedData];
+    } else {
+      severityToDisplayData[severityFirstLetter].push(displayedData);
+    }
+  }
+
+  return severityToDisplayData;
+};
+
+
+const _createSeveritySortedTreeViewItems = (vulnerabilities: TreeViewDisplayedData[]): TreeViewItem[] => {
+  const severityToDisplayData = _mapSeverityToDisplayedData(vulnerabilities);
+
+  const sortedVulnerabilities: TreeViewItem[] = [];
+  SEVERITY_PRIORITIES.forEach((severityFirstLetter) => {
+    const vulnerabilitiesOfSeverity = severityToDisplayData[severityFirstLetter];
+    vulnerabilitiesOfSeverity && vulnerabilitiesOfSeverity.forEach((vulnerability) => {
+      sortedVulnerabilities.push(new TreeViewItem(
+        vulnerability.title,
+        vscode.TreeItemCollapsibleState.None,
+        undefined,
+        undefined,
+        getSeverityIconPath(severityFirstLetter),
+      ));
+    });
+  });
+
+  return sortedVulnerabilities;
+};
