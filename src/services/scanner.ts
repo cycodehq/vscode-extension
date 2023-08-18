@@ -96,42 +96,44 @@ export const detectionsToDiagnostics = (
   detections: Detection[],
   document: vscode.TextDocument
 ): vscode.Diagnostic[] => {
-  return detections
-    ?.map((detection) => {
-      const startPosition = document?.positionAt(
-        detection.detection_details.start_position
-      );
+  const diagnotics: vscode.Diagnostic[] = [];
 
-      const endPosition = document?.positionAt(
-        detection.detection_details.start_position +
-          detection.detection_details.length
-      );
+  for (const detection of detections) {
+    const startPosition = document?.positionAt(
+      detection.detection_details.start_position
+    );
 
-      if (!startPosition || !endPosition) {
-        return;
-      }
+    const endPosition = document?.positionAt(
+      detection.detection_details.start_position +
+      detection.detection_details.length
+    );
 
-      let message = `Severity: ${detection.severity}\n`;
-      message += `${detection.type}: ${detection.message.replace(
-        "within '' repository",
-        ""
-      )}\n`;
-      message += `Rule ID: ${detection.detection_rule_id}\n`;
-      message += `In file: ${detection.detection_details.file_name}\n`;
-      message += `Secret SHA: ${detection.detection_details.sha512}`;
+    if (!startPosition || !endPosition) {
+      continue;
+    }
 
-      const diagnostic = new vscode.Diagnostic(
-        new vscode.Range(startPosition, endPosition),
-        message,
-        vscode.DiagnosticSeverity.Error
-      );
+    let message = `Severity: ${detection.severity}\n`;
+    message += `${detection.type}: ${detection.message.replace(
+      "within '' repository",
+      ""
+    )}\n`;
+    message += `Rule ID: ${detection.detection_rule_id}\n`;
+    message += `In file: ${detection.detection_details.file_name}\n`;
+    message += `Secret SHA: ${detection.detection_details.sha512}`;
 
-      diagnostic.source = extensionId;
-      diagnostic.code = detection.detection_rule_id;
+    const diagnostic = new vscode.Diagnostic(
+      new vscode.Range(startPosition, endPosition),
+      message,
+      vscode.DiagnosticSeverity.Error
+    );
 
-      return diagnostic;
-    })
-    .filter((diagnostic) => diagnostic !== undefined) as vscode.Diagnostic[];
+    diagnostic.source = extensionId;
+    diagnostic.code = detection.detection_rule_id;
+
+    diagnotics.push(diagnostic);
+  }
+
+  return diagnotics;
 };
 
 const handleScanDetections = (
@@ -141,30 +143,32 @@ const handleScanDetections = (
   document: vscode.TextDocument,
   treeView?: TreeView
 ) => {
-  let diagnostics = [];
   const { detections } = result;
-  const hasDetections = detections !== undefined && detections.length > 0;
+
+  if (detections === undefined) {
+    return;
+  }
+
+  const hasDetections = detections.length > 0;
   setContext("scan.hasDetections", hasDetections);
   setContext("treeView.isShowed", hasDetections);
 
-  if (detections !== undefined) {
-    diagnostics = detectionsToDiagnostics(detections, document) || [];
-    const uri = vscode.Uri.file(filePath);
-    diagnosticCollection.set(uri, diagnostics); // Show in "problems" tab
+  const diagnostics = detectionsToDiagnostics(detections, document) || [];
+  const uri = vscode.Uri.file(filePath);
+  diagnosticCollection.set(uri, diagnostics); // Show in "problems" tab
 
-    if (!diagnostics.length) {
-      return;
-    }
-
-    if (detections.length && !getWorkspaceState("cycode.notifOpen")) {
-      updateWorkspaceState("cycode.notifOpen", true);
-      TrayNotifications.showProblemsDetection(diagnostics.length);
-    }
-
-    refreshTreeViewData({
-      detections,
-      treeView: treeView,
-      scanType: ScanType.Secrets
-    });
+  if (!diagnostics.length) {
+    return;
   }
+
+  if (detections.length && !getWorkspaceState("cycode.notifOpen")) {
+    updateWorkspaceState("cycode.notifOpen", true);
+    TrayNotifications.showProblemsDetection(diagnostics.length);
+  }
+
+  refreshTreeViewData({
+    detections,
+    treeView: treeView,
+    scanType: ScanType.Secrets
+  });
 };
