@@ -33,7 +33,7 @@ export const cliWrapper = {
   },
   runGetVersion: async (params: {
     config: IConfig;
-    workspaceFolderPath: string;
+    workspaceFolderPath?: string;
   }): Promise<CommandResult> => {
     const { config, workspaceFolderPath } = params;
     const { cliPath, cliEnv } = config;
@@ -49,7 +49,7 @@ export const cliWrapper = {
   runScan: async (params: {
     config: IConfig;
     path: string;
-    workspaceFolderPath: string;
+    workspaceFolderPath?: string;
   }): Promise<CommandResult> => {
     const { config, workspaceFolderPath } = params;
     const { cliPath, cliEnv } = config;
@@ -75,7 +75,7 @@ export const cliWrapper = {
   runScaScan: async (params: {
     config: IConfig;
     path: string;
-    workspaceFolderPath: string;
+    workspaceFolderPath?: string;
   }): Promise<CommandResult> => {
     const commandParams: string[] = [];
     const { config, workspaceFolderPath } = params;
@@ -102,7 +102,7 @@ export const cliWrapper = {
   },
   runAuth: async (params: {
     config: IConfig;
-    workspaceFolderPath: string;
+    workspaceFolderPath?: string;
   }): Promise<CommandResult> => {
     const { config, workspaceFolderPath } = params;
     const { cliEnv, cliPath } = config;
@@ -132,7 +132,7 @@ export const cliWrapper = {
   },
   runInstall: async (params: {
     config: IConfig;
-    workspaceFolderPath: string;
+    workspaceFolderPath?: string;
   }): Promise<CommandResult> => {
     const commandParams: string[] = [];
     const { config, workspaceFolderPath } = params;
@@ -151,7 +151,7 @@ export const cliWrapper = {
   },
   runUninstall: async (params: {
     config: IConfig;
-    workspaceFolderPath: string;
+    workspaceFolderPath?: string;
   }): Promise<CommandResult> => {
     const { config, workspaceFolderPath } = params;
     const { cliEnv } = config;
@@ -166,7 +166,7 @@ export const cliWrapper = {
   },
   runUsage: async (params: {
     config: IConfig;
-    workspaceFolderPath: string;
+    workspaceFolderPath?: string;
   }): Promise<CommandResult> => {
     const { config, workspaceFolderPath } = params;
     const { cliEnv, cliPath } = config;
@@ -181,7 +181,7 @@ export const cliWrapper = {
   },
   runIgnore: async (params: {
     config: IConfig;
-    workspaceFolderPath: string;
+    workspaceFolderPath?: string;
     ignoreConfig: IgnoreCommandConfig;
   }): Promise<CommandResult> => {
     const { config, ignoreConfig, workspaceFolderPath } = params;

@@ -60,7 +60,7 @@ export async function activate(context: vscode.ExtensionContext) {
     statusBar.showAuthIsRequired();
   }
 
-  initExtension(context);
+  await initExtension(context, diagnosticCollection, treeView);
 
   initActivityBar(context);
 
@@ -80,50 +80,52 @@ export async function activate(context: vscode.ExtensionContext) {
   );
 
   const scanOnSave = vscode.workspace.onDidSaveTextDocument((document) => {
+    const scanOnSaveEnabled = vscode.workspace.getConfiguration(extensionId).get(scanOnSaveProperty);
+    if (!scanOnSaveEnabled) {
+      return;
+    }
+
+    if (validateConfig()) {
+      return;
+    }
+
+    const fileFsPath = document.uri.fsPath;
+    if (!fileFsPath) {
+      return;
+    }
+
+    const workspaceFolderPath = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+
+    // if the file name is related SCA file, run SCA scan
     if (
-      vscode.workspace.getConfiguration(extensionId).get(scanOnSaveProperty)
+      SCA_CONFIGURATION_SCAN_SUPPORTED_FILES.some(fileSuffix => document.fileName.endsWith(fileSuffix))
     ) {
-      if (validateConfig()) {
-        return;
-      }
-
-      // if the file name is related SCA file, run SCA scan
-      if (
-        SCA_CONFIGURATION_SCAN_SUPPORTED_FILES.some(fileSuffix => document.fileName.endsWith(fileSuffix))
-      ) {
-        scaScan(
-          context,
-          {
-            config,
-            workspaceFolderPath:
-              vscode.workspace.getWorkspaceFolder(document.uri)?.uri.fsPath ||
-              "",
-            diagnosticCollection,
-          },
-          treeView,
-        );
-      }
-
-      // run secrets scan on any file. CLI will exclude irrelevant files
-      const workspaceFolderPath =
-        vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || "";
-      secretScan(
+      scaScan(
         context,
-        { config, workspaceFolderPath, diagnosticCollection },
+        {
+          config,
+          pathToScan: fileFsPath,
+          workspaceFolderPath,
+          diagnosticCollection,
+        },
         treeView,
-        document.fileName
       );
     }
+
+    // run Secrets scan on any saved file. CLI will exclude irrelevant files
+    secretScan(
+      context,
+      {
+        config,
+        documentToScan: document,
+        workspaceFolderPath: workspaceFolderPath,
+        diagnosticCollection
+      },
+      treeView,
+    );
   });
 
   context.subscriptions.push(newStatusBar, ...commands, scanOnSave);
-
-  if (isDebugMode()) {
-    return;
-  }
-
-  // FIXME(MarshalX): call only after successful auth check!
-  _runScaScanOnProjectOpen(context, diagnosticCollection, treeView);
 }
 
 function createTreeView(
@@ -168,6 +170,7 @@ const _runScaScanOnProjectOpen = async (
 
   scaScan(context, {
     config,
+    pathToScan: workspaceFolderPath,
     workspaceFolderPath,
     diagnosticCollection,
   }, treeView);
@@ -200,6 +203,8 @@ function initCommands(
   const scanCommand = vscode.commands.registerCommand(
     VscodeCommands.ScanCommandId,
     async () => {
+      // scan the current open document if opened
+
       if (
         !vscode.window.activeTextEditor?.document ||
         vscode.window?.activeTextEditor?.document?.uri.scheme === "output"
@@ -213,13 +218,16 @@ function initCommands(
         return;
       }
 
-      const params = {
-        config,
-        workspaceFolderPath:
-          vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || "",
-        diagnosticCollection,
-      };
-      await secretScan(context, params, treeView);
+      await secretScan(
+        context,
+        {
+          config,
+          documentToScan: vscode.window.activeTextEditor.document,
+          workspaceFolderPath: vscode.workspace.workspaceFolders?.[0]?.uri.fsPath,
+          diagnosticCollection,
+        },
+        treeView
+      );
     }
   );
 
@@ -260,8 +268,7 @@ function initCommands(
 
       const params = {
         config,
-        workspaceFolderPath:
-          vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || "",
+        workspaceFolderPath: vscode.workspace.workspaceFolders?.[0]?.uri.fsPath,
       };
       await install(context, params);
     }
@@ -272,8 +279,7 @@ function initCommands(
     async () => {
       const params = {
         config,
-        workspaceFolderPath:
-          vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || "",
+        workspaceFolderPath: vscode.workspace.workspaceFolders?.[0]?.uri.fsPath,
       };
 
       // TODO:: find which workspace folder is the file in
@@ -288,16 +294,14 @@ function initCommands(
         return;
       }
 
-      // TODO:: find which workspace folder is the file in
-      const params = {
+      await ignore(context, {
+        documentInitiatedIgnore: ignoreConfig.document,
         config,
-        workspaceFolderPath:
-          vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || "",
+        workspaceFolderPath: vscode.workspace.workspaceFolders?.[0]?.uri.fsPath,
         ignoreConfig,
         diagnosticCollection,
-      };
-
-      await ignore(context, params);
+        treeView,
+      });
     }
   );
 
@@ -323,13 +327,21 @@ function initCommands(
       }
 
       // iterate over workspace folders and scan each one
+      // FIXME(MarshalX): do we actually want to scan all the workspace folders?
+      //  why not only active one?
+      //  why it waits each scan result?
+      //  it take too long
       for (const workspaceFolder of vscode.workspace.workspaceFolders || []) {
-        const params = {
-          config,
-          workspaceFolderPath: workspaceFolder.uri.fsPath,
-          diagnosticCollection,
-        };
-        await scaScan(context, params, treeView);
+        await scaScan(
+          context,
+          {
+            config,
+            pathToScan: workspaceFolder.uri.fsPath,
+            workspaceFolderPath: workspaceFolder.uri.fsPath,
+            diagnosticCollection,
+          },
+          treeView
+        );
       }
     }
   );
@@ -347,14 +359,24 @@ function initCommands(
   ];
 }
 
-function initExtension(context: vscode.ExtensionContext): void {
-  checkCLI(context, {
-    workspaceFolderPath:
-      vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || "",
-    config,
-  }).then(() => authCheck(config))
-    .catch(() => extensionOutput.error("Cycode CLI is not installed"));
-}
+const initExtension = async (
+  context: vscode.ExtensionContext,
+  diagnosticCollection: vscode.DiagnosticCollection,
+  treeView: TreeView
+): Promise<void> => {
+  try {
+    const workspaceFolderPath = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || '';
+    await checkCLI(context, {workspaceFolderPath, config});
+
+    const isAuthenticated = await authCheck(config);
+    if (isAuthenticated) {
+      // don't wait until the scan completes to not block the extension init
+      _runScaScanOnProjectOpen(context, diagnosticCollection, treeView);
+    }
+  } catch (error) {
+    extensionOutput.error("Cycode CLI is not installed");
+  }
+};
 
 // This method is called when your extension is deactivated
 export function deactivate() {}

@@ -3,8 +3,6 @@ import { VscodeCommands } from "../utils/commands";
 import { CommandParameters } from "../cli-wrapper/constants";
 import { IgnoreCommandConfig } from "../types/commands";
 
-export const IGNORE_ACTION = "ignore";
-
 export class CycodeActions implements vscode.CodeActionProvider {
   public static readonly providedCodeActionKinds = [
     vscode.CodeActionKind.QuickFix,
@@ -47,6 +45,7 @@ export class CycodeActions implements vscode.CodeActionProvider {
         {
           ignoreBy: CommandParameters.ByValue,
           param: value,
+          document: document,
         } as IgnoreCommandConfig,
       ],
     };
@@ -61,6 +60,7 @@ export class CycodeActions implements vscode.CodeActionProvider {
         {
           ignoreBy: CommandParameters.ByRule,
           param: diagnostic.code,
+          document: document,
         } as IgnoreCommandConfig,
       ],
     };

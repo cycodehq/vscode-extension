@@ -8,7 +8,7 @@ import TrayNotifications from "../utils/TrayNotifications";
 
 export async function uninstall(
   context: vscode.ExtensionContext,
-  params: { workspaceFolderPath: string; config: IConfig }
+  params: { workspaceFolderPath?: string; config: IConfig }
 ) {
   extensionOutput.showOutputTab();
 
