@@ -24,28 +24,27 @@ import { ScanType } from '../constants';
 export async function secretScan(
   context: vscode.ExtensionContext,
   params: {
-    workspaceFolderPath: string;
+    documentToScan: vscode.TextDocument;
+    workspaceFolderPath?: string;
     diagnosticCollection: vscode.DiagnosticCollection;
     config: IConfig;
   },
   treeView?: TreeView,
-  extFilePath?: string
 ) {
   try {
     if (getWorkspaceState("scan.isScanning")) {
       return;
     }
 
-    const document = vscode.window.activeTextEditor?.document;
-
-    if (!document) {
+    // TODO (MarshalX): support folder support
+    if (!params.documentToScan) {
       return;
     }
 
     extensionOutput.info(StatusBarTexts.ScanWait);
     statusBar.showScanningInProgress();
 
-    let filePath = extFilePath || document?.fileName || "";
+    const filePath = params.documentToScan.fileName;
 
     extensionOutput.info("Initiating scan for file: " + filePath);
     updateWorkspaceState("scan.isScanning", true);
@@ -78,7 +77,7 @@ export async function secretScan(
       result,
       filePath,
       params.diagnosticCollection,
-      document,
+      params.documentToScan,
       treeView
     );
 

@@ -9,7 +9,7 @@ import TrayNotifications from "../utils/TrayNotifications";
 
 export async function install(
   context: vscode.ExtensionContext,
-  params: { workspaceFolderPath: string; config: IConfig }
+  params: { workspaceFolderPath?: string; config: IConfig }
 ) {
   extensionOutput.showOutputTab();
 

@@ -6,10 +6,10 @@ import { onAuthFailure, onAuthSuccess } from "../utils/auth/auth_common";
 import { prettyPrintJson } from "../utils/text_formatting";
 import { IConfig } from "../cli-wrapper/types";
 
-export async function authCheck(config: IConfig) {
+export async function authCheck(config: IConfig): Promise<boolean> {
   extensionOutput.showOutputTab();
 
-  vscode.window.withProgress(
+  const progressedTask = vscode.window.withProgress(
     {
       location: vscode.ProgressLocation.Window,
     },
@@ -27,21 +27,31 @@ export async function authCheck(config: IConfig) {
         } = authCheckResult;
 
         if (validateCliCommonErrors(error, exitCode)) {
-          return;
+          throw new Error("Failed to check auth status");
         }
 
-        handleAuthStatus(isAuthenticated);
+        if (!isAuthenticated) {
+          throw new Error("User is not authorized");
+        }
+
+        onAuthCheckSuccess();
       } catch (error) {
-        const errorMessage = `Auth check failed to complete with the following error: ${error}`;
+        const errorMessage = `Auth check failed with the following error: ${error}`;
         extensionOutput.error(prettyPrintJson({ errorMessage }));
         onAuthFailure();
+
+        throw( error );
       }
     }
   );
-}
 
-function handleAuthStatus(isAuthenticated: boolean): void {
-  isAuthenticated === true ? onAuthCheckSuccess() : onAuthFailure();
+  let isAuthenticated: boolean = false;
+  await progressedTask.then(
+    () => isAuthenticated = true,
+    () => isAuthenticated = false
+  );
+
+  return isAuthenticated;
 }
 
 function onAuthCheckSuccess(): void {

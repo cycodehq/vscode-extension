@@ -8,14 +8,17 @@ import { IConfig } from "../cli-wrapper/types";
 import { IgnoreCommandConfig } from "../types/commands";
 import { secretScan } from "./scanner";
 import TrayNotifications from "../utils/TrayNotifications";
+import { TreeView } from '../providers/tree-view/types';
 
 export async function ignore(
   context: vscode.ExtensionContext,
   params: {
-    workspaceFolderPath: string;
+    documentInitiatedIgnore: vscode.TextDocument;
+    workspaceFolderPath?: string;
     config: IConfig;
     ignoreConfig: IgnoreCommandConfig;
     diagnosticCollection: vscode.DiagnosticCollection;
+    treeView: TreeView,
   }
 ) {
   try {
@@ -34,11 +37,19 @@ export async function ignore(
     extensionOutput.info(
       "Ignore completed: " + JSON.stringify({ result, error }, null, 3)
     );
-    secretScan(context, {
-      workspaceFolderPath: params.workspaceFolderPath,
-      diagnosticCollection: params.diagnosticCollection,
-      config: params.config,
-    });
+
+    // start rescan to visualize the applied "ignore" action
+    // TODO(MarshalX): could be not only Secret scan type...
+    secretScan(context,
+      {
+        documentToScan: params.documentInitiatedIgnore,
+        workspaceFolderPath: params.workspaceFolderPath,
+        diagnosticCollection: params.diagnosticCollection,
+        config: params.config,
+      },
+      params.treeView
+    );
+
   } catch (error) {
     extensionOutput.error("Error while ignoring: " + error);
     onIgnoreFailed();

@@ -18,7 +18,8 @@ import { ScanType } from '../constants';
 
 
 interface ScaScanParams {
-  workspaceFolderPath: string;
+  pathToScan: string;
+  workspaceFolderPath?: string;
   diagnosticCollection: vscode.DiagnosticCollection;
   config: IConfig;
 }
@@ -76,11 +77,10 @@ const _finalizeScanState = (success: boolean, progress?: ProgressBar) => {
 const _runCliScaScan = async (params: ScaScanParams): Promise<any> => {
   // Run scan through CLI
   let cliParams = {
-    path: params.workspaceFolderPath,
+    path: params.pathToScan,
     workspaceFolderPath: params.workspaceFolderPath,
     config: params.config,
   };
-
 
   const { result, error, exitCode } = await cliWrapper.runScaScan(
     cliParams
