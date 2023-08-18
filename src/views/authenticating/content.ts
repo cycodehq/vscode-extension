@@ -11,7 +11,7 @@ export default `
       flex-direction: column;
     }
     #authenticating-button {
-      background-color: #2376e5;
+      background-color: var(--vscode-button-background);
       color: white;
       outline: none;
       border: none;
