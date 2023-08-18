@@ -37,7 +37,7 @@ const getSecretsSectionItem = (description: string): TreeViewItem => new TreeVie
 );
 
 const getScaSectionItem = (description: string): TreeViewItem => new TreeViewItem(
-  "Software Composition Analysis",
+  "Open Source Threat",
   vscode.TreeItemCollapsibleState.Collapsed,
   undefined,
   ScanType.Sca,
@@ -46,7 +46,7 @@ const getScaSectionItem = (description: string): TreeViewItem => new TreeViewIte
 );
 
 const getSastSectionItem = (_: string): TreeViewItem => new TreeViewItem(
-  "Static Application Security Testing",
+  "Code Security",
   vscode.TreeItemCollapsibleState.Collapsed,
   undefined,
   ScanType.Sast,
