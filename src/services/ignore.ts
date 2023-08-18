@@ -9,6 +9,7 @@ import { IgnoreCommandConfig } from "../types/commands";
 import { secretScan } from "./scanner";
 import TrayNotifications from "../utils/TrayNotifications";
 import { TreeView } from '../providers/tree-view/types';
+import { CommandParameters } from '../cli-wrapper/constants';
 
 export async function ignore(
   context: vscode.ExtensionContext,
@@ -37,6 +38,12 @@ export async function ignore(
     extensionOutput.info(
       "Ignore completed: " + JSON.stringify({ result, error }, null, 3)
     );
+
+    if (params.ignoreConfig.ignoreBy === CommandParameters.ByPath) {
+      params.diagnosticCollection.delete(params.documentInitiatedIgnore.uri);
+      params.treeView.provider.excludeViolationsByPath(params.ignoreConfig.param);
+      return;
+    }
 
     // start rescan to visualize the applied "ignore" action
     // TODO(MarshalX): could be not only Secret scan type...

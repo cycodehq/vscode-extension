@@ -10,6 +10,7 @@ type TreeDataDatabase = { [key:string]: FileScanResult[]};
 export class FileScanResult {
   constructor(
     public fileName: string,
+    public fullFilePath: string,
     public vulnerabilities: TreeViewDisplayedData[]
   ) {}
 }
@@ -71,6 +72,17 @@ export class TreeViewDataProvider
 
   refresh(filesScanResults: FileScanResult[], scanType: ScanType): void {
     this.filesScanResults[scanType] = filesScanResults;
+    this._onDidChangeTreeData.fire();
+  }
+
+  excludeViolationsByPath(path: string): void {
+    for (const scanType of SECTIONS_ORDER) {
+      const scanResults = this.filesScanResults[scanType];
+      this.filesScanResults[scanType] = scanResults.filter(
+        (scanResult) => scanResult.fullFilePath !== path
+      );
+    }
+
     this._onDidChangeTreeData.fire();
   }
 }

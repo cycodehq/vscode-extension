@@ -68,6 +68,10 @@ export async function secretScan(
       throw new Error(error);
     }
 
+    if (result.error) {
+      throw new Error(result.message);
+    }
+
     extensionOutput.info(
       "Scan complete: " + JSON.stringify({ result, error }, null, 3)
     );
@@ -82,12 +86,17 @@ export async function secretScan(
     );
 
     statusBar.showScanComplete();
-  } catch (error) {
+  } catch (error: any) {
     extensionOutput.error("Error while creating scan: " + error);
     statusBar.showScanError();
     updateWorkspaceState("scan.isScanning", false);
 
-    vscode.window.showErrorMessage(TrayNotificationTexts.ScanError);
+    let notificationText: string = TrayNotificationTexts.ScanError;
+    if (error.message !== undefined) {
+      notificationText = `${TrayNotificationTexts.ScanError}. ${error.message}`;
+    }
+
+    vscode.window.showErrorMessage(notificationText);
   }
 }
 

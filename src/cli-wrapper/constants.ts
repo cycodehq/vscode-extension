@@ -13,6 +13,7 @@ export enum CommandParameters {
   Usage = "--help",
   ByRule = "--by-rule",
   ByValue = "--by-value",
+  ByPath = "--by-path",
   UserAgent = "--user-agent",
   Version = "--version",
   scanType = "--scan-type",
