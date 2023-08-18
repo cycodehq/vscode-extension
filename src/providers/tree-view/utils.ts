@@ -58,7 +58,7 @@ const _getScaValueItem = (detection: ScaDetection): { filename: string, data: Tr
   }
 
   const valueItem: TreeViewDisplayedData = {
-    title: `${package_name}@${package_version}: ${description}`,
+    title: `line ${line_in_file}: ${package_name}@${package_version} - ${description}`,
     severityFirstLetter: mapSeverityToFirstLetter(severity),
     lineNumber: line_in_file,
   };
@@ -135,7 +135,7 @@ export const mapScanResultsToSeverityStatsString = (scanResults: FileScanResult[
   SEVERITY_PRIORITIES.forEach((severity) => {
     const count = severityToCount[severity];
     if (count !== undefined) {
-      severityStrings.push(`${severity} - ${count}`);
+      severityStrings.push(`${severity}-${count}`);
     }
   });
 
