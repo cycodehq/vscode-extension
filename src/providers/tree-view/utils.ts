@@ -26,15 +26,16 @@ export function refreshTreeViewData(
   const { provider } = treeView;
   const affectedFiles: FileScanResult[] = [];
   const detectionsMapped = mapDetectionsByFileName(detections, scanType);
-  detectionsMapped.forEach((vulnerabilities, fileName) => {
-    affectedFiles.push(new FileScanResult(fileName, vulnerabilities));
+  detectionsMapped.forEach((vulnerabilities, fullFilePath) => {
+    const fileName = path.basename(fullFilePath);
+    affectedFiles.push(new FileScanResult(fileName, fullFilePath, vulnerabilities));
   });
   provider.refresh(affectedFiles, scanType);
 }
 
-const _getSecretValueItem = (detection: Detection): { filename: string, data: TreeViewDisplayedData } => {
+const _getSecretValueItem = (detection: Detection): { fullFilePath: string, data: TreeViewDisplayedData } => {
   const { type, detection_details, severity } = detection;
-  const { line, file_name } = detection_details;
+  const { line, file_path, file_name } = detection_details;
 
   const lineNumber = line + VSCODE_ENTRY_LINE_NUMBER; // CLI starts counting from 0, although vscode starts from line 1.
 
@@ -44,10 +45,10 @@ const _getSecretValueItem = (detection: Detection): { filename: string, data: Tr
     lineNumber: lineNumber,
   };
 
-  return {filename: file_name, data: valueItem};
+  return {fullFilePath: path.join(file_path, file_name), data: valueItem};
 };
 
-const _getScaValueItem = (detection: ScaDetection): { filename: string, data: TreeViewDisplayedData } => {
+const _getScaValueItem = (detection: ScaDetection): { fullFilePath: string, data: TreeViewDisplayedData } => {
   const { message, detection_details, severity } = detection;
   const { package_name, package_version, vulnerability_description, line_in_file, file_name } = detection_details;
 
@@ -63,7 +64,7 @@ const _getScaValueItem = (detection: ScaDetection): { filename: string, data: Tr
     lineNumber: line_in_file,
   };
 
-  return {filename: path.basename(file_name), data: valueItem};
+  return {fullFilePath: file_name, data: valueItem};
 };
 
 function mapDetectionsByFileName(
@@ -85,11 +86,11 @@ function mapDetectionsByFileName(
       return;
     }
 
-    const {filename, data} = valueItem;
-    if (resultMap.has(filename)) {
-      resultMap.get(filename)!.push(data);
+    const {fullFilePath, data} = valueItem;
+    if (resultMap.has(fullFilePath)) {
+      resultMap.get(fullFilePath)!.push(data);
     } else {
-      resultMap.set(filename, [data]);
+      resultMap.set(fullFilePath, [data]);
     }
   });
 

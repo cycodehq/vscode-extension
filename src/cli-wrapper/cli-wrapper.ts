@@ -192,10 +192,9 @@ export const cliWrapper = {
     config.additionalParams.forEach((param) => {
       commandParams.push(param);
     });
-    commandParams.push(generateUserAgentCommandParam(config));
     commandParams.push(CliCommands.Ignore);
     commandParams.push(ignoreBy);
-    commandParams.push(param);
+    commandParams.push(`"${param}"`);
 
     return await runCli({
       cliPath,

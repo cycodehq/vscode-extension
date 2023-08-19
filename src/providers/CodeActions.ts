@@ -35,6 +35,10 @@ export class CycodeActions implements vscode.CodeActionProvider {
         `ignore rule ${diagnostic.code}`,
         vscode.CodeActionKind.QuickFix
       ),
+      new vscode.CodeAction(
+        `ignore path ${document.uri.fsPath}`,
+        vscode.CodeActionKind.QuickFix
+      ),
     ];
 
     actions[0].command = {
@@ -66,6 +70,21 @@ export class CycodeActions implements vscode.CodeActionProvider {
     };
     actions[1].diagnostics = [diagnostic];
     actions[1].isPreferred = false;
+
+    actions[2].command = {
+      command: VscodeCommands.IgnoreCommandId,
+      title: `Ignore path: ${document.uri.fsPath}`,
+      tooltip: "This will always ignore this path",
+      arguments: [
+        {
+          ignoreBy: CommandParameters.ByPath,
+          param: document.uri.fsPath,
+          document: document,
+        } as IgnoreCommandConfig,
+      ],
+    };
+    actions[2].diagnostics = [diagnostic];
+    actions[2].isPreferred = false;
 
     return actions;
   }

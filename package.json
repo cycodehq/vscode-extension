@@ -114,16 +114,11 @@
       },
       {
         "command": "cycode.install",
-        "title": "Cycode: Install CLI with pip3"
+        "title": "Cycode: Install CLI with pip"
       },
       {
         "command": "cycode.uninstall",
         "title": "Cycode: Uninstall cycode CLI"
-      },
-      {
-        "command": "cycode.ignore",
-        "title": "Cycode: Ignore rule",
-        "when": "false"
       },
       {
         "command": "cycode.openSettings",
