@@ -177,7 +177,7 @@ const handleScanDetections = async (
 
   if (result.detections.length && !getWorkspaceState("cycode.notifOpen")) {
     updateWorkspaceState("cycode.notifOpen", true);
-    TrayNotifications.showProblemsDetection(Object.keys(diagnostics).length);
+    TrayNotifications.showProblemsDetection(Object.keys(diagnostics).length, ScanType.Sca);
   }
 
   refreshTreeViewData({

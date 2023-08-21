@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { TreeViewItem } from './item';
-import { ScanType } from '../../constants';
+import { ScanType, ScanTypeDisplayName } from '../../constants';
 
 const _PATH_TO_RESOURCES = path.join(__filename, '..', '..', 'resources');
 const PATH_TO_SCAN_TYPE_ICONS= path.join(_PATH_TO_RESOURCES, 'scan-type');
@@ -28,7 +28,7 @@ const _validateIconFilename = (filename: string): void => {
 
 
 const getSecretsSectionItem = (description: string): TreeViewItem => new TreeViewItem(
-  "Hardcoded Secrets",
+  ScanTypeDisplayName.Secrets,
   vscode.TreeItemCollapsibleState.Collapsed,
   undefined,
   ScanType.Secrets,
@@ -37,7 +37,7 @@ const getSecretsSectionItem = (description: string): TreeViewItem => new TreeVie
 );
 
 const getScaSectionItem = (description: string): TreeViewItem => new TreeViewItem(
-  "Open Source Threat",
+  ScanTypeDisplayName.Sca,
   vscode.TreeItemCollapsibleState.Collapsed,
   undefined,
   ScanType.Sca,
@@ -46,7 +46,7 @@ const getScaSectionItem = (description: string): TreeViewItem => new TreeViewIte
 );
 
 const getSastSectionItem = (_: string): TreeViewItem => new TreeViewItem(
-  "Code Security",
+  ScanTypeDisplayName.Sast,
   vscode.TreeItemCollapsibleState.Collapsed,
   undefined,
   ScanType.Sast,
@@ -55,7 +55,7 @@ const getSastSectionItem = (_: string): TreeViewItem => new TreeViewItem(
 );
 
 const getIacSectionItem = (_: string): TreeViewItem => new TreeViewItem(
-  "Infrastructure As Code",
+  ScanTypeDisplayName.Iac,
   vscode.TreeItemCollapsibleState.Collapsed,
   undefined,
   ScanType.Iac,
