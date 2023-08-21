@@ -32,7 +32,7 @@ export default `
         <br />
         Open a file for editing and then hit the button:
       </p>
-      <button id="scan-vulnerabilities-button">Scan for vulnerabilities</button>
+      <button id="scan-vulnerabilities-button">Scan for hardcoded secrets</button>
       <br />
       <button id="scan-package-vulnerabilities-button">Scan for package vulnerabilities</button>
 

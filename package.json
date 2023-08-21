@@ -67,7 +67,7 @@
         "cycode.scanOnSave": {
           "type": "boolean",
           "default": "true",
-          "description": "Scan your files for secrets upon save. If auto-scan disabled you can still trigger scans manually from the command palette. Open the command palette with `Ctrl+Shift+P` and search for `Cycode: Scan for vulnerabilities`.",
+          "description": "Scan your files for secrets upon save. If auto-scan disabled you can still trigger scans manually from the command palette. Open the command palette with `Ctrl+Shift+P` and search for `Cycode: Scan for hardcoded secrets`.",
           "markdownDescription": "Perform a scan on save"
         },
         "cycode.scaScanOnOpen": {
@@ -96,7 +96,7 @@
     "commands": [
       {
         "command": "cycode.scan",
-        "title": "Cycode: Scan for vulnerabilities",
+        "title": "Cycode: Scan for hardcoded secrets",
         "icon": "$(testing-run-icon)"
       },
       {
