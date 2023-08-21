@@ -2,6 +2,7 @@ import * as vscode from "vscode";
 import { VscodeCommands } from "./commands";
 import { updateWorkspaceState } from "./context";
 import { TrayNotificationTexts } from "./texts";
+import { getScanTypeDisplayName, ScanType } from '../constants';
 
 export const showSettingsError = (message: string) => {
   updateWorkspaceState("cycode.notifOpen", true);
@@ -57,10 +58,10 @@ export const showUninstallSuccess = () =>
     TrayNotificationTexts.UninstallCompleted
   );
 
-export const showProblemsDetection = (numDetections: number) =>
+export const showProblemsDetection = (numDetections: number, scanType: ScanType) =>
   vscode.window
     .showInformationMessage(
-      `Cycode has detected ${numDetections} secrets in your file. Check out your “Problems” tab to analyze.`,
+      `Cycode has detected ${numDetections} ${getScanTypeDisplayName(scanType)} issues in your file. Check out your “Problems” tab to analyze.`,
       TrayNotificationTexts.OpenProblemsTab
     )
     .then((buttonPressed) => {

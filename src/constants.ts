@@ -39,3 +39,26 @@ export enum ScanType {
   Sast = "SAST",
   Iac = "IaC",
 }
+
+export enum ScanTypeDisplayName {
+  Secrets = "Hardcoded Secrets",
+  Sca = "Open Source Threat",
+  Sast = "Code Security",
+  Iac = "Infrastructure As Code",
+}
+
+
+const _SCAN_TYPE_TO_DISPLAY_NAME: { [key: string]: string } = {
+  [ScanType.Secrets]: ScanTypeDisplayName.Secrets,
+  [ScanType.Sca]: ScanTypeDisplayName.Sca,
+  [ScanType.Sast]: ScanTypeDisplayName.Sast,
+  [ScanType.Iac]: ScanTypeDisplayName.Iac,
+};
+
+export const getScanTypeDisplayName = (scanType: string): string => {
+  if (!_SCAN_TYPE_TO_DISPLAY_NAME.hasOwnProperty(scanType)) {
+    throw Error(`Unknown scan type: ${scanType}`);
+  }
+
+  return _SCAN_TYPE_TO_DISPLAY_NAME[scanType];
+};
