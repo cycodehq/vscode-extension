@@ -30,7 +30,7 @@ import { TreeView } from "./providers/tree-view/types";
 import { TreeViewDataProvider } from "./providers/tree-view/provider";
 import { TreeViewItem } from "./providers/tree-view/item";
 import { scaScan } from "./services/scaScanner";
-import { SCA_CONFIGURATION_SCAN_SUPPORTED_FILES } from './constants';
+import { isSupportedPackageFile } from './constants';
 
 
 export async function activate(context: vscode.ExtensionContext) {
@@ -64,19 +64,18 @@ export async function activate(context: vscode.ExtensionContext) {
 
   initActivityBar(context);
 
-  context.subscriptions.push(
-    vscode.languages.registerCodeActionsProvider(
-      { scheme: "file", language: "*" },
-      new CycodeActions(),
-      {
-        providedCodeActionKinds: [vscode.CodeActionKind.QuickFix],
-      }
-    )
-  );
+  const codeLens =
+    vscode.languages.registerCodeLensProvider(
+      {scheme: 'file', language: '*'},
+      new CodelensProvider()
+    );
 
-  vscode.languages.registerCodeLensProvider(
-    { scheme: "file", language: "*" },
-    new CodelensProvider()
+  const quickActions = vscode.languages.registerCodeActionsProvider(
+    {scheme: 'file', language: '*'},
+    new CycodeActions(),
+    {
+      providedCodeActionKinds: [vscode.CodeActionKind.QuickFix],
+    }
   );
 
   const scanOnSave = vscode.workspace.onDidSaveTextDocument((document) => {
@@ -96,10 +95,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
     const workspaceFolderPath = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
 
-    // if the file name is related SCA file, run SCA scan
-    if (
-      SCA_CONFIGURATION_SCAN_SUPPORTED_FILES.some(fileSuffix => document.fileName.endsWith(fileSuffix))
-    ) {
+    if (isSupportedPackageFile(document.fileName)) {
       scaScan(
         context,
         {
@@ -125,7 +121,8 @@ export async function activate(context: vscode.ExtensionContext) {
     );
   });
 
-  context.subscriptions.push(newStatusBar, ...commands, scanOnSave);
+  // add all disposables to correctly dispose them on extension deactivating
+  context.subscriptions.push(newStatusBar,  ...commands, codeLens, quickActions, scanOnSave);
 }
 
 function createTreeView(

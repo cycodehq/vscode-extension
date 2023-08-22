@@ -1,3 +1,4 @@
+import * as path from 'path';
 import * as vscode from "vscode";
 import { extensionOutput } from "../logging/extension-output";
 import { cliWrapper } from "../cli-wrapper/cli-wrapper";
@@ -14,7 +15,7 @@ import { IConfig } from "../cli-wrapper/types";
 import TrayNotifications from "../utils/TrayNotifications";
 import { TreeView } from '../providers/tree-view/types';
 import { refreshTreeViewData } from '../providers/tree-view/utils';
-import { ScanType } from '../constants';
+import { getPackageFileForLockFile, isSupportedLockFile, ScanType } from '../constants';
 
 
 interface ScaScanParams {
@@ -135,6 +136,11 @@ export const detectionsToDiagnostics = async (
       message += `First patched version: ${detection_details.alert?.first_patched_version}\n`;
     }
     message += `Rule ID: ${detection.detection_rule_id}`;
+
+    if (isSupportedLockFile(file_name)) {
+      const packageFileName = getPackageFileForLockFile(path.basename(file_name));
+      message += `\n\nAvoid manual packages upgrades in lock files. Update the ${packageFileName} file and re-generate the lock file.`;
+    }
 
     const diagnostic = new vscode.Diagnostic(
       document.lineAt(detection_details.line_in_file - 1).range, // BE of SCA counts lines from 1, while VSCode counts from 0
