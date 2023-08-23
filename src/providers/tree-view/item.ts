@@ -3,31 +3,48 @@ import { ScanType } from '../../constants';
 import { TreeViewDisplayedData } from './types';
 
 
+interface TreeViewItemOptions {
+  title: string;
+  collapsibleState: vscode.TreeItemCollapsibleState;
+  vulnerabilities?: TreeViewDisplayedData[];
+  scanSectionType?: ScanType;
+  customIconPath?: string;
+  description?: string;
+  fullFilePath?: string;
+  command?: vscode.Command;
+}
+
 export class TreeViewItem extends vscode.TreeItem {
   public static readonly viewType = "scan.treeView";
-  constructor(
-    public readonly title: string,
-    public readonly collapsibleState: vscode.TreeItemCollapsibleState,
-    public readonly vulnerabilities?: TreeViewDisplayedData[],
-    public readonly scanSectionType?: ScanType,
-    public readonly customIconPath?: string,
-    public readonly description?: string,
-  ) {
-    super(title, collapsibleState);
-    this.tooltip = `${this.title}`;
-    this.contextValue = scanSectionType;
 
-    if (customIconPath) {
+  public scanSectionType: ScanType | undefined;
+  public fullFilePath: string | undefined;
+  public vulnerabilities: TreeViewDisplayedData[] | undefined;
+
+  constructor(options: TreeViewItemOptions) {
+    super(options.title, options.collapsibleState);
+
+    // vscode
+    this.tooltip = options.title;
+    this.command = options.command;
+    this.contextValue = options.scanSectionType;
+
+    // custom
+    this.scanSectionType = options.scanSectionType;
+    this.fullFilePath = options.fullFilePath;
+    this.vulnerabilities = options.vulnerabilities;
+
+    if (options.customIconPath) {
       this.iconPath = {
-        light: customIconPath,
-        dark: customIconPath,
+        light: options.customIconPath,
+        dark: options.customIconPath,
       };
     }
 
-    if (description) {
-      this.description = description;
-    } else if (vulnerabilities) {
-      this.description = `${vulnerabilities.length} vulnerabilities`;
+    if (options.description) {
+      this.description = options.description;
+    } else if (options.vulnerabilities) {
+      this.description = `${options.vulnerabilities.length} vulnerabilities`;
     } else {
       this.description = "";
     }

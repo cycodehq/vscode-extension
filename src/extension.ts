@@ -256,6 +256,15 @@ function initCommands(
     }
   );
 
+  const openViolationInFileCommand = vscode.commands.registerCommand(
+    VscodeCommands.OpenViolationInFile,
+    async (fullFilePath: string, lineNumber: number) => {
+      const vscodeLineNumber = lineNumber - 1;
+      const uri = vscode.Uri.file(fullFilePath);
+      vscode.window.showTextDocument(uri, {selection: new vscode.Range(vscodeLineNumber, 0, vscodeLineNumber, 0)});
+    }
+  );
+
   const installCommand = vscode.commands.registerCommand(
     VscodeCommands.InstallCommandId,
     async () => {
@@ -348,6 +357,7 @@ function initCommands(
     scaScanCommand,
     authCommand,
     authCheckCommand,
+    openViolationInFileCommand,
     installCommand,
     uninstallCommand,
     openSettingsCommand,
