@@ -26,42 +26,37 @@ const _validateIconFilename = (filename: string): void => {
   }
 };
 
-
-const getSecretsSectionItem = (description: string): TreeViewItem => new TreeViewItem(
-  ScanTypeDisplayName.Secrets,
-  vscode.TreeItemCollapsibleState.Collapsed,
-  undefined,
-  ScanType.Secrets,
-  getScanTypeIconPath(ScanType.Secrets),
+const getSecretsSectionItem = (description: string): TreeViewItem => new TreeViewItem({
+  title: ScanTypeDisplayName.Secrets,
+  collapsibleState: vscode.TreeItemCollapsibleState.Collapsed,
+  scanSectionType: ScanType.Secrets,
+  customIconPath: getScanTypeIconPath(ScanType.Secrets),
   description,
-);
+});
 
-const getScaSectionItem = (description: string): TreeViewItem => new TreeViewItem(
-  ScanTypeDisplayName.Sca,
-  vscode.TreeItemCollapsibleState.Collapsed,
-  undefined,
-  ScanType.Sca,
-  getScanTypeIconPath(ScanType.Sca),
+const getScaSectionItem = (description: string): TreeViewItem => new TreeViewItem({
+  title: ScanTypeDisplayName.Sca,
+  collapsibleState: vscode.TreeItemCollapsibleState.Collapsed,
+  scanSectionType: ScanType.Sca,
+  customIconPath: getScanTypeIconPath(ScanType.Sca),
   description,
-);
+});
 
-const getSastSectionItem = (_: string): TreeViewItem => new TreeViewItem(
-  ScanTypeDisplayName.Sast,
-  vscode.TreeItemCollapsibleState.Collapsed,
-  undefined,
-  ScanType.Sast,
-  getScanTypeIconPath(ScanType.Sast),
-  "(coming soon)", // use fun arg when implemented
-);
+const getSastSectionItem = (_: string): TreeViewItem => new TreeViewItem({
+  title: ScanTypeDisplayName.Sast,
+  collapsibleState: vscode.TreeItemCollapsibleState.Collapsed,
+  scanSectionType: ScanType.Sast,
+  customIconPath: getScanTypeIconPath(ScanType.Sast),
+  description: '(coming soon)', // use fun arg when implemented
+});
 
-const getIacSectionItem = (_: string): TreeViewItem => new TreeViewItem(
-  ScanTypeDisplayName.Iac,
-  vscode.TreeItemCollapsibleState.Collapsed,
-  undefined,
-  ScanType.Iac,
-  getScanTypeIconPath(ScanType.Iac),
-  "(coming soon)", // use fun arg when implemented
-);
+const getIacSectionItem = (_: string): TreeViewItem => new TreeViewItem({
+  title: ScanTypeDisplayName.Iac,
+  collapsibleState: vscode.TreeItemCollapsibleState.Collapsed,
+  scanSectionType: ScanType.Iac,
+  customIconPath: getScanTypeIconPath(ScanType.Iac),
+  description: '(coming soon)', // use fun arg when implemented
+});
 
 const _SCAN_TYPE_TO_SECTION_ITEM_CREATOR: { [key: string]: ((description: string) => TreeViewItem)} = {
   [ScanType.Secrets]: getSecretsSectionItem,
