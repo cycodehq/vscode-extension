@@ -15,6 +15,7 @@ export interface TreeViewDisplayedData {
 }
 
 export enum SeverityFirstLetter {
+  Info = "I",
   Low = "L",
   High = "H",
   Medium = "M",

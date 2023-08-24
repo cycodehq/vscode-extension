@@ -99,6 +99,8 @@ function mapDetectionsByFileName(
 
 function mapSeverityToFirstLetter(severity: string): SeverityFirstLetter {
   switch (severity.toLowerCase()) {
+    case "info":
+      return SeverityFirstLetter.Info;
     case "low":
       return SeverityFirstLetter.Low;
     case "medium":
@@ -134,7 +136,8 @@ export const mapScanResultsToSeverityStatsString = (scanResults: FileScanResult[
 
   // add severity stats strings in severity priority order
   SEVERITY_PRIORITIES.forEach((severity) => {
-    const count = severityToCount[severity];
+    const severityFirstLetter = severity[0];
+    const count = severityToCount[severityFirstLetter];
     if (count !== undefined) {
       severityStrings.push(`${severity}-${count}`);
     }
