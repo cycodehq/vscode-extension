@@ -76,7 +76,7 @@ export default `
           <div class="title">None</div>
           <div class="short-details"></div>
       </section>
-      
+
       <section class="hr details">
           <div class="details-item">
             <div class="details-item-title">Package:</div>
@@ -86,17 +86,23 @@ export default `
             <div class="details-item-title">Version:</div>
             <div class="details-item-value version">None</div>
           </div>
-          <div class="details-item first-patched-version">
-            <div class="details-item-title">First patched version:</div>
-            <div class="details-item-value first-patched-version-value">None</div>
+          <div class="first-patched-version">
+            <div class="details-item">
+              <div class="details-item-title">First patched version:</div>
+              <div class="details-item-value first-patched-version-value">None</div>
+            </div>
           </div>
-          <div class="details-item dependency-path">
-            <div class="details-item-title">Dependency path:</div>
-            <div class="details-item-value dependency-path-value">None</div>
+          <div class="dependency-path">
+            <div class="details-item">
+              <div class="details-item-title">Dependency path:</div>
+              <div class="details-item-value dependency-path-value">None</div>
+            </div>
           </div>
-          <div class="details-item licence">
-            <div class="details-item-title">License:</div>
-            <div class="details-item-value licence-value">None</div>
+          <div class="licence">
+            <div class="details-item">
+              <div class="details-item-title">License:</div>
+              <div class="details-item-value licence-value">None</div>
+            </div>
           </div>
       </section>
       
@@ -117,23 +123,28 @@ export default `
 
         const hideElement = className => {
           const element = ge(className);
-          if (element) {
+          if (element && !element.className.includes('hidden')) {
               element.className += ' hidden';
           }
-        }
+        };
 
         const showElement = className => {
           const element = ge(className);
           if (element) {
-              element.className = element.className.replace('hidden', '');
+              element.className = element.className.replace(' hidden', '');
           }
-        }
+        };
 
         const _resetDomState = () => {
             hideElement('summary');
+            ge('summary-text').innerText = 'None';
+
             hideElement('first-patched-version');
+            ge('first-patched-version-value').innerText = 'None';
+
             hideElement('licence');
-        }
+            ge('licence-value').innerText = 'None';
+        };
 
         const renderDetection = detection => {
             _resetDomState();
@@ -149,10 +160,10 @@ export default `
              ge('title').innerText = detection.detection_details.alert.summary;
              ge('short-details').innerText = detection.detection_details.vulnerability_id;
 
-             showElement('first-patched-version')
+             showElement('first-patched-version');
              ge('first-patched-version-value').innerText = detection.detection_details.alert.first_patched_version;
 
-             showElement('summary')
+             showElement('summary');
              ge('summary-text').innerHTML = detection.detection_details.alert.description;
             } else {
               // if non-permissive license
