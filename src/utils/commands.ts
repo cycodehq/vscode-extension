@@ -11,4 +11,6 @@ export enum VscodeCommands {
   ShowCycodeView = "workbench.view.extension.cycode",
   AuthCheck = "cycode.auth.check",
   OpenViolationInFile = "openViolationInFile",
+  OpenViolationPanel = "openViolationPanel",
+  OnTreeItemClick = "onTreeItemClick",
 }

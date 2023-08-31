@@ -4,9 +4,8 @@ import {
   getSectionItem,
   getSeverityIconPath,
   SECTIONS_ORDER,
-  SEVERITY_PRIORITIES_FIRST_LETTERS
 } from './constants';
-import { ScanType } from '../../constants';
+import { ScanType, SEVERITY_PRIORITIES_FIRST_LETTERS } from '../../constants';
 import { TreeViewDisplayedData } from './types';
 import { mapScanResultsToSeverityStatsString } from './utils';
 import { VscodeCommands } from '../../utils/commands';
@@ -121,9 +120,9 @@ const _createSeveritySortedTreeViewItems = (treeViewItem: TreeViewItem): TreeVie
     const vulnerabilitiesOfSeverity = severityToDisplayData[severityFirstLetter];
     vulnerabilitiesOfSeverity && vulnerabilitiesOfSeverity.forEach((vulnerability) => {
       const openFileCommand: vscode.Command = {
-        command: VscodeCommands.OpenViolationInFile,
+        command: VscodeCommands.OnTreeItemClick,
         title: '',
-        arguments: [treeViewItem.fullFilePath, vulnerability.lineNumber],
+        arguments: [treeViewItem.fullFilePath, vulnerability],
       };
 
       sortedVulnerabilities.push(new TreeViewItem({

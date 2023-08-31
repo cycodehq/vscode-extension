@@ -29,12 +29,16 @@ export type ScaDetection = {
     end_position: number;
     line: number;
     line_in_file: number;
+    dependency_paths: string;
+    license?: string;
     package_name: string;
     package_version: string;
     vulnerability_description: string;
+    vulnerability_id: string;
     alert?: {
       severity: string;
       summary: string;
+      description: string;
       vulnerable_requirements: string;
       first_patched_version: string;
     };
