@@ -87,6 +87,8 @@ export enum ScanTypeDisplayName {
   Iac = "Infrastructure As Code",
 }
 
+export const SEVERITY_PRIORITIES_FIRST_LETTERS: ReadonlyArray<string> = ["C", "H", "M", "L", "I"];
+export const SEVERITY_PRIORITIES: ReadonlyArray<string> = ["Critical", "High", "Medium", "Low", "Info"];
 
 const _SCAN_TYPE_TO_DISPLAY_NAME: { [key: string]: string } = {
   [ScanType.Secrets]: ScanTypeDisplayName.Secrets,

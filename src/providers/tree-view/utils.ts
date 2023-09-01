@@ -2,8 +2,7 @@ import * as path from 'path';
 import { AnyDetection, Detection, ScaDetection } from '../../types/detection';
 import { FileScanResult } from './provider';
 import { SeverityFirstLetter, TreeView, TreeViewDisplayedData } from './types';
-import { ScanType } from '../../constants';
-import { SEVERITY_PRIORITIES } from './constants';
+import { ScanType, SEVERITY_PRIORITIES } from '../../constants';
 
 interface RefreshTreeViewDataArgs {
   detections: AnyDetection[];
@@ -43,6 +42,8 @@ const _getSecretValueItem = (detection: Detection): { fullFilePath: string, data
     title: `line ${lineNumber}: a hardcoded ${type} is used`,
     severityFirstLetter: mapSeverityToFirstLetter(severity),
     lineNumber: lineNumber,
+    detection: detection,
+    detectionType: ScanType.Secrets,
   };
 
   return {fullFilePath: path.join(file_path, file_name), data: valueItem};
@@ -62,6 +63,8 @@ const _getScaValueItem = (detection: ScaDetection): { fullFilePath: string, data
     title: `line ${line_in_file}: ${package_name}@${package_version} - ${description}`,
     severityFirstLetter: mapSeverityToFirstLetter(severity),
     lineNumber: line_in_file,
+    detection: detection,
+    detectionType: ScanType.Sca,
   };
 
   return {fullFilePath: file_name, data: valueItem};

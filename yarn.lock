@@ -174,6 +174,11 @@
     "@types/glob" "*"
     "@types/node" "*"
 
+"@types/showdown@^2.0.1":
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/@types/showdown/-/showdown-2.0.1.tgz#24134738ba3107237d6a783e054a54773e739f81"
+  integrity sha512-xdnAw2nFqomkaL0QdtEk0t7yz26UkaVPl4v1pYJvtE1T0fmfQEH3JaxErEhGByEAl3zUZrkNBlneuJp0WJGqEA==
+
 "@types/vscode@1.63.0":
   version "1.63.0"
   resolved "https://registry.yarnpkg.com/@types/vscode/-/vscode-1.63.0.tgz#3bddb5b79a93e8fcdd420bb00f7066658c79c70c"
@@ -661,7 +666,7 @@ commander@^2.20.0:
   resolved "https://registry.npmjs.org/commander/-/commander-2.20.3.tgz"
   integrity sha512-GpVkmM8vF2vQUkj2LvZmD35JxeJOLCwJ9cUkugyk2nuhbv3+mJvpLYYt+0+USMxE+oj+ey/lJEnhZw75x/OMcQ==
 
-commander@^9.4.1:
+commander@^9.0.0, commander@^9.4.1:
   version "9.5.0"
   resolved "https://registry.npmjs.org/commander/-/commander-9.5.0.tgz"
   integrity sha512-KRs7WVDKg86PWiuAqhDrAQnTXZKraVcCc6vFdL14qrZ/DcWwuRo7VoiYXalXO7S5GKpqYiVEwCbgFDfxNHKJBQ==
@@ -1768,6 +1773,13 @@ shelljs@0.8.5:
     glob "^7.0.0"
     interpret "^1.0.0"
     rechoir "^0.6.2"
+
+showdown@^2.1.0:
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/showdown/-/showdown-2.1.0.tgz#1251f5ed8f773f0c0c7bfc8e6fd23581f9e545c5"
+  integrity sha512-/6NVYu4U819R2pUIk79n67SYgJHWCce0a5xTP979WbNp0FL9MN1I1QK662IDU1b6JzKTvmhgI7T7JYIxBi3kMQ==
+  dependencies:
+    commander "^9.0.0"
 
 slash@^3.0.0:
   version "3.0.0"

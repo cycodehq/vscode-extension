@@ -26,11 +26,13 @@ import ScanView from "./views/scan/scan-view";
 import LoginView from "./views/login/login-view";
 import AuthenticatingView from "./views/authenticating/authenticating-view";
 import { authCheck } from "./services/auth_check";
-import { TreeView } from "./providers/tree-view/types";
+import { TreeView, TreeViewDisplayedData } from "./providers/tree-view/types";
 import { TreeViewDataProvider } from "./providers/tree-view/provider";
 import { TreeViewItem } from "./providers/tree-view/item";
 import { scaScan } from "./services/scaScanner";
-import { isSupportedPackageFile } from './constants';
+import { isSupportedPackageFile, ScanType } from "./constants";
+import { createPanel, restoreWebViewPanel } from "./panels/violation/violation-panel";
+import { AnyDetection } from "./types/detection";
 
 
 export async function activate(context: vscode.ExtensionContext) {
@@ -43,6 +45,14 @@ export async function activate(context: vscode.ExtensionContext) {
 
   const diagnosticCollection =
     vscode.languages.createDiagnosticCollection(extensionName);
+
+  // FIXME(MarshalX): works well on vscode open,
+  //  but doesn't work when open another detection without closing the restored panel
+  //  don't forget to register in context.subscriptions when will be fixed
+  //  register "onWebviewPanel:detectionDetails" in activationEvents
+  // const detectionDetainsPanel = vscode.window.registerWebviewPanelSerializer(
+  //   'detectionDetails', new DetectionDetailsSerializer()
+  // );
 
   const isAuthed = extensionContext.getGlobalState("auth.isAuthed");
   extensionContext.setContext("auth.isAuthed", !!isAuthed);
@@ -123,6 +133,13 @@ export async function activate(context: vscode.ExtensionContext) {
 
   // add all disposables to correctly dispose them on extension deactivating
   context.subscriptions.push(newStatusBar,  ...commands, codeLens, quickActions, scanOnSave);
+}
+
+class DetectionDetailsSerializer implements vscode.WebviewPanelSerializer {
+  async deserializeWebviewPanel(webviewPanel: vscode.WebviewPanel, _: any) {
+    // restore panel on vscode restart
+    restoreWebViewPanel(webviewPanel);
+  }
 }
 
 function createTreeView(
@@ -256,12 +273,32 @@ function initCommands(
     }
   );
 
+  const onTreeItemClickCommand = vscode.commands.registerCommand(
+    VscodeCommands.OnTreeItemClick,
+    async (fullFilePath: string, violation: TreeViewDisplayedData) => {
+      await vscode.commands.executeCommand(VscodeCommands.OpenViolationInFile, fullFilePath, violation.lineNumber);
+      vscode.commands.executeCommand(VscodeCommands.OpenViolationPanel, violation.detectionType, violation.detection);
+    }
+  );
+
   const openViolationInFileCommand = vscode.commands.registerCommand(
     VscodeCommands.OpenViolationInFile,
     async (fullFilePath: string, lineNumber: number) => {
       const vscodeLineNumber = lineNumber - 1;
       const uri = vscode.Uri.file(fullFilePath);
-      vscode.window.showTextDocument(uri, {selection: new vscode.Range(vscodeLineNumber, 0, vscodeLineNumber, 0)});
+      await vscode.window.showTextDocument(uri, {
+        viewColumn: vscode.ViewColumn.One,
+        selection: new vscode.Range(vscodeLineNumber, 0, vscodeLineNumber, 0)
+      });
+    }
+  );
+
+  const openViolationPanel = vscode.commands.registerCommand(
+    VscodeCommands.OpenViolationPanel,
+    async (detectionType: string, detection: AnyDetection) => {
+      if (detectionType === ScanType.Sca) {
+        createPanel(context, detectionType, detection);
+      }
     }
   );
 
@@ -357,7 +394,9 @@ function initCommands(
     scaScanCommand,
     authCommand,
     authCheckCommand,
+    onTreeItemClickCommand,
     openViolationInFileCommand,
+    openViolationPanel,
     installCommand,
     uninstallCommand,
     openSettingsCommand,

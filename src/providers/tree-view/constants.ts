@@ -67,9 +67,6 @@ const _SCAN_TYPE_TO_SECTION_ITEM_CREATOR: { [key: string]: ((description: string
 
 export const SECTIONS_ORDER: ReadonlyArray<ScanType> = [ScanType.Secrets, ScanType.Sca, ScanType.Sast, ScanType.Iac];
 
-export const SEVERITY_PRIORITIES_FIRST_LETTERS: ReadonlyArray<string> = ["C", "H", "M", "L", "I"];
-export const SEVERITY_PRIORITIES: ReadonlyArray<string> = ["Critical", "High", "Medium", "Low", "Info"];
-
 export const getSectionItem = (scanType: string, description: string): TreeViewItem => {
   if (!_SCAN_TYPE_TO_SECTION_ITEM_CREATOR.hasOwnProperty(scanType)) {
     throw Error(`Unknown scan type: ${scanType}`);
