@@ -16,6 +16,7 @@ import TrayNotifications from "../utils/TrayNotifications";
 import { TreeView } from '../providers/tree-view/types';
 import { refreshTreeViewData } from '../providers/tree-view/utils';
 import { getPackageFileForLockFile, isSupportedLockFile, ScanType } from '../constants';
+import { VscodeStates } from '../utils/states';
 
 
 interface ScaScanParams {
@@ -33,7 +34,7 @@ export async function scaScan(
   params: ScaScanParams,
   treeView: TreeView,
 ) {
-  if (getWorkspaceState("scan.isScanning")) {
+  if (getWorkspaceState(VscodeStates.ScaScanInProgress)) {
     return;
   }
   vscode.window.withProgress(
@@ -53,7 +54,7 @@ const _initScanState = (params: ScaScanParams, progress: ProgressBar) => {
   extensionOutput.info(
     "Initiating SCA scan for path: " + params.workspaceFolderPath
   );
-  updateWorkspaceState("scan.isScanning", true);
+  updateWorkspaceState(VscodeStates.ScaScanInProgress, true);
 
   progress.report({
     message: `Scanning ${params.workspaceFolderPath}...`,
@@ -61,7 +62,7 @@ const _initScanState = (params: ScaScanParams, progress: ProgressBar) => {
 };
 
 const _finalizeScanState = (success: boolean, progress?: ProgressBar) => {
-  updateWorkspaceState("scan.isScanning", false);
+  updateWorkspaceState(VscodeStates.ScaScanInProgress, false);
 
   if (success) {
     statusBar.showScanComplete();
@@ -170,8 +171,8 @@ const handleScanDetections = async (
     return;
   }
 
-  setContext("scan.hasDetections", hasDetections);
-  setContext("treeView.isShowed", hasDetections);
+  setContext(VscodeStates.HasDetections, hasDetections);
+  setContext(VscodeStates.TreeViewIsOpen, hasDetections);
 
   const diagnostics = await detectionsToDiagnostics(result.detections);
 
@@ -181,8 +182,8 @@ const handleScanDetections = async (
     diagnosticCollection.set(uri, fileDiagnostics); // Show in "problems" tab
   }
 
-  if (result.detections.length && !getWorkspaceState("cycode.notifOpen")) {
-    updateWorkspaceState("cycode.notifOpen", true);
+  if (result.detections.length && !getWorkspaceState(VscodeStates.NotificationIsOpen)) {
+    updateWorkspaceState(VscodeStates.NotificationIsOpen, true);
     TrayNotifications.showProblemsDetection(Object.keys(diagnostics).length, ScanType.Sca);
   }
 

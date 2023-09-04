@@ -3,21 +3,22 @@ import { VscodeCommands } from "./commands";
 import { updateWorkspaceState } from "./context";
 import { TrayNotificationTexts } from "./texts";
 import { getScanTypeDisplayName, ScanType } from '../constants';
+import { VscodeStates } from './states';
 
 export const showSettingsError = (message: string) => {
-  updateWorkspaceState("cycode.notifOpen", true);
+  updateWorkspaceState(VscodeStates.NotificationIsOpen, true);
   vscode.window
     .showInformationMessage(message, TrayNotificationTexts.OpenSettings)
     .then((buttonPressed) => {
       if (buttonPressed === TrayNotificationTexts.OpenSettings) {
         vscode.commands.executeCommand(VscodeCommands.OpenSettingsCommandId);
       }
-      updateWorkspaceState("cycode.notifOpen", false);
+      updateWorkspaceState(VscodeStates.NotificationIsOpen, false);
     });
 };
 
 export const showAuthFailed = () => {
-  updateWorkspaceState("cycode.notifOpen", true);
+  updateWorkspaceState(VscodeStates.NotificationIsOpen, true);
   vscode.window
     .showInformationMessage(
       TrayNotificationTexts.BadAuth,
@@ -26,7 +27,7 @@ export const showAuthFailed = () => {
     .then((buttonPressed) => {
       buttonPressed === TrayNotificationTexts.OpenCycodeViewText &&
         vscode.commands.executeCommand(VscodeCommands.ShowCycodeView);
-      updateWorkspaceState("cycode.notifOpen", false);
+      updateWorkspaceState(VscodeStates.NotificationIsOpen, false);
     });
 };
 
@@ -68,7 +69,7 @@ export const showProblemsDetection = (numDetections: number, scanType: ScanType)
       if (buttonPressed === TrayNotificationTexts.OpenProblemsTab) {
         vscode.commands.executeCommand(VscodeCommands.ShowProblemsTab);
       }
-      updateWorkspaceState("cycode.notifOpen", false);
+      updateWorkspaceState(VscodeStates.NotificationIsOpen, false);
     });
 
 export const showInvalidCLIVersionError = (

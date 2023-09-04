@@ -33,6 +33,7 @@ import { scaScan } from "./services/scaScanner";
 import { isSupportedPackageFile, ScanType } from "./constants";
 import { createPanel, restoreWebViewPanel } from "./panels/violation/violation-panel";
 import { AnyDetection } from "./types/detection";
+import { VscodeStates } from './utils/states';
 
 
 export async function activate(context: vscode.ExtensionContext) {
@@ -54,8 +55,8 @@ export async function activate(context: vscode.ExtensionContext) {
   //   'detectionDetails', new DetectionDetailsSerializer()
   // );
 
-  const isAuthed = extensionContext.getGlobalState("auth.isAuthed");
-  extensionContext.setContext("auth.isAuthed", !!isAuthed);
+  const isAuthed = extensionContext.getGlobalState(VscodeStates.IsAuthorized);
+  extensionContext.setContext(VscodeStates.IsAuthorized, !!isAuthed);
 
   const treeView = createTreeView(context);
 
@@ -358,7 +359,7 @@ function initCommands(
   const openMainMenuCommand = vscode.commands.registerCommand(
     VscodeCommands.OpenMainMenuCommandId,
     async () => {
-      setContext("treeView.isShowed", false);
+      setContext(VscodeStates.TreeViewIsOpen, false);
     }
   );
 
