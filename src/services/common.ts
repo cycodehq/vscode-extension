@@ -3,6 +3,7 @@ import statusBar from "../utils/status-bar";
 import { TrayNotificationTexts } from "../utils/texts";
 import { getWorkspaceState, updateWorkspaceState } from "../utils/context";
 import { onAuthFailure } from "../utils/auth/auth_common";
+import { VscodeStates } from '../utils/states';
 
 const cliBadAuthMessageId = "client id needed";
 const cliBadAuthMessageSecret = "client secret needed";
@@ -18,11 +19,11 @@ export const validateCliCommonErrors = (
 
   // Check Enoent
   if (error.includes("ENOENT")) {
-    if (!getWorkspaceState("cli.notifWasShown")) {
+    if (!getWorkspaceState(VscodeStates.NotificationWasShown)) {
       vscode.window.showErrorMessage(
         TrayNotificationTexts.CliNotInstalledError
       );
-      updateWorkspaceState("cli.notifWasShown", true);
+      updateWorkspaceState(VscodeStates.NotificationWasShown, true);
     }
     // update status bar
     statusBar.showCliPathError();

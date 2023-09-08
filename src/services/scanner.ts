@@ -19,6 +19,7 @@ import TrayNotifications from "../utils/TrayNotifications";
 import { refreshTreeViewData } from "../providers/tree-view/utils";
 import { TreeView } from "../providers/tree-view/types";
 import { ScanType } from '../constants';
+import { VscodeStates } from '../utils/states';
 
 // Entry
 export async function secretScan(
@@ -32,7 +33,7 @@ export async function secretScan(
   treeView?: TreeView,
 ) {
   try {
-    if (getWorkspaceState("scan.isScanning")) {
+    if (getWorkspaceState(VscodeStates.SecretsScanInProgress)) {
       return;
     }
 
@@ -47,7 +48,7 @@ export async function secretScan(
     const filePath = params.documentToScan.fileName;
 
     extensionOutput.info("Initiating scan for file: " + filePath);
-    updateWorkspaceState("scan.isScanning", true);
+    updateWorkspaceState(VscodeStates.SecretsScanInProgress, true);
 
     // Run scan through CLI
     let cliParams = {
@@ -57,7 +58,7 @@ export async function secretScan(
     };
     const { result, error, exitCode } = await cliWrapper.runScan(cliParams);
 
-    updateWorkspaceState("scan.isScanning", false);
+    updateWorkspaceState(VscodeStates.SecretsScanInProgress, false);
 
     if (validateCliCommonErrors(error, exitCode)) {
       return;
@@ -89,7 +90,7 @@ export async function secretScan(
   } catch (error: any) {
     extensionOutput.error("Error while creating scan: " + error);
     statusBar.showScanError();
-    updateWorkspaceState("scan.isScanning", false);
+    updateWorkspaceState(VscodeStates.SecretsScanInProgress, false);
 
     let notificationText: string = TrayNotificationTexts.ScanError;
     if (error.message !== undefined) {
@@ -158,8 +159,8 @@ const handleScanDetections = (
   }
 
   const hasDetections = detections.length > 0;
-  setContext("scan.hasDetections", hasDetections);
-  setContext("treeView.isShowed", hasDetections);
+  setContext(VscodeStates.HasDetections, hasDetections);
+  setContext(VscodeStates.TreeViewIsOpen, hasDetections);
 
   const diagnostics = detectionsToDiagnostics(detections, document) || [];
   const uri = vscode.Uri.file(filePath);
@@ -169,8 +170,8 @@ const handleScanDetections = (
     return;
   }
 
-  if (detections.length && !getWorkspaceState("cycode.notifOpen")) {
-    updateWorkspaceState("cycode.notifOpen", true);
+  if (detections.length && !getWorkspaceState(VscodeStates.NotificationIsOpen)) {
+    updateWorkspaceState(VscodeStates.NotificationIsOpen, true);
     TrayNotifications.showProblemsDetection(diagnostics.length, ScanType.Secrets);
   }
 

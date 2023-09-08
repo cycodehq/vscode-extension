@@ -1,4 +1,5 @@
 import * as vscode from "vscode";
+import { VscodeStates } from './states';
 
 // A module to handle vscode extension context global state
 let extensionContext: vscode.ExtensionContext | null = null;
@@ -11,8 +12,9 @@ export const initContext = (context: vscode.ExtensionContext) => {
   extensionContext = context;
 
   // Reset states
-  updateWorkspaceState("scan.isScanning", false);
-  updateWorkspaceState("cycode.notifOpen", false);
+  updateWorkspaceState(VscodeStates.SecretsScanInProgress, false);
+  updateWorkspaceState(VscodeStates.ScaScanInProgress, false);
+  updateWorkspaceState(VscodeStates.NotificationIsOpen, false);
 };
 
 export const getContext = (): vscode.ExtensionContext => {
