@@ -21,12 +21,12 @@ export async function authCheck(config: IConfig): Promise<boolean> {
 
         const authCheckResult = await cliWrapper.runAuthCheck(config);
         const {
-          error,
+          stderr,
           exitCode,
           result: { result: isAuthenticated },
         } = authCheckResult;
 
-        if (validateCliCommonErrors(error, exitCode)) {
+        if (validateCliCommonErrors(stderr, exitCode)) {
           throw new Error("Failed to check auth status");
         }
 

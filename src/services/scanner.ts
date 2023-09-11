@@ -56,26 +56,22 @@ export async function secretScan(
       workspaceFolderPath: params.workspaceFolderPath,
       config: params.config,
     };
-    const { result, error, exitCode } = await cliWrapper.runScan(cliParams);
+    const { result, stderr, exitCode } = await cliWrapper.runScan(cliParams);
 
     updateWorkspaceState(VscodeStates.SecretsScanInProgress, false);
 
-    if (validateCliCommonErrors(error, exitCode)) {
+    if (validateCliCommonErrors(stderr, exitCode)) {
       return;
     }
 
     // Check if an error occurred
-    if (error && !result.detections?.length) {
-      throw new Error(error);
+    if (result.errors && !result.detections?.length) {
+      throw new Error(result.errors);
     }
 
     if (result.error) {
       throw new Error(result.message);
     }
-
-    extensionOutput.info(
-      "Scan complete: " + JSON.stringify({ result, error }, null, 3)
-    );
 
     // Show in "problems" tab
     handleScanDetections(

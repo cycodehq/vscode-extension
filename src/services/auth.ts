@@ -27,15 +27,15 @@ export async function auth(params: CommandParams) {
           message: `Authenticating with Cycode...`,
         });
 
-        const { result, error, exitCode } = await cliWrapper.runAuth(params);
+        const { result, stderr, exitCode } = await cliWrapper.runAuth(params);
 
         endAuthenticationProcess();
 
-        if (validateCliCommonErrors(error, exitCode)) {
+        if (validateCliCommonErrors(stderr, exitCode)) {
           return;
         }
 
-        handleAuthStatus(exitCode, result, error);
+        handleAuthStatus(exitCode, result, stderr);
       } catch (error) {
         extensionOutput.error("Error while creating scan: " + error);
         onAuthFailure();
@@ -45,6 +45,7 @@ export async function auth(params: CommandParams) {
 }
 
 function handleAuthStatus(exitCode: number, result: any, error: string) {
+  // TODO(MarshalX): support JSON output
   if (exitCode !== 0 || (result.data && result.data.includes("failed"))) {
     onAuthFailure();
   } else {

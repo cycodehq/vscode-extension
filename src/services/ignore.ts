@@ -8,8 +8,8 @@ import { IConfig } from "../cli-wrapper/types";
 import { IgnoreCommandConfig } from "../types/commands";
 import { secretScan } from "./scanner";
 import TrayNotifications from "../utils/TrayNotifications";
-import { TreeView } from '../providers/tree-view/types';
-import { CommandParameters } from '../cli-wrapper/constants';
+import { TreeView } from "../providers/tree-view/types";
+import { CommandParameters } from "../cli-wrapper/constants";
 
 export async function ignore(
   context: vscode.ExtensionContext,
@@ -23,22 +23,18 @@ export async function ignore(
   }
 ) {
   try {
-    const { result, error, exitCode } = await cliWrapper.runIgnore(params);
+    const { stderr, exitCode } = await cliWrapper.runIgnore(params);
 
-    if (validateCliCommonErrors(error, exitCode)) {
+    if (validateCliCommonErrors(stderr, exitCode)) {
       return;
     }
 
     // throw error
     if (exitCode !== 0) {
-      throw new Error(error);
+      throw new Error(stderr);
     }
 
     onIgnoreComplete();
-    extensionOutput.info(
-      "Ignore completed: " + JSON.stringify({ result, error }, null, 3)
-    );
-
     if (params.ignoreConfig.ignoreBy === CommandParameters.ByPath) {
       params.diagnosticCollection.delete(params.documentInitiatedIgnore.uri);
       params.treeView.provider.excludeViolationsByPath(params.ignoreConfig.param);
@@ -56,7 +52,6 @@ export async function ignore(
       },
       params.treeView
     );
-
   } catch (error) {
     extensionOutput.error("Error while ignoring: " + error);
     onIgnoreFailed();

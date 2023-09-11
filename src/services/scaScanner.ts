@@ -1,4 +1,4 @@
-import * as path from 'path';
+import * as path from "path";
 import * as vscode from "vscode";
 import { extensionOutput } from "../logging/extension-output";
 import { cliWrapper } from "../cli-wrapper/cli-wrapper";
@@ -9,14 +9,14 @@ import {
   extensionId,
 } from "../utils/texts";
 import { validateCliCommonErrors } from "./common";
-import { getWorkspaceState, setContext, updateWorkspaceState } from '../utils/context';
+import { getWorkspaceState, setContext, updateWorkspaceState } from "../utils/context";
 import { ScaDetection } from "../types/detection";
 import { IConfig } from "../cli-wrapper/types";
 import TrayNotifications from "../utils/TrayNotifications";
-import { TreeView } from '../providers/tree-view/types';
-import { refreshTreeViewData } from '../providers/tree-view/utils';
-import { getPackageFileForLockFile, isSupportedLockFile, ScanType } from '../constants';
-import { VscodeStates } from '../utils/states';
+import { TreeView } from "../providers/tree-view/types";
+import { refreshTreeViewData } from "../providers/tree-view/utils";
+import { getPackageFileForLockFile, isSupportedLockFile, ScanType } from "../constants";
+import { VscodeStates } from "../utils/states";
 
 
 interface ScaScanParams {
@@ -84,22 +84,18 @@ const _runCliScaScan = async (params: ScaScanParams): Promise<any> => {
     config: params.config,
   };
 
-  const { result, error, exitCode } = await cliWrapper.runScaScan(
+  const { result, stderr, exitCode } = await cliWrapper.runScaScan(
     cliParams
   );
 
-  if (validateCliCommonErrors(error, exitCode)) {
+  if (validateCliCommonErrors(stderr, exitCode)) {
     return;
   }
 
   // Check if an error occurred
-  if (error && !result.detections?.length) {
-    throw new Error(error);
+  if (result.errors && !result.detections?.length) {
+    throw new Error(result.errors);
   }
-
-  extensionOutput.info(
-    "Scan complete: " + JSON.stringify({ result, error }, null, 3)
-  );
 
   return result;
 };

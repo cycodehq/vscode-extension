@@ -1,7 +1,7 @@
 export type CommandResult = {
   exitCode: number;
   result: any;
-  error: string;
+  stderr: string;
 };
 
 export interface IConfig {
