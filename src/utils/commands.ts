@@ -10,7 +10,9 @@ export enum VscodeCommands {
   ShowProblemsTab = "workbench.action.problems.focus",
   ShowCycodeView = "workbench.view.extension.cycode",
   AuthCheck = "cycode.auth.check",
-  OpenViolationInFile = "openViolationInFile",
-  OpenViolationPanel = "openViolationPanel",
-  OnTreeItemClick = "onTreeItemClick",
+  OpenViolationInFile = "cycode.openViolationInFile",
+  OpenViolationPanel = "cycode.openViolationPanel",
+  OnTreeItemClick = "cycode.onTreeItemClick",
+  OpenViolationInFileFromTreeItemContextMenu = "cycode.openViolationInFileFromTreeItemContextMenu",
+  OpenViolationPanelFromTreeItemContextMenu = "cycode.openViolationPanelFromTreeItemContextMenu",
 }

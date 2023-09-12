@@ -282,6 +282,20 @@ function initCommands(
     }
   );
 
+  const onOpenViolationInFileFromTreeItemContextMenuCommand = vscode.commands.registerCommand(
+    VscodeCommands.OpenViolationInFileFromTreeItemContextMenu,
+    async (item: TreeViewItem) => {
+      vscode.commands.executeCommand(VscodeCommands.OpenViolationInFile, item.fullFilePath, item.vulnerability?.lineNumber);
+    }
+  );
+
+  const onOpenViolationPanelFromTreeItemContextMenuCommand = vscode.commands.registerCommand(
+    VscodeCommands.OpenViolationPanelFromTreeItemContextMenu,
+    async (item: TreeViewItem) => {
+      vscode.commands.executeCommand(VscodeCommands.OpenViolationPanel, item.vulnerability?.detectionType, item.vulnerability?.detection);
+    }
+  );
+
   const openViolationInFileCommand = vscode.commands.registerCommand(
     VscodeCommands.OpenViolationInFile,
     async (fullFilePath: string, lineNumber: number) => {
@@ -396,6 +410,8 @@ function initCommands(
     authCommand,
     authCheckCommand,
     onTreeItemClickCommand,
+    onOpenViolationInFileFromTreeItemContextMenuCommand,
+    onOpenViolationPanelFromTreeItemContextMenuCommand,
     openViolationInFileCommand,
     openViolationPanel,
     installCommand,

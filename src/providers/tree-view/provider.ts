@@ -64,6 +64,7 @@ export class TreeViewDataProvider
               collapsibleState: vscode.TreeItemCollapsibleState.Collapsed,
               vulnerabilities: scanResult.vulnerabilities,
               fullFilePath: scanResult.fullFilePath,
+              contextValue: element.scanSectionType,
             })
         )
       );
@@ -127,9 +128,12 @@ const _createSeveritySortedTreeViewItems = (treeViewItem: TreeViewItem): TreeVie
 
       sortedVulnerabilities.push(new TreeViewItem({
         title: vulnerability.title,
+        vulnerability: vulnerability,
         collapsibleState: vscode.TreeItemCollapsibleState.None,
         customIconPath: getSeverityIconPath(severityFirstLetter),
-        command: openFileCommand
+        fullFilePath: treeViewItem.fullFilePath,
+        command: openFileCommand,
+        contextValue: `${treeViewItem.contextValue}-vulnerability`,
       }));
     });
   });
