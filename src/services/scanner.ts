@@ -64,13 +64,14 @@ export async function secretScan(
       return;
     }
 
-    // Check if an error occurred
-    if (result.errors?.length || !result.detections?.length) {
-      throw new Error(result.errors || stderr);
-    }
-
+    // check general response errors
     if (result.error) {
       throw new Error(result.message);
+    }
+
+    // check scan results errors
+    if (result.errors?.length) {
+      throw new Error(result.errors || stderr);
     }
 
     // Show in "problems" tab

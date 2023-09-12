@@ -158,7 +158,10 @@ export default `
             if (detection.detection_details.alert) {
               // if package vulnerability
              ge('title').innerText = detection.detection_details.alert.summary;
-             ge('short-details').innerText = detection.detection_details.vulnerability_id;
+
+             const cwe = detection.detection_details.vulnerability_id;
+             const severity = detection.severity;
+             ge('short-details').innerText = severity + ' | ' + cwe;
 
              showElement('first-patched-version');
              ge('first-patched-version-value').innerText = detection.detection_details.alert.first_patched_version;
