@@ -6,12 +6,14 @@ import { TreeViewDisplayedData } from './types';
 interface TreeViewItemOptions {
   title: string;
   collapsibleState: vscode.TreeItemCollapsibleState;
+  vulnerability?: TreeViewDisplayedData;
   vulnerabilities?: TreeViewDisplayedData[];
   scanSectionType?: ScanType;
   customIconPath?: string;
   description?: string;
   fullFilePath?: string;
   command?: vscode.Command;
+  contextValue?: string;
 }
 
 export class TreeViewItem extends vscode.TreeItem {
@@ -20,6 +22,7 @@ export class TreeViewItem extends vscode.TreeItem {
   public scanSectionType: ScanType | undefined;
   public fullFilePath: string | undefined;
   public vulnerabilities: TreeViewDisplayedData[] | undefined;
+  public vulnerability: TreeViewDisplayedData | undefined;
 
   constructor(options: TreeViewItemOptions) {
     super(options.title, options.collapsibleState);
@@ -27,11 +30,16 @@ export class TreeViewItem extends vscode.TreeItem {
     // vscode
     this.tooltip = options.title;
     this.command = options.command;
-    this.contextValue = options.scanSectionType;
+    this.contextValue = options.contextValue || options.scanSectionType;
 
     // custom
-    this.scanSectionType = options.scanSectionType;
     this.fullFilePath = options.fullFilePath;
+
+    // section tree item
+    this.scanSectionType = options.scanSectionType;
+    // detection tree item
+    this.vulnerability = options.vulnerability;
+    // file tree item
     this.vulnerabilities = options.vulnerabilities;
 
     if (options.customIconPath) {

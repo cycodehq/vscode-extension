@@ -22,6 +22,16 @@
   "main": "./dist/extension.js",
   "contributes": {
     "menus": {
+      "commandPalette": [
+        {
+          "command": "cycode.openViolationInFileFromTreeItemContextMenu",
+          "when": "false"
+        },
+        {
+          "command": "cycode.openViolationPanelFromTreeItemContextMenu",
+          "when": "false"
+        }
+      ],
       "explorer/context": [
         {
           "when": "explorerResourceIsFolder",
@@ -51,6 +61,22 @@
           "command": "cycode.scaScan",
           "when": "viewItem == SCA",
           "group": "inline"
+        },
+        {
+          "command": "cycode.scan",
+          "when": "view == scan.treeView && viewItem =~ /^Secrets/"
+        },
+        {
+          "command": "cycode.scaScan",
+          "when": "view == scan.treeView && viewItem =~ /^SCA/"
+        },
+        {
+          "command": "cycode.openViolationInFileFromTreeItemContextMenu",
+          "when": "view == scan.treeView && viewItem =~ /-vulnerability$/"
+        },
+        {
+          "command": "cycode.openViolationPanelFromTreeItemContextMenu",
+          "when": "view == scan.treeView && viewItem == SCA-vulnerability"
         }
       ]
     },
@@ -109,18 +135,6 @@
         "title": "Cycode: Authenticate with service"
       },
       {
-        "command": "cycode.auth.check",
-        "title": "Cycode: Auth Check"
-      },
-      {
-        "command": "cycode.install",
-        "title": "Cycode: Install CLI with pip"
-      },
-      {
-        "command": "cycode.uninstall",
-        "title": "Cycode: Uninstall cycode CLI"
-      },
-      {
         "command": "cycode.openSettings",
         "title": "Cycode: Open Cycode settings",
         "icon": "$(settings-view-bar-icon)"
@@ -129,6 +143,14 @@
         "command": "cycode.openMainMenu",
         "title": "Cycode: Open main menu",
         "icon": "$(home)"
+      },
+      {
+        "command": "cycode.openViolationInFileFromTreeItemContextMenu",
+        "title": "Show violation in the file"
+      },
+      {
+        "command": "cycode.openViolationPanelFromTreeItemContextMenu",
+        "title": "Open violation details"
       }
     ],
     "viewsContainers": {
