@@ -22,23 +22,20 @@ export async function uninstall(
           message: `Uninstall cycode CLI...`,
         });
 
-        const { result, error, exitCode } = await cliWrapper.runUninstall(
+        const { stderr, exitCode } = await cliWrapper.runUninstall(
           params
         );
 
-        if (validateCliCommonErrors(error, exitCode)) {
+        if (validateCliCommonErrors(stderr, exitCode)) {
           return;
         }
 
         // throw error
         if (exitCode !== 0) {
-          throw new Error(error);
+          throw new Error(stderr);
         }
 
         onUninstallComplete();
-        extensionOutput.info(
-          "Uninstall completed: " + JSON.stringify({ result, error }, null, 3)
-        );
       } catch (error) {
         extensionOutput.error("Error while uninstalling: " + error);
         onUninstallFailed();

@@ -1,4 +1,4 @@
-import { CommandParams, IgnoreCommandConfig } from "../types/commands";
+import { IgnoreCommandConfig } from "../types/commands";
 import { CliCommands, CommandParameters } from "./constants";
 import { CommandResult, IConfig, UserAgent } from "./types";
 import { runCli } from "./runner";
@@ -70,6 +70,7 @@ export const cliWrapper = {
       workspaceFolderPath,
       commandParams,
       cliEnv,
+      printToOutput: true,
     });
   },
   runScaScan: async (params: {
@@ -97,7 +98,8 @@ export const cliWrapper = {
       cliPath,
       workspaceFolderPath,
       commandParams,
-      cliEnv
+      cliEnv,
+      printToOutput: true,
     });
   },
   runAuth: async (params: {
@@ -164,21 +166,6 @@ export const cliWrapper = {
       printToOutput: true,
     });
   },
-  runUsage: async (params: {
-    config: IConfig;
-    workspaceFolderPath?: string;
-  }): Promise<CommandResult> => {
-    const { config, workspaceFolderPath } = params;
-    const { cliEnv, cliPath } = config;
-
-    return await runCli({
-      cliPath,
-      workspaceFolderPath,
-      commandParams: [CommandParameters.Usage],
-      cliEnv,
-      printToOutput: true,
-    });
-  },
   runIgnore: async (params: {
     config: IConfig;
     workspaceFolderPath?: string;
@@ -201,6 +188,7 @@ export const cliWrapper = {
       workspaceFolderPath,
       commandParams,
       cliEnv,
+      printToOutput: true,
     });
   },
 };

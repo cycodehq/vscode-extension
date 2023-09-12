@@ -13,14 +13,14 @@ interface RunCliArgs {
 
 let childProcess: ChildProcess | undefined = undefined;
 
-const parseResult = (stdout: string): string | object => {
+const parseResult = (out: string): object => {
   let result = {};
   try {
-    if (stdout) {
-      result = JSON.parse(stdout);
+    if (out) {
+      result = JSON.parse(out);
     }
   } catch (error) {
-    result = { data: stdout };
+    result = { data: out };
   }
 
   return result;
@@ -34,7 +34,7 @@ export const runCli = (args: RunCliArgs): Promise<CommandResult> => {
     `Running command: "${cliPath} ${commandParams.join(" ")}"`
   );
 
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve, _) => {
     let stderr = "";
     let stdout = "";
 
@@ -58,31 +58,33 @@ export const runCli = (args: RunCliArgs): Promise<CommandResult> => {
     });
 
     childProcess.on("exit", (code: number) => {
+      extensionOutput.info(`Command exited with code: ${code}`);
       resolve({
         exitCode: code,
-        error: stderr,
+        stderr: stderr,
         result: parseResult(stdout),
       });
     });
 
     childProcess.on("error", (error: { errno: number }) => {
       handleErrorOutput(error);
-
       resolve({
         exitCode: error.errno,
-        error: stderr,
+        stderr: stderr,
         result: parseResult(stderr),
       });
     });
 
     childProcess.stdout?.on("data", (data) => {
+      if (printToOutput) {
+        extensionOutput.info(`Command stdout: ${data.toString()}`);
+      }
+
       if (!data) {
         return;
       }
+
       stdout += data.toString();
-      if (printToOutput) {
-        extensionOutput.info(data.toString());
-      }
     });
 
     childProcess.stderr?.on("data", handleErrorOutput);
