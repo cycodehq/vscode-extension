@@ -70,6 +70,7 @@ export const cliWrapper = {
       workspaceFolderPath,
       commandParams,
       cliEnv,
+      printToOutput: true,
     });
   },
   runScaScan: async (params: {
@@ -97,7 +98,8 @@ export const cliWrapper = {
       cliPath,
       workspaceFolderPath,
       commandParams,
-      cliEnv
+      cliEnv,
+      printToOutput: true,
     });
   },
   runAuth: async (params: {

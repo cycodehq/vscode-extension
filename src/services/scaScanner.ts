@@ -93,8 +93,8 @@ const _runCliScaScan = async (params: ScaScanParams): Promise<any> => {
   }
 
   // Check if an error occurred
-  if (result.errors && !result.detections?.length) {
-    throw new Error(result.errors);
+  if (result.errors?.length || !result.detections?.length) {
+    throw new Error(result.errors || stderr);
   }
 
   return result;

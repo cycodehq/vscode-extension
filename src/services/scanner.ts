@@ -65,8 +65,8 @@ export async function secretScan(
     }
 
     // Check if an error occurred
-    if (result.errors && !result.detections?.length) {
-      throw new Error(result.errors);
+    if (result.errors?.length || !result.detections?.length) {
+      throw new Error(result.errors || stderr);
     }
 
     if (result.error) {

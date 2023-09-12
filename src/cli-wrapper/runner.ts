@@ -27,7 +27,6 @@ const parseResult = (out: string): object => {
 };
 
 export const runCli = (args: RunCliArgs): Promise<CommandResult> => {
-  args.printToOutput = true;
   const { cliPath, cliEnv, commandParams, workspaceFolderPath, printToOutput } =
     args;
 
