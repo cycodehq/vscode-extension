@@ -19,7 +19,7 @@ export async function authCheck(config: IConfig): Promise<boolean> {
           message: `Authenticating check with Cycode...`,
         });
 
-        const authCheckResult = await cliWrapper.runAuthCheck(config);
+        const authCheckResult = await cliWrapper.getRunnableAuthCheckCommand(config).getResultPromise();
         const {
           stderr,
           exitCode,

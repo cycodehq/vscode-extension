@@ -5,19 +5,17 @@ import { cliWrapper } from "../cli-wrapper/cli-wrapper";
 import statusBar from "../utils/status-bar";
 import {
   StatusBarTexts,
-  TrayNotificationTexts,
   extensionId,
 } from "../utils/texts";
-import { validateCliCommonErrors } from "./common";
+import { finalizeScanState, validateCliCommonErrors, validateCliCommonScanErrors } from "./common";
 import { getWorkspaceState, setContext, updateWorkspaceState } from "../utils/context";
 import { ScaDetection } from "../types/detection";
-import { IConfig } from "../cli-wrapper/types";
+import { IConfig, ProgressBar, RunCliResult } from "../cli-wrapper/types";
 import TrayNotifications from "../utils/TrayNotifications";
 import { TreeView } from "../providers/tree-view/types";
 import { refreshTreeViewData } from "../providers/tree-view/utils";
 import { getPackageFileForLockFile, isSupportedLockFile, ScanType } from "../constants";
 import { VscodeStates } from "../utils/states";
-
 
 interface ScaScanParams {
   pathToScan: string;
@@ -25,8 +23,6 @@ interface ScaScanParams {
   diagnosticCollection: vscode.DiagnosticCollection;
   config: IConfig;
 }
-
-type ProgressBar = vscode.Progress<{ message?: string; increment?: number }>;
 
 // Entry
 export async function scaScan(
@@ -37,13 +33,15 @@ export async function scaScan(
   if (getWorkspaceState(VscodeStates.ScaScanInProgress)) {
     return;
   }
+
   vscode.window.withProgress(
     {
       location: vscode.ProgressLocation.Notification,
+      cancellable: true,
     },
-    async (progress) => {
-      await _scaScanWithProgress(params, progress, treeView);
-    }
+    async (progress, token) => {
+      await _scaScanWithProgress(params, progress, token, treeView);
+    },
   );
 }
 
@@ -57,65 +55,48 @@ const _initScanState = (params: ScaScanParams, progress: ProgressBar) => {
   updateWorkspaceState(VscodeStates.ScaScanInProgress, true);
 
   progress.report({
-    message: `Scanning ${params.workspaceFolderPath}...`,
+    message: `SCA scanning ${params.workspaceFolderPath}...`,
   });
 };
 
-const _finalizeScanState = (success: boolean, progress?: ProgressBar) => {
-  updateWorkspaceState(VscodeStates.ScaScanInProgress, false);
-
-  if (success) {
-    statusBar.showScanComplete();
-  } else {
-    statusBar.showScanError();
-    vscode.window.showErrorMessage(TrayNotificationTexts.ScanError);
-
-    if (progress) {
-      progress.report({ increment: 100 });
-    }
-  }
-};
-
-const _runCliScaScan = async (params: ScaScanParams): Promise<any> => {
-  // Run scan through CLI
-  let cliParams = {
+const _getRunnableCliScaScan = (params: ScaScanParams): RunCliResult => {
+  const cliParams = {
     path: params.pathToScan,
     workspaceFolderPath: params.workspaceFolderPath,
     config: params.config,
   };
 
-  const { result, stderr, exitCode } = await cliWrapper.runScaScan(
-    cliParams
-  );
-
-  if (validateCliCommonErrors(stderr, exitCode)) {
-    return;
-  }
-
-  // check general response errors
-  if (result.error) {
-    throw new Error(result.message);
-  }
-
-  // check scan results errors
-  if (result.errors?.length) {
-    throw new Error(result.errors || stderr);
-  }
-
-  return result;
+  return cliWrapper.getRunnableScaScanCommand(cliParams);
 };
 
-
-const _scaScanWithProgress = async (params: ScaScanParams, progress: ProgressBar, treeView: TreeView) => {
+const _scaScanWithProgress = async (
+  params: ScaScanParams,
+  progress: ProgressBar,
+  cancellationToken: vscode.CancellationToken,
+  treeView: TreeView
+) => {
   try {
     _initScanState(params, progress);
 
-    const scanResult = await _runCliScaScan(params);
-    await handleScanDetections(scanResult, params.diagnosticCollection, treeView);
+    const runnableScaScan = _getRunnableCliScaScan(params);
 
-    _finalizeScanState(true);
+    cancellationToken.onCancellationRequested(async () => {
+      await runnableScaScan.getCancelPromise();
+      finalizeScanState(VscodeStates.ScaScanInProgress, true, progress);
+    });
+
+    const scanResult = await runnableScaScan.getResultPromise();
+    const { result, stderr, exitCode } = scanResult;
+    if (validateCliCommonErrors(stderr, exitCode)) {
+      return;
+    }
+    validateCliCommonScanErrors(result);
+
+    await handleScanDetections(result, params.diagnosticCollection, treeView);
+
+    finalizeScanState(VscodeStates.ScaScanInProgress, true, progress);
   } catch (error) {
-    _finalizeScanState(false, progress);
+    finalizeScanState(VscodeStates.ScaScanInProgress, false, progress);
 
     extensionOutput.error("Error while creating scan: " + error);
   }

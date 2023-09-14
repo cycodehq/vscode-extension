@@ -19,6 +19,7 @@ export enum TrayNotificationTexts {
   AuthError = "Cycode authentication failed",
   AuthCompleted = "Cycode authentication completed",
   CliNotInstalledError = "Cycode CLI is not installed. Please install it manually and try again",
+  CliCommandHasBeenCanceled = "Cycode CLI command has been canceled",
   ScanError = "Cycode failed to scan, please try again",
   InstallCompleted = "Cycode CLI installed successfully",
   UninstallCompleted = "Cycode CLI uninstalled successfully",

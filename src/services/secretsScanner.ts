@@ -1,35 +1,67 @@
-import * as vscode from "vscode";
-import { extensionOutput } from "../logging/extension-output";
-import { cliWrapper } from "../cli-wrapper/cli-wrapper";
-import statusBar from "../utils/status-bar";
-import {
-  StatusBarTexts,
-  TrayNotificationTexts,
-  extensionId,
-} from "../utils/texts";
-import { validateCliCommonErrors } from "./common";
-import {
-  getWorkspaceState,
-  setContext,
-  updateWorkspaceState,
-} from "../utils/context";
-import { Detection } from "../types/detection";
-import { IConfig } from "../cli-wrapper/types";
-import TrayNotifications from "../utils/TrayNotifications";
-import { refreshTreeViewData } from "../providers/tree-view/utils";
-import { TreeView } from "../providers/tree-view/types";
-import { ScanType } from '../constants';
-import { VscodeStates } from '../utils/states';
+import * as vscode from 'vscode';
+import {extensionOutput} from '../logging/extension-output';
+import {cliWrapper} from '../cli-wrapper/cli-wrapper';
+import statusBar from '../utils/status-bar';
+import {extensionId, StatusBarTexts, TrayNotificationTexts,} from '../utils/texts';
+import {finalizeScanState, validateCliCommonErrors, validateCliCommonScanErrors} from './common';
+import {getWorkspaceState, setContext, updateWorkspaceState,} from '../utils/context';
+import {Detection} from '../types/detection';
+import {IConfig, ProgressBar, RunCliResult} from '../cli-wrapper/types';
+import TrayNotifications from '../utils/TrayNotifications';
+import {refreshTreeViewData} from '../providers/tree-view/utils';
+import {TreeView} from '../providers/tree-view/types';
+import {ScanType} from '../constants';
+import {VscodeStates} from '../utils/states';
 
-// Entry
-export async function secretScan(
+interface SecretsScanParams {
+  documentToScan: vscode.TextDocument;
+  workspaceFolderPath?: string;
+  diagnosticCollection: vscode.DiagnosticCollection;
+  config: IConfig;
+}
+
+export const secretScan = async (
   context: vscode.ExtensionContext,
-  params: {
-    documentToScan: vscode.TextDocument;
-    workspaceFolderPath?: string;
-    diagnosticCollection: vscode.DiagnosticCollection;
-    config: IConfig;
-  },
+  params: SecretsScanParams,
+  treeView?: TreeView,
+) => {
+  vscode.window.withProgress(
+    {
+      location: vscode.ProgressLocation.Notification,
+      cancellable: true,
+    },
+    async (progress, token) => {
+      await _secretScanWithProgress(params, progress, token, treeView);
+    },
+  );
+};
+
+const _getRunnableCliSecretsScan = (params: SecretsScanParams): RunCliResult => {
+  const cliParams = {
+    path: params.documentToScan.fileName,
+    workspaceFolderPath: params.workspaceFolderPath,
+    config: params.config,
+  };
+
+  return cliWrapper.getRunnableSecretsScanCommand(cliParams);
+};
+
+const _initScanState = (params: SecretsScanParams, progress: ProgressBar) => {
+  extensionOutput.info(StatusBarTexts.ScanWait);
+  extensionOutput.info("Initiating scan for file: " + params.documentToScan.fileName);
+
+  statusBar.showScanningInProgress();
+  updateWorkspaceState(VscodeStates.SecretsScanInProgress, true);
+
+  progress.report({
+    message: `Secrets scanning ${params.documentToScan.fileName}...`,
+  });
+};
+
+export async function _secretScanWithProgress(
+  params: SecretsScanParams,
+  progress: ProgressBar,
+  cancellationToken: vscode.CancellationToken,
   treeView?: TreeView,
 ) {
   try {
@@ -42,59 +74,45 @@ export async function secretScan(
       return;
     }
 
-    extensionOutput.info(StatusBarTexts.ScanWait);
-    statusBar.showScanningInProgress();
+    _initScanState(params, progress);
 
-    const filePath = params.documentToScan.fileName;
+    const runnableSecretsScan = _getRunnableCliSecretsScan(params);
 
-    extensionOutput.info("Initiating scan for file: " + filePath);
-    updateWorkspaceState(VscodeStates.SecretsScanInProgress, true);
+    cancellationToken.onCancellationRequested(async () => {
+      await runnableSecretsScan.getCancelPromise();
+      finalizeScanState(VscodeStates.SecretsScanInProgress, true, progress);
+    });
 
-    // Run scan through CLI
-    let cliParams = {
-      path: filePath,
-      workspaceFolderPath: params.workspaceFolderPath,
-      config: params.config,
-    };
-    const { result, stderr, exitCode } = await cliWrapper.runScan(cliParams);
+    const scanResult = await runnableSecretsScan.getResultPromise();
+    const { result, stderr, exitCode } = scanResult;
 
     updateWorkspaceState(VscodeStates.SecretsScanInProgress, false);
 
     if (validateCliCommonErrors(stderr, exitCode)) {
       return;
     }
-
-    // check general response errors
-    if (result.error) {
-      throw new Error(result.message);
-    }
-
-    // check scan results errors
-    if (result.errors?.length) {
-      throw new Error(result.errors || stderr);
-    }
+    validateCliCommonScanErrors(result);
 
     // Show in "problems" tab
     handleScanDetections(
       result,
-      filePath,
+      params.documentToScan.fileName,
       params.diagnosticCollection,
       params.documentToScan,
       treeView
     );
 
-    statusBar.showScanComplete();
+    finalizeScanState(VscodeStates.SecretsScanInProgress, true, progress);
   } catch (error: any) {
-    extensionOutput.error("Error while creating scan: " + error);
-    statusBar.showScanError();
-    updateWorkspaceState(VscodeStates.SecretsScanInProgress, false);
+    finalizeScanState(VscodeStates.SecretsScanInProgress, false, progress);
 
     let notificationText: string = TrayNotificationTexts.ScanError;
     if (error.message !== undefined) {
       notificationText = `${TrayNotificationTexts.ScanError}. ${error.message}`;
     }
-
     vscode.window.showErrorMessage(notificationText);
+
+    extensionOutput.error("Error while creating scan: " + error);
   }
 }
 
