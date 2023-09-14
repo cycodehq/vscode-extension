@@ -1,4 +1,5 @@
 // keep in lowercase.
+// eslint-disable-next-line max-len
 // source: https://github.com/cycodehq-public/cycode-cli/blob/ec8333707ab2590518fd0f36454c8636ccbf1061/cycode/cli/consts.py#L50-L82
 const _SCA_CONFIGURATION_SCAN_SUPPORTED_FILES: ReadonlyArray<string> = [
   'cargo.lock',
@@ -56,17 +57,17 @@ const _SCA_CONFIGURATION_SCAN_SUPPORTED_LOCK_FILES: ReadonlyArray<string> =
 
 export const isSupportedPackageFile = (fileName: string): boolean => {
   const lowerCaseFileName = fileName.toLowerCase();
-  return _SCA_CONFIGURATION_SCAN_SUPPORTED_FILES.some(fileSuffix => lowerCaseFileName.endsWith(fileSuffix));
+  return _SCA_CONFIGURATION_SCAN_SUPPORTED_FILES.some((fileSuffix) => lowerCaseFileName.endsWith(fileSuffix));
 };
 
 export const isSupportedLockFile = (lockFileName: string): boolean => {
   const lowerCaseFileName = lockFileName.toLowerCase();
-  return _SCA_CONFIGURATION_SCAN_SUPPORTED_LOCK_FILES.some(fileSuffix => lowerCaseFileName.endsWith(fileSuffix));
+  return _SCA_CONFIGURATION_SCAN_SUPPORTED_LOCK_FILES.some((fileSuffix) => lowerCaseFileName.endsWith(fileSuffix));
 };
 
 export const getPackageFileForLockFile = (lockFile: string): string => {
   const lowerCaseFileName = lockFile.toLowerCase();
-  if (!_SCA_CONFIGURATION_SCAN_LOCK_FILE_TO_PACKAGE_FILE.hasOwnProperty(lowerCaseFileName)) {
+  if (!(lowerCaseFileName in _SCA_CONFIGURATION_SCAN_LOCK_FILE_TO_PACKAGE_FILE)) {
     return 'package';
   }
 
@@ -74,21 +75,21 @@ export const getPackageFileForLockFile = (lockFile: string): string => {
 };
 
 export enum ScanType {
-  Secrets = "Secrets",
-  Sca = "SCA",
-  Sast = "SAST",
-  Iac = "IaC",
+  Secrets = 'Secrets',
+  Sca = 'SCA',
+  Sast = 'SAST',
+  Iac = 'IaC',
 }
 
 export enum ScanTypeDisplayName {
-  Secrets = "Hardcoded Secrets",
-  Sca = "Open Source Threat",
-  Sast = "Code Security",
-  Iac = "Infrastructure As Code",
+  Secrets = 'Hardcoded Secrets',
+  Sca = 'Open Source Threat',
+  Sast = 'Code Security',
+  Iac = 'Infrastructure As Code',
 }
 
-export const SEVERITY_PRIORITIES_FIRST_LETTERS: ReadonlyArray<string> = ["C", "H", "M", "L", "I"];
-export const SEVERITY_PRIORITIES: ReadonlyArray<string> = ["Critical", "High", "Medium", "Low", "Info"];
+export const SEVERITY_PRIORITIES_FIRST_LETTERS: ReadonlyArray<string> = ['C', 'H', 'M', 'L', 'I'];
+export const SEVERITY_PRIORITIES: ReadonlyArray<string> = ['Critical', 'High', 'Medium', 'Low', 'Info'];
 
 const _SCAN_TYPE_TO_DISPLAY_NAME: { [key: string]: string } = {
   [ScanType.Secrets]: ScanTypeDisplayName.Secrets,
@@ -98,7 +99,7 @@ const _SCAN_TYPE_TO_DISPLAY_NAME: { [key: string]: string } = {
 };
 
 export const getScanTypeDisplayName = (scanType: string): string => {
-  if (!_SCAN_TYPE_TO_DISPLAY_NAME.hasOwnProperty(scanType)) {
+  if (!(scanType in _SCAN_TYPE_TO_DISPLAY_NAME)) {
     throw Error(`Unknown scan type: ${scanType}`);
   }
 

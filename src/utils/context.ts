@@ -1,11 +1,11 @@
-import * as vscode from "vscode";
-import { VscodeStates } from './states';
+import * as vscode from 'vscode';
+import {VscodeStates} from './states';
 
 // A module to handle vscode extension context global state
 let extensionContext: vscode.ExtensionContext | null = null;
 
 export const setContext = (key: string, value: any) => {
-  vscode.commands.executeCommand("setContext", `cycode:${key}`, value);
+  vscode.commands.executeCommand('setContext', `cycode:${key}`, value);
 };
 
 export const initContext = (context: vscode.ExtensionContext) => {
@@ -20,7 +20,7 @@ export const initContext = (context: vscode.ExtensionContext) => {
 
 export const getContext = (): vscode.ExtensionContext => {
   if (!extensionContext) {
-    throw new Error("Extension context is not initialized");
+    throw new Error('Extension context is not initialized');
   }
   return extensionContext;
 };

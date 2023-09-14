@@ -1,11 +1,11 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { TreeViewItem } from './item';
-import { ScanType, ScanTypeDisplayName } from '../../constants';
+import {TreeViewItem} from './item';
+import {ScanType, ScanTypeDisplayName} from '../../constants';
 
 const _PATH_TO_RESOURCES = path.join(__filename, '..', '..', 'resources');
-const PATH_TO_SCAN_TYPE_ICONS= path.join(_PATH_TO_RESOURCES, 'scan-type');
-const PATH_TO_SEVERITY_ICONS= path.join(_PATH_TO_RESOURCES, 'severity');
+const PATH_TO_SCAN_TYPE_ICONS = path.join(_PATH_TO_RESOURCES, 'scan-type');
+const PATH_TO_SEVERITY_ICONS = path.join(_PATH_TO_RESOURCES, 'severity');
 
 const getScanTypeIconPath = (scanType: string) => {
   _validateIconFilename(scanType);
@@ -22,7 +22,7 @@ export const getSeverityIconPath = (severityFirstLetter: string) => {
 const _validateIconFilename = (filename: string): void => {
   const letters = /^[A-Za-z]+$/;
   if (filename.match(letters) === null) {
-    throw Error("Malformed filename string");
+    throw Error('Malformed filename string');
   }
 };
 
@@ -42,6 +42,7 @@ const getScaSectionItem = (description: string): TreeViewItem => new TreeViewIte
   description,
 });
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const getSastSectionItem = (_: string): TreeViewItem => new TreeViewItem({
   title: ScanTypeDisplayName.Sast,
   collapsibleState: vscode.TreeItemCollapsibleState.Collapsed,
@@ -50,6 +51,7 @@ const getSastSectionItem = (_: string): TreeViewItem => new TreeViewItem({
   description: '(coming soon)', // use fun arg when implemented
 });
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const getIacSectionItem = (_: string): TreeViewItem => new TreeViewItem({
   title: ScanTypeDisplayName.Iac,
   collapsibleState: vscode.TreeItemCollapsibleState.Collapsed,
@@ -68,7 +70,7 @@ const _SCAN_TYPE_TO_SECTION_ITEM_CREATOR: { [key: string]: ((description: string
 export const SECTIONS_ORDER: ReadonlyArray<ScanType> = [ScanType.Secrets, ScanType.Sca, ScanType.Sast, ScanType.Iac];
 
 export const getSectionItem = (scanType: string, description: string): TreeViewItem => {
-  if (!_SCAN_TYPE_TO_SECTION_ITEM_CREATOR.hasOwnProperty(scanType)) {
+  if (!(scanType in _SCAN_TYPE_TO_SECTION_ITEM_CREATOR)) {
     throw Error(`Unknown scan type: ${scanType}`);
   }
 

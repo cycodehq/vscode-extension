@@ -1,7 +1,7 @@
-import { IgnoreCommandConfig } from "../types/commands";
-import { CliCommands, CommandParameters } from "./constants";
-import { IConfig, RunCliResult, UserAgent } from "./types";
-import { getRunnableCliCommand } from "./runner";
+import {IgnoreCommandConfig} from '../types/commands';
+import {CliCommands, CommandParameters} from './constants';
+import {IConfig, RunCliResult, UserAgent} from './types';
+import {getRunnableCliCommand} from './runner';
 
 export const generateUserAgentCommandParam = (config: IConfig) => {
   const userAgent: UserAgent = {
@@ -20,8 +20,8 @@ export const cliWrapper = {
     workspaceFolderPath: string;
   }): RunCliResult => {
     // support for legacy versions of the CLI (< 1.0.0)
-    const { config, workspaceFolderPath } = params;
-    const { cliPath, cliEnv } = config;
+    const {config, workspaceFolderPath} = params;
+    const {cliPath, cliEnv} = config;
 
     return getRunnableCliCommand({
       cliPath,
@@ -35,8 +35,8 @@ export const cliWrapper = {
     config: IConfig;
     workspaceFolderPath?: string;
   }): RunCliResult => {
-    const { config, workspaceFolderPath } = params;
-    const { cliPath, cliEnv } = config;
+    const {config, workspaceFolderPath} = params;
+    const {cliPath, cliEnv} = config;
 
     return getRunnableCliCommand({
       cliPath,
@@ -51,8 +51,8 @@ export const cliWrapper = {
     path: string;
     workspaceFolderPath?: string;
   }): RunCliResult => {
-    const { config, workspaceFolderPath } = params;
-    const { cliPath, cliEnv } = config;
+    const {config, workspaceFolderPath} = params;
+    const {cliPath, cliEnv} = config;
 
     const commandParams: string[] = [];
     config.additionalParams.forEach((param) => {
@@ -79,8 +79,8 @@ export const cliWrapper = {
     workspaceFolderPath?: string;
   }): RunCliResult => {
     const commandParams: string[] = [];
-    const { config, workspaceFolderPath } = params;
-    const { cliEnv, cliPath } = config;
+    const {config, workspaceFolderPath} = params;
+    const {cliEnv, cliPath} = config;
 
     config.additionalParams.forEach((param) => {
       commandParams.push(param);
@@ -106,8 +106,8 @@ export const cliWrapper = {
     config: IConfig;
     workspaceFolderPath?: string;
   }): RunCliResult => {
-    const { config, workspaceFolderPath } = params;
-    const { cliEnv, cliPath } = config;
+    const {config, workspaceFolderPath} = params;
+    const {cliEnv, cliPath} = config;
 
     const commandParams: string[] = [];
 
@@ -126,25 +126,25 @@ export const cliWrapper = {
   },
   getRunnableAuthCheckCommand: (config: IConfig): RunCliResult => {
     const commandParams: string[] = [];
-    const { cliPath, cliEnv } = config;
+    const {cliPath, cliEnv} = config;
     commandParams.push(CommandParameters.OutputFormatJson);
     commandParams.push(CliCommands.AuthCheck);
 
-    return getRunnableCliCommand({ cliPath, cliEnv, commandParams });
+    return getRunnableCliCommand({cliPath, cliEnv, commandParams});
   },
   getRunnablePipInstallCommand: (params: {
     config: IConfig;
     workspaceFolderPath?: string;
   }): RunCliResult => {
     const commandParams: string[] = [];
-    const { config, workspaceFolderPath } = params;
-    const { cliEnv } = config;
-    commandParams.push("install");
-    commandParams.push("--upgrade");
-    commandParams.push("cycode");
+    const {config, workspaceFolderPath} = params;
+    const {cliEnv} = config;
+    commandParams.push('install');
+    commandParams.push('--upgrade');
+    commandParams.push('cycode');
 
     return getRunnableCliCommand({
-      cliPath: "pip",
+      cliPath: 'pip',
       workspaceFolderPath,
       commandParams,
       cliEnv,
@@ -155,13 +155,13 @@ export const cliWrapper = {
     config: IConfig;
     workspaceFolderPath?: string;
   }): RunCliResult => {
-    const { config, workspaceFolderPath } = params;
-    const { cliEnv } = config;
+    const {config, workspaceFolderPath} = params;
+    const {cliEnv} = config;
 
     return getRunnableCliCommand({
-      cliPath: "pip3",
+      cliPath: 'pip3',
       workspaceFolderPath,
-      commandParams: ["uninstall", "-y", "cycode"],
+      commandParams: ['uninstall', '-y', 'cycode'],
       cliEnv,
       printToOutput: true,
     });
@@ -171,9 +171,9 @@ export const cliWrapper = {
     workspaceFolderPath?: string;
     ignoreConfig: IgnoreCommandConfig;
   }): RunCliResult => {
-    const { config, ignoreConfig, workspaceFolderPath } = params;
-    const { cliPath, cliEnv } = config;
-    const { ignoreBy, param } = ignoreConfig;
+    const {config, ignoreConfig, workspaceFolderPath} = params;
+    const {cliPath, cliEnv} = config;
+    const {ignoreBy, param} = ignoreConfig;
 
     const commandParams: string[] = [];
     config.additionalParams.forEach((param) => {
