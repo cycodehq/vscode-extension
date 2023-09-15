@@ -14,9 +14,9 @@ const validateCLI = async (params: {
 }): Promise<boolean> => {
   let result;
 
-  const getVersionMethods = [cliWrapper.runGetVersion, cliWrapper.runGetVersionLegacy];
+  const getVersionMethods = [cliWrapper.getRunnableGetVersionCommand, cliWrapper.getRunnableGetVersionLegacyCommand];
   for (const getVersion of getVersionMethods) {
-    const versionResult = await getVersion(params);
+    const versionResult = await getVersion(params).getResultPromise();
     if (versionResult.exitCode === 0) {
       result = versionResult.result;
       break;
@@ -56,7 +56,7 @@ export async function checkCLI(
 
     // CLI is missing or outdated. try to install/upgrade:
     extensionOutput.info("CLI not found. Trying to install...");
-    const exitCode = (await cliWrapper.runInstall(params)).exitCode;
+    const exitCode = (await cliWrapper.getRunnablePipInstallCommand(params).getResultPromise()).exitCode;
 
     if (exitCode !== 0) {
       extensionOutput.error("Failed to install cycode CLI");

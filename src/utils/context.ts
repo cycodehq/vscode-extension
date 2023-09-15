@@ -15,6 +15,7 @@ export const initContext = (context: vscode.ExtensionContext) => {
   updateWorkspaceState(VscodeStates.SecretsScanInProgress, false);
   updateWorkspaceState(VscodeStates.ScaScanInProgress, false);
   updateWorkspaceState(VscodeStates.NotificationIsOpen, false);
+  updateWorkspaceState(VscodeStates.NotificationWasShown, false);
 };
 
 export const getContext = (): vscode.ExtensionContext => {

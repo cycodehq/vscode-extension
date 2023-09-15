@@ -2,7 +2,7 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from "vscode";
 import { extensionOutput } from "./logging/extension-output";
-import { secretScan } from "./services/scanner";
+import { secretScan } from "./services/secretsScanner";
 import { auth } from "./services/auth";
 import { install } from "./services/install";
 import { uninstall } from "./services/uninstall";

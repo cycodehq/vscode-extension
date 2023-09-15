@@ -22,9 +22,9 @@ export async function uninstall(
           message: `Uninstall cycode CLI...`,
         });
 
-        const { stderr, exitCode } = await cliWrapper.runUninstall(
+        const { stderr, exitCode } = await cliWrapper.getRunnablePipUninstallCommand(
           params
-        );
+        ).getResultPromise();
 
         if (validateCliCommonErrors(stderr, exitCode)) {
           return;

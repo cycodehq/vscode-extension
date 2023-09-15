@@ -23,7 +23,7 @@ export async function install(
           message: `Install with pip3...`,
         });
 
-        const { stderr, exitCode } = await cliWrapper.runInstall(params);
+        const { stderr, exitCode } = await cliWrapper.getRunnablePipInstallCommand(params).getResultPromise();
 
         if (validateCliCommonErrors(stderr, exitCode)) {
           return;

@@ -27,7 +27,7 @@ export async function auth(params: CommandParams) {
           message: `Authenticating with Cycode...`,
         });
 
-        const { result, stderr, exitCode } = await cliWrapper.runAuth(params);
+        const { result, stderr, exitCode } = await cliWrapper.getRunnableAuthCommand(params).getResultPromise();
 
         endAuthenticationProcess();
 

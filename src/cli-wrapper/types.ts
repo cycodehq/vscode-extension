@@ -1,3 +1,5 @@
+import * as vscode from "vscode";
+
 export type CommandResult = {
   exitCode: number;
   result: any;
@@ -24,3 +26,18 @@ export interface UserAgent {
   env_name: string;
   env_version: string;
 }
+
+export interface RunCliArgs {
+  cliPath: string;
+  cliEnv: { [key: string]: string };
+  commandParams: string[];
+  workspaceFolderPath?: string;
+  printToOutput?: boolean;
+}
+
+export interface RunCliResult {
+  getCancelPromise: () => Promise<void>;
+  getResultPromise: () => Promise<CommandResult>;
+}
+
+export type ProgressBar = vscode.Progress<{ message?: string; increment?: number }>;
