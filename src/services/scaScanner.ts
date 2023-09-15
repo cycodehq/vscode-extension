@@ -1,21 +1,21 @@
-import * as path from "path";
-import * as vscode from "vscode";
-import { extensionOutput } from "../logging/extension-output";
-import { cliWrapper } from "../cli-wrapper/cli-wrapper";
-import statusBar from "../utils/status-bar";
+import * as path from 'path';
+import * as vscode from 'vscode';
+import {extensionOutput} from '../logging/extension-output';
+import {cliWrapper} from '../cli-wrapper/cli-wrapper';
+import statusBar from '../utils/status-bar';
 import {
   StatusBarTexts,
   extensionId,
-} from "../utils/texts";
-import { finalizeScanState, validateCliCommonErrors, validateCliCommonScanErrors } from "./common";
-import { getWorkspaceState, setContext, updateWorkspaceState } from "../utils/context";
-import { ScaDetection } from "../types/detection";
-import { IConfig, ProgressBar, RunCliResult } from "../cli-wrapper/types";
-import TrayNotifications from "../utils/TrayNotifications";
-import { TreeView } from "../providers/tree-view/types";
-import { refreshTreeViewData } from "../providers/tree-view/utils";
-import { getPackageFileForLockFile, isSupportedLockFile, ScanType } from "../constants";
-import { VscodeStates } from "../utils/states";
+} from '../utils/texts';
+import {finalizeScanState, validateCliCommonErrors, validateCliCommonScanErrors} from './common';
+import {getWorkspaceState, setContext, updateWorkspaceState} from '../utils/context';
+import {ScaDetection} from '../types/detection';
+import {IConfig, ProgressBar, RunCliResult} from '../cli-wrapper/types';
+import TrayNotifications from '../utils/TrayNotifications';
+import {TreeView} from '../providers/tree-view/types';
+import {refreshTreeViewData} from '../providers/tree-view/utils';
+import {getPackageFileForLockFile, isSupportedLockFile, ScanType} from '../constants';
+import {VscodeStates} from '../utils/states';
 
 interface ScaScanParams {
   pathToScan: string;
@@ -24,24 +24,22 @@ interface ScaScanParams {
   config: IConfig;
 }
 
-// Entry
-export async function scaScan(
-  context: vscode.ExtensionContext,
-  params: ScaScanParams,
-  treeView: TreeView,
+export function scaScan(
+    params: ScaScanParams,
+    treeView: TreeView,
 ) {
   if (getWorkspaceState(VscodeStates.ScaScanInProgress)) {
     return;
   }
 
   vscode.window.withProgress(
-    {
-      location: vscode.ProgressLocation.Notification,
-      cancellable: true,
-    },
-    async (progress, token) => {
-      await _scaScanWithProgress(params, progress, token, treeView);
-    },
+      {
+        location: vscode.ProgressLocation.Notification,
+        cancellable: true,
+      },
+      async (progress, token) => {
+        await _scaScanWithProgress(params, progress, token, treeView);
+      },
   );
 }
 
@@ -50,7 +48,7 @@ const _initScanState = (params: ScaScanParams, progress: ProgressBar) => {
   statusBar.showScanningInProgress();
 
   extensionOutput.info(
-    "Initiating SCA scan for path: " + params.workspaceFolderPath
+      'Initiating SCA scan for path: ' + params.workspaceFolderPath
   );
   updateWorkspaceState(VscodeStates.ScaScanInProgress, true);
 
@@ -70,10 +68,10 @@ const _getRunnableCliScaScan = (params: ScaScanParams): RunCliResult => {
 };
 
 const _scaScanWithProgress = async (
-  params: ScaScanParams,
-  progress: ProgressBar,
-  cancellationToken: vscode.CancellationToken,
-  treeView: TreeView
+    params: ScaScanParams,
+    progress: ProgressBar,
+    cancellationToken: vscode.CancellationToken,
+    treeView: TreeView
 ) => {
   try {
     _initScanState(params, progress);
@@ -86,8 +84,8 @@ const _scaScanWithProgress = async (
     });
 
     const scanResult = await runnableScaScan.getResultPromise();
-    const { result, stderr, exitCode } = scanResult;
-    if (validateCliCommonErrors(stderr, exitCode)) {
+    const {result, stderr} = scanResult;
+    if (validateCliCommonErrors(stderr)) {
       return;
     }
     validateCliCommonScanErrors(result);
@@ -98,17 +96,17 @@ const _scaScanWithProgress = async (
   } catch (error) {
     finalizeScanState(VscodeStates.ScaScanInProgress, false, progress);
 
-    extensionOutput.error("Error while creating scan: " + error);
+    extensionOutput.error('Error while creating scan: ' + error);
   }
 };
 
 export const detectionsToDiagnostics = async (
-  detections: ScaDetection[]
+    detections: ScaDetection[]
 ): Promise<Record<string, vscode.Diagnostic[]>> => {
   const result: Record<string, vscode.Diagnostic[]> = {};
 
   for (const detection of detections) {
-    const { detection_details } = detection;
+    const {detection_details} = detection;
     const file_name = detection_details.file_name;
     const uri = vscode.Uri.file(file_name);
     const document = await vscode.workspace.openTextDocument(uri);
@@ -122,13 +120,15 @@ export const detectionsToDiagnostics = async (
 
     if (isSupportedLockFile(file_name)) {
       const packageFileName = getPackageFileForLockFile(path.basename(file_name));
-      message += `\n\nAvoid manual packages upgrades in lock files. Update the ${packageFileName} file and re-generate the lock file.`;
+      message += `\n\nAvoid manual packages upgrades in lock files. 
+      Update the ${packageFileName} file and re-generate the lock file.`;
     }
 
     const diagnostic = new vscode.Diagnostic(
-      document.lineAt(detection_details.line_in_file - 1).range, // BE of SCA counts lines from 1, while VSCode counts from 0
-      message,
-      vscode.DiagnosticSeverity.Error
+        // BE of SCA counts lines from 1, while VSCode counts from 0
+        document.lineAt(detection_details.line_in_file - 1).range,
+        message,
+        vscode.DiagnosticSeverity.Error
     );
 
     diagnostic.source = extensionId;
@@ -142,11 +142,11 @@ export const detectionsToDiagnostics = async (
 };
 
 const handleScanDetections = async (
-  result: any,
-  diagnosticCollection: vscode.DiagnosticCollection,
-  treeView: TreeView
+    result: any,
+    diagnosticCollection: vscode.DiagnosticCollection,
+    treeView: TreeView
 ) => {
-  const { detections } = result;
+  const {detections} = result;
 
   const hasDetections = detections.length > 0;
   if (!hasDetections) {

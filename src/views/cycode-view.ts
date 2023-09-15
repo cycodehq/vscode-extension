@@ -1,6 +1,6 @@
-import * as vscode from "vscode";
-import { VscodeCommands } from "../utils/commands";
-import { ExecuteCommandMessages } from "./utils";
+import * as vscode from 'vscode';
+import {VscodeCommands} from '../utils/commands';
+import {ExecuteCommandMessages} from './utils';
 
 export interface ActionCommandMapping {
   commandMessage: ExecuteCommandMessages;
@@ -18,11 +18,7 @@ export abstract class CycodeView implements vscode.WebviewViewProvider {
     this.actionCommandMapping = actionCommandMapping;
   }
 
-  public resolveWebviewView(
-    webviewView: vscode.WebviewView,
-    _context: vscode.WebviewViewResolveContext<unknown>,
-    _token: vscode.CancellationToken
-  ): void {
+  public resolveWebviewView(webviewView: vscode.WebviewView): void {
     this._view = webviewView;
     this.updateView();
   }
@@ -41,9 +37,9 @@ export abstract class CycodeView implements vscode.WebviewViewProvider {
     this._view.webview.html = this.htmlContent;
 
     // Register onDidReceiveMessage listeners for each command
-    this.actionCommandMapping?.forEach(({ commandMessage, command }) => {
+    this.actionCommandMapping?.forEach(({commandMessage, command}) => {
       this._view?.webview.onDidReceiveMessage((message) => {
-        if (message.command === commandMessage) {
+        if (message?.command === commandMessage) {
           vscode.commands.executeCommand(command);
         }
       });

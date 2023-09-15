@@ -1,6 +1,6 @@
-import * as vscode from "vscode";
-import { ScanType } from '../../constants';
-import { TreeViewDisplayedData } from './types';
+import * as vscode from 'vscode';
+import {ScanType} from '../../constants';
+import {TreeViewDisplayedData} from './types';
 
 
 interface TreeViewItemOptions {
@@ -17,7 +17,7 @@ interface TreeViewItemOptions {
 }
 
 export class TreeViewItem extends vscode.TreeItem {
-  public static readonly viewType = "scan.treeView";
+  public static readonly viewType = 'scan.treeView';
 
   public scanSectionType: ScanType | undefined;
   public fullFilePath: string | undefined;
@@ -54,7 +54,7 @@ export class TreeViewItem extends vscode.TreeItem {
     } else if (options.vulnerabilities) {
       this.description = `${options.vulnerabilities.length} vulnerabilities`;
     } else {
-      this.description = "";
+      this.description = '';
     }
   }
 }

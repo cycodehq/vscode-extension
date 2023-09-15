@@ -1,12 +1,12 @@
 import * as vscode from 'vscode';
 import content from './content';
-import { Converter } from 'showdown';
-import { AnyDetection, ScaDetection } from '../../types/detection';
-import { ScanType, SEVERITY_PRIORITIES_FIRST_LETTERS } from '../../constants';
+import {Converter} from 'showdown';
+import {AnyDetection, ScaDetection} from '../../types/detection';
+import {ScanType, SEVERITY_PRIORITIES_FIRST_LETTERS} from '../../constants';
 
 let _currentPanel: vscode.WebviewPanel | undefined = undefined;
 
-const _loadSeverityIcons = (context: vscode.ExtensionContext ,panel: vscode.WebviewPanel): Record<string, string> => {
+const _loadSeverityIcons = (context: vscode.ExtensionContext, panel: vscode.WebviewPanel): Record<string, string> => {
   const webviewUris: Record<string, string> = {};
   for (const severity of SEVERITY_PRIORITIES_FIRST_LETTERS) {
     const fileName = severity.toUpperCase();
@@ -37,10 +37,11 @@ const _enrichDetectionForRender = (detectionType: string, detection: AnyDetectio
 const _enrichScaDetectionForRender = (detection: ScaDetection): ScaDetection => {
   if (detection.detection_details.alert) {
     const markdownConverter = new Converter();
-    detection.detection_details.alert.description = markdownConverter.makeHtml(detection.detection_details.alert.description);
+    detection.detection_details.alert.description =
+      markdownConverter.makeHtml(detection.detection_details.alert.description);
 
     if (!detection.detection_details.alert.first_patched_version) {
-      detection.detection_details.alert.first_patched_version = "Not fixed";
+      detection.detection_details.alert.first_patched_version = 'Not fixed';
     }
   }
 
@@ -65,12 +66,12 @@ export const restoreWebViewPanel = (panel: vscode.WebviewPanel) => {
 
 const _createWebviewPanel = () => {
   return vscode.window.createWebviewPanel(
-    'detectionDetails',
-    'Cycode: Detection Details',
-    vscode.ViewColumn.Two,
-    {
-      enableScripts: true
-    }
+      'detectionDetails',
+      'Cycode: Detection Details',
+      vscode.ViewColumn.Two,
+      {
+        enableScripts: true,
+      }
   );
 };
 
@@ -82,18 +83,18 @@ const _initPanel = (panel: vscode.WebviewPanel, context?: vscode.ExtensionContex
 
   panel.webview.html = content;
   panel.onDidDispose(
-    () => {
-      _currentPanel = undefined;
-    },
-    null,
-    subscriptions
+      () => {
+        _currentPanel = undefined;
+      },
+      null,
+      subscriptions
   );
 };
 
 export const createPanel = (
-  context?: vscode.ExtensionContext,
-  detectionType?: string,
-  detection?: AnyDetection
+    context?: vscode.ExtensionContext,
+    detectionType?: string,
+    detection?: AnyDetection
 ) => {
   if (_currentPanel) {
     _currentPanel.reveal(vscode.ViewColumn.Two);

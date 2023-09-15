@@ -1,8 +1,8 @@
-import { TreeViewItem } from "./item";
-import { TreeViewDataProvider } from "./provider";
+import {TreeViewItem} from './item';
+import {TreeViewDataProvider} from './provider';
 
-import * as vscode from "vscode";
-import { AnyDetection } from "../../types/detection";
+import * as vscode from 'vscode';
+import {AnyDetection} from '../../types/detection';
 
 export interface TreeView {
   provider: TreeViewDataProvider;
@@ -18,9 +18,9 @@ export interface TreeViewDisplayedData {
 }
 
 export enum SeverityFirstLetter {
-  Info = "I",
-  Low = "L",
-  High = "H",
-  Medium = "M",
-  Critical = "C",
+  Info = 'I',
+  Low = 'L',
+  High = 'H',
+  Medium = 'M',
+  Critical = 'C',
 }

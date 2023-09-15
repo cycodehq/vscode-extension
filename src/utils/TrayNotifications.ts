@@ -1,34 +1,34 @@
-import * as vscode from "vscode";
-import { VscodeCommands } from "./commands";
-import { updateWorkspaceState } from "./context";
-import { TrayNotificationTexts } from "./texts";
-import { getScanTypeDisplayName, ScanType } from '../constants';
-import { VscodeStates } from './states';
+import * as vscode from 'vscode';
+import {VscodeCommands} from './commands';
+import {updateWorkspaceState} from './context';
+import {TrayNotificationTexts} from './texts';
+import {getScanTypeDisplayName, ScanType} from '../constants';
+import {VscodeStates} from './states';
 
 export const showSettingsError = (message: string) => {
   updateWorkspaceState(VscodeStates.NotificationIsOpen, true);
   vscode.window
-    .showInformationMessage(message, TrayNotificationTexts.OpenSettings)
-    .then((buttonPressed) => {
-      if (buttonPressed === TrayNotificationTexts.OpenSettings) {
-        vscode.commands.executeCommand(VscodeCommands.OpenSettingsCommandId);
-      }
-      updateWorkspaceState(VscodeStates.NotificationIsOpen, false);
-    });
+      .showInformationMessage(message, TrayNotificationTexts.OpenSettings)
+      .then((buttonPressed) => {
+        if (buttonPressed === TrayNotificationTexts.OpenSettings) {
+          vscode.commands.executeCommand(VscodeCommands.OpenSettingsCommandId);
+        }
+        updateWorkspaceState(VscodeStates.NotificationIsOpen, false);
+      });
 };
 
 export const showAuthFailed = () => {
   updateWorkspaceState(VscodeStates.NotificationIsOpen, true);
   vscode.window
-    .showInformationMessage(
-      TrayNotificationTexts.BadAuth,
-      TrayNotificationTexts.OpenCycodeViewText
-    )
-    .then((buttonPressed) => {
-      buttonPressed === TrayNotificationTexts.OpenCycodeViewText &&
+      .showInformationMessage(
+          TrayNotificationTexts.BadAuth,
+          TrayNotificationTexts.OpenCycodeViewText
+      )
+      .then((buttonPressed) => {
+        buttonPressed === TrayNotificationTexts.OpenCycodeViewText &&
         vscode.commands.executeCommand(VscodeCommands.ShowCycodeView);
-      updateWorkspaceState(VscodeStates.NotificationIsOpen, false);
-    });
+        updateWorkspaceState(VscodeStates.NotificationIsOpen, false);
+      });
 };
 
 export const showAuthSuccess = () =>
@@ -36,7 +36,7 @@ export const showAuthSuccess = () =>
 
 export const showMustBeFocusedOnFile = () =>
   vscode.window.showInformationMessage(
-    TrayNotificationTexts.MustBeFocusedOnFile
+      TrayNotificationTexts.MustBeFocusedOnFile
   );
 
 export const showIgnoreFailed = () =>
@@ -56,28 +56,29 @@ export const showUninstallFailed = () =>
 
 export const showUninstallSuccess = () =>
   vscode.window.showInformationMessage(
-    TrayNotificationTexts.UninstallCompleted
+      TrayNotificationTexts.UninstallCompleted
   );
 
 export const showProblemsDetection = (numDetections: number, scanType: ScanType) =>
   vscode.window
-    .showInformationMessage(
-      `Cycode has detected ${numDetections} ${getScanTypeDisplayName(scanType)} issues in your file. Check out your “Problems” tab to analyze.`,
-      TrayNotificationTexts.OpenProblemsTab
-    )
-    .then((buttonPressed) => {
-      if (buttonPressed === TrayNotificationTexts.OpenProblemsTab) {
-        vscode.commands.executeCommand(VscodeCommands.ShowProblemsTab);
-      }
-      updateWorkspaceState(VscodeStates.NotificationIsOpen, false);
-    });
+      .showInformationMessage(
+          `Cycode has detected ${numDetections} ${getScanTypeDisplayName(scanType)} 
+          issues in your file. Check out your “Problems” tab to analyze.`,
+          TrayNotificationTexts.OpenProblemsTab
+      )
+      .then((buttonPressed) => {
+        if (buttonPressed === TrayNotificationTexts.OpenProblemsTab) {
+          vscode.commands.executeCommand(VscodeCommands.ShowProblemsTab);
+        }
+        updateWorkspaceState(VscodeStates.NotificationIsOpen, false);
+      });
 
 export const showInvalidCLIVersionError = (
-  currentVersion: string,
-  minVersion: string
+    currentVersion: string,
+    minVersion: string
 ) =>
   vscode.window.showErrorMessage(
-    `Cycode CLI version ${currentVersion} is not supported. Please upgrade to version ${minVersion} or higher.`
+      `Cycode CLI version ${currentVersion} is not supported. Please upgrade to version ${minVersion} or higher.`
   );
 
 export default {

@@ -1,16 +1,16 @@
-import * as vscode from "vscode";
-import { TreeViewItem } from "./item";
+import * as vscode from 'vscode';
+import {TreeViewItem} from './item';
 import {
   getSectionItem,
   getSeverityIconPath,
   SECTIONS_ORDER,
 } from './constants';
-import { ScanType, SEVERITY_PRIORITIES_FIRST_LETTERS } from '../../constants';
-import { TreeViewDisplayedData } from './types';
-import { mapScanResultsToSeverityStatsString } from './utils';
-import { VscodeCommands } from '../../utils/commands';
+import {ScanType, SEVERITY_PRIORITIES_FIRST_LETTERS} from '../../constants';
+import {TreeViewDisplayedData} from './types';
+import {mapScanResultsToSeverityStatsString} from './utils';
+import {VscodeCommands} from '../../utils/commands';
 
-type TreeDataDatabase = { [key:string]: FileScanResult[]};
+type TreeDataDatabase = { [key: string]: FileScanResult[]};
 
 export class FileScanResult {
   constructor(
@@ -21,8 +21,7 @@ export class FileScanResult {
 }
 
 export class TreeViewDataProvider
-  implements vscode.TreeDataProvider<TreeViewItem>
-{
+implements vscode.TreeDataProvider<TreeViewItem> {
   private _onDidChangeTreeData: vscode.EventEmitter<
     TreeViewItem | undefined | void
   > = new vscode.EventEmitter<TreeViewItem | undefined | void>();
@@ -42,7 +41,7 @@ export class TreeViewDataProvider
   }
 
   getChildren(
-    element?: TreeViewItem
+      element?: TreeViewItem
   ): Thenable<TreeViewItem[]> {
     if (!element) {
       const treeViewTopLevelItems = [];
@@ -57,16 +56,16 @@ export class TreeViewDataProvider
       const scanResults = this.filesScanResults[element.scanSectionType];
 
       return Promise.resolve(
-        scanResults.map(
-          (scanResult) =>
-            new TreeViewItem({
-              title: scanResult.fileName,
-              collapsibleState: vscode.TreeItemCollapsibleState.Collapsed,
-              vulnerabilities: scanResult.vulnerabilities,
-              fullFilePath: scanResult.fullFilePath,
-              contextValue: element.scanSectionType,
-            })
-        )
+          scanResults.map(
+              (scanResult) =>
+                new TreeViewItem({
+                  title: scanResult.fileName,
+                  collapsibleState: vscode.TreeItemCollapsibleState.Collapsed,
+                  vulnerabilities: scanResult.vulnerabilities,
+                  fullFilePath: scanResult.fullFilePath,
+                  contextValue: element.scanSectionType,
+                })
+          )
       );
     }
 
@@ -86,7 +85,7 @@ export class TreeViewDataProvider
     for (const scanType of SECTIONS_ORDER) {
       const scanResults = this.filesScanResults[scanType];
       this.filesScanResults[scanType] = scanResults.filter(
-        (scanResult) => scanResult.fullFilePath !== path
+          (scanResult) => scanResult.fullFilePath !== path
       );
     }
 
@@ -94,19 +93,20 @@ export class TreeViewDataProvider
   }
 }
 
-const _mapSeverityToDisplayedData = (treeViewDisplayedData: TreeViewDisplayedData[]): { [key: string]: TreeViewDisplayedData[] } => {
-  const severityToDisplayData: { [key: string]: TreeViewDisplayedData[] } = {};
-  for (const displayedData of treeViewDisplayedData) {
-    const { severityFirstLetter } = displayedData;
-    if (!severityToDisplayData.hasOwnProperty(severityFirstLetter)) {
-      severityToDisplayData[severityFirstLetter] = [displayedData];
-    } else {
-      severityToDisplayData[severityFirstLetter].push(displayedData);
+const _mapSeverityToDisplayedData =
+  (treeViewDisplayedData: TreeViewDisplayedData[]): { [key: string]: TreeViewDisplayedData[] } => {
+    const severityToDisplayData: { [key: string]: TreeViewDisplayedData[] } = {};
+    for (const displayedData of treeViewDisplayedData) {
+      const {severityFirstLetter} = displayedData;
+      if (!(severityFirstLetter in severityToDisplayData)) {
+        severityToDisplayData[severityFirstLetter] = [displayedData];
+      } else {
+        severityToDisplayData[severityFirstLetter].push(displayedData);
+      }
     }
-  }
 
-  return severityToDisplayData;
-};
+    return severityToDisplayData;
+  };
 
 
 const _createSeveritySortedTreeViewItems = (treeViewItem: TreeViewItem): TreeViewItem[] => {

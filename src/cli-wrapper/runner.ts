@@ -1,7 +1,7 @@
-import { spawn } from "child_process";
-import * as os from "os";
-import { extensionOutput } from "../logging/extension-output";
-import { CommandResult, RunCliArgs, RunCliResult } from "./types";
+import {spawn} from 'child_process';
+import * as os from 'os';
+import {extensionOutput} from '../logging/extension-output';
+import {CommandResult, RunCliArgs, RunCliResult} from './types';
 
 const parseResult = (out: string): object => {
   let result = {};
@@ -10,7 +10,7 @@ const parseResult = (out: string): object => {
       result = JSON.parse(out);
     }
   } catch (error) {
-    result = { data: out };
+    result = {data: out};
   }
 
   return result;
@@ -22,11 +22,11 @@ export const getRunnableCliCommand = (args: RunCliArgs): RunCliResult => {
     cliEnv,
     commandParams,
     workspaceFolderPath,
-    printToOutput
+    printToOutput,
   } = args;
 
   extensionOutput.info(
-    `Running command: "${cliPath} ${commandParams.join(" ")}"`
+      `Running command: "${cliPath} ${commandParams.join(' ')}"`
   );
 
   const childProcess = spawn(cliPath, commandParams, {
@@ -38,18 +38,18 @@ export const getRunnableCliCommand = (args: RunCliArgs): RunCliResult => {
     shell: true,
   });
 
-  const getCancelPromise = () => new Promise<void>((resolve, _) => {
+  const getCancelPromise = () => new Promise<void>((resolve) => {
     extensionOutput.info(
-      `Killing child process: "${cliPath} ${commandParams.join(" ")}"`
+        `Killing child process: "${cliPath} ${commandParams.join(' ')}"`
     );
 
-    childProcess.kill("SIGINT");
+    childProcess.kill('SIGINT');
     resolve();
   });
 
-  const getResultPromise = () => new Promise<CommandResult>((resolve, _) => {
-    let stderr = "";
-    let stdout = "";
+  const getResultPromise = () => new Promise<CommandResult>((resolve) => {
+    let stderr = '';
+    let stdout = '';
 
     const handleErrorOutput: (chunk: any) => void = (data) => {
       if (!data) {
@@ -61,7 +61,7 @@ export const getRunnableCliCommand = (args: RunCliArgs): RunCliResult => {
       }
     };
 
-    childProcess.on("exit", (code: number) => {
+    childProcess.on('exit', (code: number) => {
       extensionOutput.info(`Command exited with code: ${code}`);
       resolve({
         exitCode: code,
@@ -70,7 +70,7 @@ export const getRunnableCliCommand = (args: RunCliArgs): RunCliResult => {
       });
     });
 
-    childProcess.on("error", (error: { errno: number }) => {
+    childProcess.on('error', (error: { errno: number }) => {
       handleErrorOutput(error);
       resolve({
         exitCode: error.errno,
@@ -79,7 +79,7 @@ export const getRunnableCliCommand = (args: RunCliArgs): RunCliResult => {
       });
     });
 
-    childProcess.stdout?.on("data", (data) => {
+    childProcess.stdout?.on('data', (data) => {
       if (printToOutput) {
         extensionOutput.info(`Command stdout: ${data.toString()}`);
       }
@@ -91,7 +91,7 @@ export const getRunnableCliCommand = (args: RunCliArgs): RunCliResult => {
       stdout += data.toString();
     });
 
-    childProcess.stderr?.on("data", handleErrorOutput);
+    childProcess.stderr?.on('data', handleErrorOutput);
   });
 
   return {getCancelPromise: getCancelPromise, getResultPromise: getResultPromise};

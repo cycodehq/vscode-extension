@@ -1,8 +1,8 @@
 import * as path from 'path';
-import { AnyDetection, Detection, ScaDetection } from '../../types/detection';
-import { FileScanResult } from './provider';
-import { SeverityFirstLetter, TreeView, TreeViewDisplayedData } from './types';
-import { ScanType, SEVERITY_PRIORITIES } from '../../constants';
+import {AnyDetection, Detection, ScaDetection} from '../../types/detection';
+import {FileScanResult} from './provider';
+import {SeverityFirstLetter, TreeView, TreeViewDisplayedData} from './types';
+import {ScanType, SEVERITY_PRIORITIES} from '../../constants';
 
 interface RefreshTreeViewDataArgs {
   detections: AnyDetection[];
@@ -15,14 +15,14 @@ type SeverityCounted = { [severity: string]: number };
 const VSCODE_ENTRY_LINE_NUMBER = 1;
 
 export function refreshTreeViewData(
-  args: RefreshTreeViewDataArgs
+    args: RefreshTreeViewDataArgs
 ): void {
-  const { detections, treeView, scanType } = args;
+  const {detections, treeView, scanType} = args;
   if (treeView === undefined) {
     return;
   }
 
-  const { provider } = treeView;
+  const {provider} = treeView;
   const affectedFiles: FileScanResult[] = [];
   const detectionsMapped = mapDetectionsByFileName(detections, scanType);
   detectionsMapped.forEach((vulnerabilities, fullFilePath) => {
@@ -32,9 +32,9 @@ export function refreshTreeViewData(
   provider.refresh(affectedFiles, scanType);
 }
 
-const _getSecretValueItem = (detection: Detection): { fullFilePath: string, data: TreeViewDisplayedData } => {
-  const { type, detection_details, severity } = detection;
-  const { line, file_path, file_name } = detection_details;
+const _getSecretValueItem = (detection: Detection): { fullFilePath: string; data: TreeViewDisplayedData } => {
+  const {type, detection_details, severity} = detection;
+  const {line, file_path, file_name} = detection_details;
 
   const lineNumber = line + VSCODE_ENTRY_LINE_NUMBER; // CLI starts counting from 0, although vscode starts from line 1.
 
@@ -49,9 +49,9 @@ const _getSecretValueItem = (detection: Detection): { fullFilePath: string, data
   return {fullFilePath: path.join(file_path, file_name), data: valueItem};
 };
 
-const _getScaValueItem = (detection: ScaDetection): { fullFilePath: string, data: TreeViewDisplayedData } => {
-  const { message, detection_details, severity } = detection;
-  const { package_name, package_version, vulnerability_description, line_in_file, file_name } = detection_details;
+const _getScaValueItem = (detection: ScaDetection): { fullFilePath: string; data: TreeViewDisplayedData } => {
+  const {message, detection_details, severity} = detection;
+  const {package_name, package_version, vulnerability_description, line_in_file, file_name} = detection_details;
 
   let description = vulnerability_description;
   if (!description) {
@@ -71,8 +71,8 @@ const _getScaValueItem = (detection: ScaDetection): { fullFilePath: string, data
 };
 
 function mapDetectionsByFileName(
-  detections: AnyDetection[],
-  scanType: ScanType,
+    detections: AnyDetection[],
+    scanType: ScanType,
 ): Map<string, TreeViewDisplayedData[]> {
   const resultMap: Map<string, TreeViewDisplayedData[]> = new Map();
 
@@ -91,7 +91,7 @@ function mapDetectionsByFileName(
 
     const {fullFilePath, data} = valueItem;
     if (resultMap.has(fullFilePath)) {
-      resultMap.get(fullFilePath)!.push(data);
+      resultMap.get(fullFilePath)?.push(data);
     } else {
       resultMap.set(fullFilePath, [data]);
     }
@@ -102,19 +102,19 @@ function mapDetectionsByFileName(
 
 function mapSeverityToFirstLetter(severity: string): SeverityFirstLetter {
   switch (severity.toLowerCase()) {
-    case "info":
+    case 'info':
       return SeverityFirstLetter.Info;
-    case "low":
+    case 'low':
       return SeverityFirstLetter.Low;
-    case "medium":
+    case 'medium':
       return SeverityFirstLetter.Medium;
-    case "high":
+    case 'high':
       return SeverityFirstLetter.High;
-    case "critical":
+    case 'critical':
       return SeverityFirstLetter.Critical;
     default:
       throw new Error(
-        `Supplied unsupported severity ${severity}, can not map to severity first letter`
+          `Supplied unsupported severity ${severity}, can not map to severity first letter`
       );
   }
 }
@@ -123,7 +123,7 @@ export const mapScanResultsToSeverityStatsString = (scanResults: FileScanResult[
   const severityToCount: SeverityCounted = {};
 
   for (const scanResult of scanResults) {
-    const { vulnerabilities } = scanResult;
+    const {vulnerabilities} = scanResult;
     for (const vulnerability of vulnerabilities) {
       const {severityFirstLetter} = vulnerability;
 
@@ -146,5 +146,5 @@ export const mapScanResultsToSeverityStatsString = (scanResults: FileScanResult[
     }
   });
 
-  return severityStrings.join(" | ");
+  return severityStrings.join(' | ');
 };

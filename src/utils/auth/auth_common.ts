@@ -1,7 +1,7 @@
-import TrayNotifications from "../TrayNotifications";
-import { setContext, updateGlobalState } from "../context";
-import statusBar from "../status-bar";
-import { VscodeStates } from '../states';
+import TrayNotifications from '../TrayNotifications';
+import {setContext, updateGlobalState} from '../context';
+import statusBar from '../status-bar';
+import {VscodeStates} from '../states';
 
 export function startAuthenticationProcess(): void {
   setContext(VscodeStates.AuthenticatingInProgress, true);
