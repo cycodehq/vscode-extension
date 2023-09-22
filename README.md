@@ -27,16 +27,6 @@ To install the Cycode VSCode Extension, follow these steps:
 
 6. Reload the VSCode editor.
 
-# CLI Installation
-
-You might not have Cycode CLI installed on your machine. To install the Cycode VSCode Extension, follow these steps:
-
-1. Open the VSCode editor.
-
-2. press `Ctrl+Shift+P` or `Cmd+Shift+P` on Mac to open the command palette.
-
-3. Type "Cycode: Install with pip3" and press enter.
-
 # Authentication
 
 To install the Cycode VSCode Extension, follow these steps:
