@@ -1,14 +1,14 @@
 {
   "name": "cycode",
-  "displayName": "Cycode (beta)",
+  "displayName": "Cycode",
   "icon": "resources/cycode124.png",
-  "description": "Cycode vscode extension. This extension is currently in beta.",
+  "description": "Boost security in your dev lifecycle via SAST, SCA, Secrets & IaC scanning.",
   "repository": {
     "type": "git",
     "url": "https://github.com/cycodehq-public/vscode-extension"
   },
   "homepage": "https://cycode.com/",
-  "version": "0.0.6-alpha.7",
+  "version": "1.0.0",
   "publisher": "cycode",
   "engines": {
     "vscode": "^1.63.0"
@@ -228,7 +228,7 @@
     "@typescript-eslint/eslint-plugin": "5.53.0",
     "@typescript-eslint/parser": "5.53.0",
     "@vscode/test-electron": "2.2.3",
-    "eslint": "8.34.0",
+    "eslint": "8.49.0",
     "eslint-config-google": "^0.14.0",
     "glob": "8.1.0",
     "mocha": "10.2.0",
@@ -239,7 +239,7 @@
     "webpack-cli": "5.0.1"
   },
   "dependencies": {
-    "semver": "7.5.3",
+    "semver": "7.5.4",
     "shelljs": "0.8.5",
     "showdown": "^2.1.0"
   }
