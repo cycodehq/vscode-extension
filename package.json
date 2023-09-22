@@ -1,8 +1,8 @@
 {
   "name": "cycode",
-  "displayName": "Cycode (beta)",
+  "displayName": "Cycode",
   "icon": "resources/cycode124.png",
-  "description": "Cycode vscode extension. This extension is currently in beta.",
+  "description": "Boost security in your dev lifecycle via SAST, SCA, Secrets & IaC scanning.",
   "repository": {
     "type": "git",
     "url": "https://github.com/cycodehq-public/vscode-extension"
