@@ -63,7 +63,7 @@ implements vscode.TreeDataProvider<TreeViewItem> {
                   collapsibleState: vscode.TreeItemCollapsibleState.Collapsed,
                   vulnerabilities: scanResult.vulnerabilities,
                   fullFilePath: scanResult.fullFilePath,
-                  contextValue: element.scanSectionType,
+                  contextValue: `${element.contextValue}-file`,
                 })
           )
       );

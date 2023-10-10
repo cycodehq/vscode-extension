@@ -64,19 +64,19 @@
         },
         {
           "command": "cycode.scan",
-          "when": "view == scan.treeView && viewItem =~ /^Secrets/"
+          "when": "view == scan.treeView && viewItem == Secrets"
         },
         {
           "command": "cycode.scaScan",
-          "when": "view == scan.treeView && viewItem =~ /^SCA/"
+          "when": "view == scan.treeView && viewItem == SCA"
         },
         {
           "command": "cycode.openViolationInFileFromTreeItemContextMenu",
-          "when": "view == scan.treeView && viewItem =~ /-vulnerability$/"
+          "when": "view == scan.treeView && viewItem =~ /-file-vulnerability$/"
         },
         {
           "command": "cycode.openViolationPanelFromTreeItemContextMenu",
-          "when": "view == scan.treeView && viewItem == SCA-vulnerability"
+          "when": "view == scan.treeView && viewItem == SCA-file-vulnerability"
         }
       ]
     },
