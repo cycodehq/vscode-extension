@@ -83,7 +83,7 @@ export enum ScanType {
 
 export enum ScanTypeDisplayName {
   Secrets = 'Hardcoded Secrets',
-  Sca = 'Open Source Threat',
+  Sca = 'Open Source Threat (beta)',
   Sast = 'Code Security',
   Iac = 'Infrastructure As Code',
 }
