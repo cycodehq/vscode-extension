@@ -26,7 +26,7 @@ const _sendSeverityIconsToRender = (context: vscode.ExtensionContext) => {
 };
 
 
-const _enrichDetectionForRender = (detectionType: string, detection: AnyDetection): AnyDetection => {
+const _enrichDetectionForRender = (detectionType: ScanType, detection: AnyDetection): AnyDetection => {
   if (detectionType === ScanType.Sca) {
     detection = _enrichScaDetectionForRender(detection as ScaDetection);
   }
@@ -48,7 +48,7 @@ const _enrichScaDetectionForRender = (detection: ScaDetection): ScaDetection => 
   return detection;
 };
 
-const _sendDetectionToRender = (detectionType: string, detection: AnyDetection) => {
+const _sendDetectionToRender = (detectionType: ScanType, detection: AnyDetection) => {
   if (!_currentPanel) {
     return;
   }
@@ -93,7 +93,7 @@ const _initPanel = (panel: vscode.WebviewPanel, context?: vscode.ExtensionContex
 
 export const createPanel = (
     context?: vscode.ExtensionContext,
-    detectionType?: string,
+    detectionType?: ScanType,
     detection?: AnyDetection
 ) => {
   if (_currentPanel) {

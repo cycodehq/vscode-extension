@@ -315,7 +315,7 @@ function initCommands(
 
   const openViolationPanel = vscode.commands.registerCommand(
       VscodeCommands.OpenViolationPanel,
-      (detectionType: string, detection: AnyDetection) => {
+      (detectionType: ScanType, detection: AnyDetection) => {
         if (detectionType === ScanType.Sca) {
           createPanel(context, detectionType, detection);
         }
