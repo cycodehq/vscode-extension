@@ -14,7 +14,6 @@ jobs:
         with:
           client-id: ${{ secrets.CIMON_CLIENT_ID }}
           secret: ${{ secrets.CIMON_SECRET }}
-          prevent: true
           allowed-hosts: >
             registry.yarnpkg.com
             marketplace.visualstudio.com
