@@ -1,14 +1,12 @@
-name: Integration Tests
+name: Lint, test and build
 
-on: [push]
+on: [ push ]
 
 permissions:
   contents: read
 
 jobs:
-  tests:
-    strategy:
-      max-parallel: 1
+  lint_test_build:
     runs-on: ubuntu-latest
     steps:
       - name: Run Cimon (eBPF)
@@ -16,6 +14,11 @@ jobs:
         with:
           client-id: ${{ secrets.CIMON_CLIENT_ID }}
           secret: ${{ secrets.CIMON_SECRET }}
+          prevent: true
+          allowed-hosts: >
+            registry.yarnpkg.com
+            marketplace.visualstudio.com
+            update.code.visualstudio.com
       - name: Checkout
         uses: actions/checkout@v3
       - name: Setup Node.js
