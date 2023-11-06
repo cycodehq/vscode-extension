@@ -30,7 +30,7 @@ export default `
         Cycode extension requires pre-installed
         <a
           class="styled-link"
-          href="https://github.com/cycodehq-public/cycode-cli#install-cycode-cli"
+          href="https://github.com/cycodehq/cycode-cli#install-cycode-cli"
           >Cycode CLI</a
         >
       </p>
@@ -40,7 +40,7 @@ export default `
         To learn more about how to use Cycode in VSCode
         <a
           class="styled-link"
-          href="https://github.com/cycodehq-public/vscode-extension/blob/main/README.md"
+          href="https://github.com/cycodehq/vscode-extension/blob/main/README.md"
           >read our docs.</a
         >
       </p>

@@ -1,6 +1,6 @@
 // keep in lowercase.
 // eslint-disable-next-line max-len
-// source: https://github.com/cycodehq-public/cycode-cli/blob/ec8333707ab2590518fd0f36454c8636ccbf1061/cycode/cli/consts.py#L50-L82
+// source: https://github.com/cycodehq/cycode-cli/blob/ec8333707ab2590518fd0f36454c8636ccbf1061/cycode/cli/consts.py#L50-L82
 const _SCA_CONFIGURATION_SCAN_SUPPORTED_FILES: ReadonlyArray<string> = [
   'cargo.lock',
   'cargo.toml',

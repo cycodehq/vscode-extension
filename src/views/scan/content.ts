@@ -45,7 +45,7 @@ export default `
         To learn more about how to use Cycode in VSCode
         <a
           class="styled-link"
-          href="https://github.com/cycodehq-public/vscode-extension"
+          href="https://github.com/cycodehq/vscode-extension"
           >read our docs</a
         >.
       </p>

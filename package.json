@@ -5,7 +5,7 @@
   "description": "Boost security in your dev lifecycle via SAST, SCA, Secrets & IaC scanning.",
   "repository": {
     "type": "git",
-    "url": "https://github.com/cycodehq-public/vscode-extension"
+    "url": "https://github.com/cycodehq/vscode-extension"
   },
   "homepage": "https://cycode.com/",
   "version": "1.0.1",
@@ -105,7 +105,7 @@
         "cycode.additionalParameters": {
           "type": "string",
           "default": "",
-          "markdownDescription": "Additional parameters to pass to the Cycode CLI. See the [Cycode CLI documentation](https://github.com/cycodehq-public/cycode-cli#install-cycode-cli)"
+          "markdownDescription": "Additional parameters to pass to the Cycode CLI. See the [Cycode CLI documentation](https://github.com/cycodehq/cycode-cli#install-cycode-cli)"
         },
         "cycode.apiUrl": {
           "type": "string",
