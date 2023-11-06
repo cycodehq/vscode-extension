@@ -30,7 +30,7 @@ export default `
         Cycode extension requires pre-installed
         <a
           class="styled-link"
-          href="https://github.com/cycodehq-public/cycode-cli#install-cycode-cli"
+          href="https://github.com/cycodehq/cycode-cli#install-cycode-cli"
           >Cycode CLI</a
         >
       </p>
