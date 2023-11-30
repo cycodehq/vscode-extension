@@ -1,9 +1,20 @@
 # Change Log
 
-All notable changes to the "Сycode" extension will be documented in this file.
+## [v1.2.0]
 
-Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
+- Add Elixir support for SCA
 
-## [Unreleased]
+## [v1.0.1]
 
-- Initial release
+- Mark SCA as beta
+- Remove "play" (start scan) button from filename and violation items in the tree view
+
+## [v1.0.0]
+
+The first stable release with the support of Secrets, SCA, TreeView, Violation Card, and more.
+
+[v1.2.0]: https://github.com/cycodehq/vscode-extension/releases/tag/v1.2.0
+
+[v1.0.1]: https://github.com/cycodehq/vscode-extension/releases/tag/v1.0.1
+
+[v1.0.0]: https://github.com/cycodehq/vscode-extension/releases/tag/v1.0.0 
