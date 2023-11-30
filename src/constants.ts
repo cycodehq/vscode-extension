@@ -34,6 +34,8 @@ const _SCA_CONFIGURATION_SCAN_SUPPORTED_FILES: ReadonlyArray<string> = [
   'pipfile.lock',
   'requirements.txt',
   'setup.py',
+  'mix.exs',
+  'mix.lock',
 ];
 
 // keep in lowercase. based on _SCA_CONFIGURATION_SCAN_SUPPORTED_FILES
@@ -50,6 +52,7 @@ const _SCA_CONFIGURATION_SCAN_LOCK_FILE_TO_PACKAGE_FILE: { [key: string]: string
   'build.sbt.lock': 'build.sbt', // and build.scala?
   'poetry.lock': 'pyproject.toml',
   'pipfile.lock': 'pipfile',
+  'mix.lock': 'mix.exs',
 };
 
 const _SCA_CONFIGURATION_SCAN_SUPPORTED_LOCK_FILES: ReadonlyArray<string> =
