@@ -14,6 +14,7 @@ export type Detection = {
     file_name: string;
     file_extension: string;
     should_resolve_upon_branch_deletion: boolean;
+    custom_remediation_guidelines?: string;
   };
 };
 
