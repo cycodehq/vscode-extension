@@ -145,7 +145,7 @@ export const detectionsToDiagnostics = (
     message += `Secret SHA: ${detection.detection_details.sha512}`;
 
     if (detection.detection_details.custom_remediation_guidelines) {
-      message += `Company Guideline: ${detection.detection_details.custom_remediation_guidelines}`;
+      message += `\nCompany Guideline: ${detection.detection_details.custom_remediation_guidelines}`;
     }
 
     const diagnostic = new vscode.Diagnostic(
