@@ -20,4 +20,4 @@ export enum CommandParameters {
   SCAScanType = 'sca',
 }
 
-export const MinCLIVersion = '1.5.0';
+export const MinCLIVersion = '1.7.0';
