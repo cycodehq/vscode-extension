@@ -1,8 +1,8 @@
 import * as vscode from 'vscode';
 import {DiagnosticCode} from '../../services/common';
 import {ScanType} from '../../constants';
-import {createCommandCodeActions as createSecretsCommandCodeActions} from './SecretsCodeActions';
-import {createCommandCodeActions as createScaCommandCodeActions} from './ScaCodeActions';
+import {createCommandCodeActions as createSecretsCommandCodeActions} from './secretsCodeActions';
+import {createCommandCodeActions as createScaCommandCodeActions} from './scaCodeActions';
 import {getUniqueDiagnostics} from './uniqueDiagnostics';
 
 export class CycodeActions implements vscode.CodeActionProvider {
