@@ -5,7 +5,7 @@ import {CommandParameters} from '../../cli-wrapper/constants';
 import {IgnoreCommandConfig} from '../../types/commands';
 
 export const createIgnoreRuleAction = (
-    diagnostic: vscode.Diagnostic, diagnosticCode: DiagnosticCode, document: vscode.TextDocument
+    diagnostics: vscode.Diagnostic[], diagnosticCode: DiagnosticCode, document: vscode.TextDocument
 ): vscode.CodeAction => {
   const ignoreRuleAction = new vscode.CodeAction(
       `ignore rule ${diagnosticCode.ruleId}`,
@@ -24,14 +24,14 @@ export const createIgnoreRuleAction = (
       } as IgnoreCommandConfig,
     ],
   };
-  ignoreRuleAction.diagnostics = [diagnostic];
+  ignoreRuleAction.diagnostics = diagnostics;
   ignoreRuleAction.isPreferred = false;
 
   return ignoreRuleAction;
 };
 
 export const createIgnorePathAction = (
-    diagnostic: vscode.Diagnostic, diagnosticCode: DiagnosticCode, document: vscode.TextDocument
+    diagnostics: vscode.Diagnostic[], diagnosticCode: DiagnosticCode, document: vscode.TextDocument
 ): vscode.CodeAction => {
   const ignorePathAction = new vscode.CodeAction(
       `ignore path ${document.uri.fsPath}`,
@@ -50,7 +50,7 @@ export const createIgnorePathAction = (
       } as IgnoreCommandConfig,
     ],
   };
-  ignorePathAction.diagnostics = [diagnostic];
+  ignorePathAction.diagnostics = diagnostics;
   ignorePathAction.isPreferred = false;
 
   return ignorePathAction;

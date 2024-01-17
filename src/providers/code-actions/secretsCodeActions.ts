@@ -7,7 +7,7 @@ import {createIgnorePathAction, createIgnoreRuleAction} from './commonActions';
 import {ScanType} from '../../constants';
 
 const createIgnoreValueAction = (
-    diagnostic: vscode.Diagnostic, range: vscode.Range | vscode.Selection, document: vscode.TextDocument
+    diagnostics: vscode.Diagnostic[], range: vscode.Range | vscode.Selection, document: vscode.TextDocument
 ): vscode.CodeAction => {
   const value = document.getText(range);
 
@@ -28,7 +28,7 @@ const createIgnoreValueAction = (
       } as IgnoreCommandConfig,
     ],
   };
-  ignoreValueAction.diagnostics = [diagnostic];
+  ignoreValueAction.diagnostics = diagnostics;
   ignoreValueAction.isPreferred = true;
 
   return ignoreValueAction;
@@ -37,12 +37,12 @@ const createIgnoreValueAction = (
 export const createCommandCodeActions = (
     document: vscode.TextDocument,
     range: vscode.Range | vscode.Selection,
-    diagnostic: vscode.Diagnostic,
+    diagnostics: vscode.Diagnostic[],
     diagnosticCode: DiagnosticCode,
 ): vscode.CodeAction[] => {
   return [
-    createIgnoreValueAction(diagnostic, range, document),
-    createIgnoreRuleAction(diagnostic, diagnosticCode, document),
-    createIgnorePathAction(diagnostic, diagnosticCode, document),
+    createIgnoreValueAction(diagnostics, range, document),
+    createIgnoreRuleAction(diagnostics, diagnosticCode, document),
+    createIgnorePathAction(diagnostics, diagnosticCode, document),
   ];
 };

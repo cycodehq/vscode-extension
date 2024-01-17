@@ -4,11 +4,11 @@ import {createIgnorePathAction, createIgnoreRuleAction} from './commonActions';
 
 export const createCommandCodeActions = (
     document: vscode.TextDocument,
-    diagnostic: vscode.Diagnostic,
+    diagnostics: vscode.Diagnostic[],
     diagnosticCode: DiagnosticCode,
 ): vscode.CodeAction[] => {
   return [
-    createIgnoreRuleAction(diagnostic, diagnosticCode, document),
-    createIgnorePathAction(diagnostic, diagnosticCode, document),
+    createIgnoreRuleAction(diagnostics, diagnosticCode, document),
+    createIgnorePathAction(diagnostics, diagnosticCode, document),
   ];
 };

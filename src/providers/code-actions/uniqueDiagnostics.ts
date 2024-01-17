@@ -1,20 +1,19 @@
 import * as vscode from 'vscode';
 
-export const getUniqueDiagnostics = (diagnostics: readonly vscode.Diagnostic[]): vscode.Diagnostic[] => {
-  // one code line can have multiple diagnostics, we want to show quick fixes without duplicates,
-  // for example, one package can have multiple vulnerabilities in case of SCA
-
-  const uniqueDiagnostics: vscode.Diagnostic[] = [];
-  const uniqueDiagnosticCodes: string[] = [];
+export const aggregateDiagnosticsByCode = (
+    diagnostics: readonly vscode.Diagnostic[]
+): Map<string, vscode.Diagnostic[]> => {
+  const aggregatedDiagnostics = new Map<string, vscode.Diagnostic[]>();
 
   diagnostics.forEach((diagnostic) => {
     const diagnosticCode = diagnostic.code as string;
 
-    if (!uniqueDiagnosticCodes.includes(diagnosticCode)) {
-      uniqueDiagnosticCodes.push(diagnosticCode);
-      uniqueDiagnostics.push(diagnostic);
+    if (!aggregatedDiagnostics.has(diagnosticCode)) {
+      aggregatedDiagnostics.set(diagnosticCode, []);
     }
+
+    aggregatedDiagnostics.get(diagnosticCode)?.push(diagnostic);
   });
 
-  return uniqueDiagnostics;
+  return aggregatedDiagnostics;
 };
