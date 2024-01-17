@@ -48,6 +48,7 @@ export const getRunnableCliCommand = (args: RunCliArgs): RunCliResult => {
   });
 
   const getResultPromise = () => new Promise<CommandResult>((resolve) => {
+    let exitCode = 0;
     let stderr = '';
     let stdout = '';
 
@@ -61,10 +62,20 @@ export const getRunnableCliCommand = (args: RunCliArgs): RunCliResult => {
       }
     };
 
+    // see the difference between close and exit event here:
+    // https://nodejs.org/api/child_process.html#event-close
+
     childProcess.on('exit', (code: number) => {
+      // exit occurs earlier than close
       extensionOutput.info(`Command exited with code: ${code}`);
+      exitCode = code;
+    });
+
+    childProcess.on('close', (code: number) => {
+      // we receive all "data" events before close
+      extensionOutput.info(`Streams of a command have been closed with code: ${code}`);
       resolve({
-        exitCode: code,
+        exitCode: exitCode,
         stderr: stderr,
         result: parseResult(stdout),
       });
