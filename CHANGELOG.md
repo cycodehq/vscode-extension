@@ -3,6 +3,7 @@
 ## [v1.2.1]
 
 - Fix communication with CLI
+- Fix quick fix ignore functionality for SCA
 
 ## [v1.2.0]
 

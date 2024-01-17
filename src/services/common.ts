@@ -5,6 +5,7 @@ import {getWorkspaceState, updateWorkspaceState} from '../utils/context';
 import {onAuthFailure} from '../utils/auth/auth_common';
 import {VscodeStates} from '../utils/states';
 import {ProgressBar} from '../cli-wrapper/types';
+import {DIAGNOSTIC_CODE_SEPARATOR, ScanType} from '../constants';
 
 const _cliBadAuthMessageId = 'client id needed';
 const _cliBadAuthMessageSecret = 'client secret needed';
@@ -84,3 +85,23 @@ export const finalizeScanState = (state: VscodeStates, success: boolean, progres
     progress.report({increment: 100});
   }
 };
+
+
+export class DiagnosticCode {
+  scanType: string;
+  ruleId: string;
+
+  constructor(scanType: ScanType, ruleId: string) {
+    this.scanType = scanType;
+    this.ruleId = ruleId;
+  }
+
+  toString(): string {
+    return `${this.scanType}${DIAGNOSTIC_CODE_SEPARATOR}${this.ruleId}`;
+  }
+
+  static fromString(diagnosticCode: string): DiagnosticCode {
+    const [scanType, ruleId] = diagnosticCode.split(DIAGNOSTIC_CODE_SEPARATOR);
+    return new DiagnosticCode(scanType as ScanType, ruleId);
+  }
+}

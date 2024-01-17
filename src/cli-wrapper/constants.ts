@@ -1,3 +1,5 @@
+import {ScanType} from '../constants';
+
 export enum CliCommands {
   Path = 'path',
   Scan = 'scan',
@@ -21,3 +23,18 @@ export enum CommandParameters {
 }
 
 export const MinCLIVersion = '1.7.0';
+
+const SCAN_TYPE_TO_SCAN_TYPE_CLI_FLAG_VALUE = {
+  [ScanType.Secrets]: 'secret',
+  [ScanType.Sca]: 'sca',
+  [ScanType.Sast]: 'sast',
+  [ScanType.Iac]: 'iac',
+};
+
+export const getScanTypeCliValue = (scanType: ScanType): string => {
+  if (!SCAN_TYPE_TO_SCAN_TYPE_CLI_FLAG_VALUE[scanType]) {
+    throw new Error(`Unsupported scan type: ${scanType}`);
+  }
+
+  return SCAN_TYPE_TO_SCAN_TYPE_CLI_FLAG_VALUE[scanType];
+};
