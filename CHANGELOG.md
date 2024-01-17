@@ -1,5 +1,9 @@
 # Change Log
 
+## [v1.2.1]
+
+- Fix communication with CLI
+
 ## [v1.2.0]
 
 - Add Company Guidelines
@@ -17,6 +21,8 @@
 ## [v1.0.0]
 
 The first stable release with the support of Secrets, SCA, TreeView, Violation Card, and more.
+
+[v1.2.1]: https://github.com/cycodehq/vscode-extension/releases/tag/v1.2.1
 
 [v1.2.0]: https://github.com/cycodehq/vscode-extension/releases/tag/v1.2.0
 
