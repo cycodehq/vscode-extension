@@ -2,6 +2,7 @@
 
 ## [v1.2.1]
 
+- Disable "SCA Scan on Open" setting
 - Disable progress bar for scans on save
 - Fix communication with CLI
 - Fix quick fix ignore functionality for SCA

@@ -2,7 +2,6 @@ export const extensionId = 'cycode';
 export const publisherId = 'cycode';
 export const extensionName = 'Cycode';
 export const scanOnSaveProperty = 'scanOnSave';
-export const scaScanOnOpenProperty = 'scaScanOnOpen';
 
 export enum StatusBarTexts {
   ScanButton = '$(cycode-logo) Scan with Cycode',

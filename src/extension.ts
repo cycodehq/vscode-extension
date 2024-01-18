@@ -10,7 +10,6 @@ import {
   extensionName,
   extensionId,
   scanOnSaveProperty,
-  scaScanOnOpenProperty,
 } from './utils/texts';
 import {VscodeCommands} from './utils/commands';
 import statusBar from './utils/status-bar';
@@ -164,7 +163,7 @@ const _runScaScanOnProjectOpen = (
     diagnosticCollection: vscode.DiagnosticCollection,
     treeView: TreeView
 ) => {
-  const scaScanOnOpen = vscode.workspace.getConfiguration(extensionId).get(scaScanOnOpenProperty);
+  const scaScanOnOpen = false;
   if (!scaScanOnOpen) {
     return;
   }
