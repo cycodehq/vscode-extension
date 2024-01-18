@@ -2,6 +2,7 @@
 
 ## [v1.2.1]
 
+- Disable "SCA Scan on Open" setting
 - Fix communication with CLI
 - Fix quick fix ignore functionality for SCA
 
