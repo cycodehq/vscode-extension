@@ -237,6 +237,7 @@ function initCommands(
               documentToScan: vscode.window.activeTextEditor.document,
               workspaceFolderPath: vscode.workspace.workspaceFolders?.[0]?.uri.fsPath,
               diagnosticCollection,
+              onDemand: true,
             },
             treeView
         );

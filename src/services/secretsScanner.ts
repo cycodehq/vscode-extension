@@ -18,19 +18,26 @@ interface SecretsScanParams {
   workspaceFolderPath?: string;
   diagnosticCollection: vscode.DiagnosticCollection;
   config: IConfig;
+  onDemand?: boolean;
 }
 
 export const secretScan = (
     params: SecretsScanParams,
     treeView?: TreeView,
 ) => {
+  // we are showing progress bar only for on-demand scans
+  if (!params.onDemand) {
+    _secretScan(params, undefined, undefined, treeView);
+    return;
+  }
+
   vscode.window.withProgress(
       {
         location: vscode.ProgressLocation.Notification,
         cancellable: true,
       },
       async (progress, token) => {
-        await _secretScanWithProgress(params, progress, token, treeView);
+        await _secretScan(params, progress, token, treeView);
       },
   );
 };
@@ -45,22 +52,22 @@ const _getRunnableCliSecretsScan = (params: SecretsScanParams): RunCliResult => 
   return cliWrapper.getRunnableSecretsScanCommand(cliParams);
 };
 
-const _initScanState = (params: SecretsScanParams, progress: ProgressBar) => {
+const _initScanState = (params: SecretsScanParams, progress?: ProgressBar) => {
   extensionOutput.info(StatusBarTexts.ScanWait);
   extensionOutput.info('Initiating scan for file: ' + params.documentToScan.fileName);
 
   statusBar.showScanningInProgress();
   updateWorkspaceState(VscodeStates.SecretsScanInProgress, true);
 
-  progress.report({
+  progress?.report({
     message: `Secrets scanning ${params.documentToScan.fileName}...`,
   });
 };
 
-export async function _secretScanWithProgress(
+export async function _secretScan(
     params: SecretsScanParams,
-    progress: ProgressBar,
-    cancellationToken: vscode.CancellationToken,
+    progress?: ProgressBar,
+    cancellationToken?: vscode.CancellationToken,
     treeView?: TreeView,
 ) {
   try {
@@ -77,7 +84,7 @@ export async function _secretScanWithProgress(
 
     const runnableSecretsScan = _getRunnableCliSecretsScan(params);
 
-    cancellationToken.onCancellationRequested(async () => {
+    cancellationToken?.onCancellationRequested(async () => {
       await runnableSecretsScan.getCancelPromise();
       finalizeScanState(VscodeStates.SecretsScanInProgress, true, progress);
     });
