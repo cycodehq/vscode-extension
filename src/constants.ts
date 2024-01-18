@@ -108,3 +108,5 @@ export const getScanTypeDisplayName = (scanType: string): string => {
 
   return _SCAN_TYPE_TO_DISPLAY_NAME[scanType];
 };
+
+export const DIAGNOSTIC_CODE_SEPARATOR = '::';

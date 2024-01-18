@@ -3,7 +3,7 @@ import {extensionOutput} from '../logging/extension-output';
 import {cliWrapper} from '../cli-wrapper/cli-wrapper';
 import statusBar from '../utils/status-bar';
 import {extensionId, StatusBarTexts, TrayNotificationTexts} from '../utils/texts';
-import {finalizeScanState, validateCliCommonErrors, validateCliCommonScanErrors} from './common';
+import {finalizeScanState, DiagnosticCode, validateCliCommonErrors, validateCliCommonScanErrors} from './common';
 import {getWorkspaceState, setContext, updateWorkspaceState} from '../utils/context';
 import {Detection} from '../types/detection';
 import {IConfig, ProgressBar, RunCliResult} from '../cli-wrapper/types';
@@ -155,7 +155,7 @@ export const detectionsToDiagnostics = (
     );
 
     diagnostic.source = extensionId;
-    diagnostic.code = detection.detection_rule_id;
+    diagnostic.code = new DiagnosticCode(ScanType.Secrets, detection.detection_rule_id).toString();
 
     diagnotics.push(diagnostic);
   }

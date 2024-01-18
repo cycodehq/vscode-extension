@@ -20,7 +20,7 @@ import {config, validateConfig} from './utils/config';
 import TrayNotifications from './utils/TrayNotifications';
 import {IgnoreCommandConfig} from './types/commands';
 import {ignore} from './services/ignore';
-import {CycodeActions} from './providers/CodeActions';
+import {CycodeActions} from './providers/code-actions/CodeActions';
 import {CodelensProvider} from './providers/CodelensProvider';
 import ScanView from './views/scan/scan-view';
 import LoginView from './views/login/login-view';

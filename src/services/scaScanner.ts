@@ -7,7 +7,7 @@ import {
   StatusBarTexts,
   extensionId,
 } from '../utils/texts';
-import {finalizeScanState, validateCliCommonErrors, validateCliCommonScanErrors} from './common';
+import {finalizeScanState, DiagnosticCode, validateCliCommonErrors, validateCliCommonScanErrors} from './common';
 import {getWorkspaceState, setContext, updateWorkspaceState} from '../utils/context';
 import {ScaDetection} from '../types/detection';
 import {IConfig, ProgressBar, RunCliResult} from '../cli-wrapper/types';
@@ -132,7 +132,7 @@ export const detectionsToDiagnostics = async (
     );
 
     diagnostic.source = extensionId;
-    diagnostic.code = detection.detection_rule_id;
+    diagnostic.code = new DiagnosticCode(ScanType.Sca, detection.detection_rule_id).toString();
 
     result[file_name] = result[file_name] || [];
     result[file_name].push(diagnostic);

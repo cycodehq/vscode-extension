@@ -1,5 +1,5 @@
 import {IgnoreCommandConfig} from '../types/commands';
-import {CliCommands, CommandParameters} from './constants';
+import {CliCommands, CommandParameters, getScanTypeCliValue} from './constants';
 import {IConfig, RunCliResult, UserAgent} from './types';
 import {getRunnableCliCommand} from './runner';
 
@@ -173,13 +173,15 @@ export const cliWrapper = {
   }): RunCliResult => {
     const {config, ignoreConfig, workspaceFolderPath} = params;
     const {cliPath, cliEnv} = config;
-    const {ignoreBy, param} = ignoreConfig;
+    const {ignoreBy, param, scanType} = ignoreConfig;
 
     const commandParams: string[] = [];
     config.additionalParams.forEach((param) => {
       commandParams.push(param);
     });
     commandParams.push(CliCommands.Ignore);
+    commandParams.push(CommandParameters.scanType);
+    commandParams.push(getScanTypeCliValue(scanType));
     commandParams.push(ignoreBy);
     commandParams.push(`"${param}"`);
 
