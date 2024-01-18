@@ -402,6 +402,7 @@ function initCommands(
                 pathToScan: workspaceFolder.uri.fsPath,
                 workspaceFolderPath: workspaceFolder.uri.fsPath,
                 diagnosticCollection,
+                onDemand: true,
               },
               treeView
           );

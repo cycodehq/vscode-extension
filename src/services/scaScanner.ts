@@ -22,6 +22,7 @@ interface ScaScanParams {
   workspaceFolderPath?: string;
   diagnosticCollection: vscode.DiagnosticCollection;
   config: IConfig;
+  onDemand?: boolean;
 }
 
 export function scaScan(
@@ -32,18 +33,23 @@ export function scaScan(
     return;
   }
 
+  if (!params.onDemand) {
+    _scaScan(params, undefined, undefined, treeView);
+    return;
+  }
+
   vscode.window.withProgress(
       {
         location: vscode.ProgressLocation.Notification,
         cancellable: true,
       },
       async (progress, token) => {
-        await _scaScanWithProgress(params, progress, token, treeView);
+        await _scaScan(params, progress, token, treeView);
       },
   );
 }
 
-const _initScanState = (params: ScaScanParams, progress: ProgressBar) => {
+const _initScanState = (params: ScaScanParams, progress?: ProgressBar) => {
   extensionOutput.info(StatusBarTexts.ScanWait);
   statusBar.showScanningInProgress();
 
@@ -52,7 +58,7 @@ const _initScanState = (params: ScaScanParams, progress: ProgressBar) => {
   );
   updateWorkspaceState(VscodeStates.ScaScanInProgress, true);
 
-  progress.report({
+  progress?.report({
     message: `SCA scanning ${params.workspaceFolderPath}...`,
   });
 };
@@ -67,18 +73,18 @@ const _getRunnableCliScaScan = (params: ScaScanParams): RunCliResult => {
   return cliWrapper.getRunnableScaScanCommand(cliParams);
 };
 
-const _scaScanWithProgress = async (
+const _scaScan = async (
     params: ScaScanParams,
-    progress: ProgressBar,
-    cancellationToken: vscode.CancellationToken,
-    treeView: TreeView
+    progress?: ProgressBar,
+    cancellationToken?: vscode.CancellationToken,
+    treeView?: TreeView
 ) => {
   try {
     _initScanState(params, progress);
 
     const runnableScaScan = _getRunnableCliScaScan(params);
 
-    cancellationToken.onCancellationRequested(async () => {
+    cancellationToken?.onCancellationRequested(async () => {
       await runnableScaScan.getCancelPromise();
       finalizeScanState(VscodeStates.ScaScanInProgress, true, progress);
     });
@@ -144,7 +150,7 @@ export const detectionsToDiagnostics = async (
 const handleScanDetections = async (
     result: any,
     diagnosticCollection: vscode.DiagnosticCollection,
-    treeView: TreeView
+    treeView?: TreeView
 ) => {
   const {detections} = result;
 
