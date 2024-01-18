@@ -236,6 +236,7 @@ function initCommands(
               documentToScan: vscode.window.activeTextEditor.document,
               workspaceFolderPath: vscode.workspace.workspaceFolders?.[0]?.uri.fsPath,
               diagnosticCollection,
+              onDemand: true,
             },
             treeView
         );
@@ -400,6 +401,7 @@ function initCommands(
                 pathToScan: workspaceFolder.uri.fsPath,
                 workspaceFolderPath: workspaceFolder.uri.fsPath,
                 diagnosticCollection,
+                onDemand: true,
               },
               treeView
           );
