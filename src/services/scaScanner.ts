@@ -172,7 +172,7 @@ const handleScanDetections = async (
 
   if (result.detections.length && !getWorkspaceState(VscodeStates.NotificationIsOpen)) {
     updateWorkspaceState(VscodeStates.NotificationIsOpen, true);
-    TrayNotifications.showProblemsDetection(Object.keys(diagnostics).length, ScanType.Sca);
+    TrayNotifications.showProblemsDetection(result.detections.length, ScanType.Sca);
   }
 
   refreshTreeViewData({
