@@ -1,5 +1,9 @@
 # Change Log
 
+## [v1.2.2]
+
+- Fix work on Windows
+
 ## [v1.2.1]
 
 - Disable "SCA Scan on Open" setting
@@ -24,6 +28,8 @@
 ## [v1.0.0]
 
 The first stable release with the support of Secrets, SCA, TreeView, Violation Card, and more.
+
+[v1.2.2]: https://github.com/cycodehq/vscode-extension/releases/tag/v1.2.2
 
 [v1.2.1]: https://github.com/cycodehq/vscode-extension/releases/tag/v1.2.1
 

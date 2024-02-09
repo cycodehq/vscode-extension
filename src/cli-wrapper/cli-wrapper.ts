@@ -11,7 +11,9 @@ export const generateUserAgentCommandParam = (config: IConfig) => {
     env_version: config.envVersion,
   };
 
-  return `${CommandParameters.UserAgent}='${JSON.stringify(userAgent)}'`;
+  // escape double quotes
+  const userAgentString = JSON.stringify(userAgent).replace(/"/g, '\\"');
+  return `${CommandParameters.UserAgent}="${userAgentString}"`;
 };
 
 export const cliWrapper = {
