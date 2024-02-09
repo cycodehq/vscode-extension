@@ -2,6 +2,7 @@
 
 ## [v1.2.2]
 
+- Fix detections count in SCA notifications
 - Fix work on Windows
 
 ## [v1.2.1]
