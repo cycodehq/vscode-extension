@@ -8,7 +8,7 @@
     "url": "https://github.com/cycodehq/vscode-extension"
   },
   "homepage": "https://cycode.com/",
-  "version": "1.2.2",
+  "version": "1.3.0",
   "publisher": "cycode",
   "engines": {
     "vscode": "^1.63.0"
@@ -110,6 +110,11 @@
           "type": "string",
           "default": "",
           "markdownDescription": "Changes the app URL when running scans. Equivalent to setting CYCODE_APP_URL env var in the CLI."
+        },
+        "cycode.experimentalScaSyncFlow": {
+          "type": "boolean",
+          "default": "true",
+          "description": "Enable experimental SCA sync flow"
         }
       }
     },

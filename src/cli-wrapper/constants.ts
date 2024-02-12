@@ -20,9 +20,11 @@ export enum CommandParameters {
   Version = '--version',
   scanType = '--scan-type',
   SCAScanType = 'sca',
+  Sync = '--sync',
+  NoRestore = '--no-restore',
 }
 
-export const MinCLIVersion = '1.7.0';
+export const MinCLIVersion = '1.9.0';
 
 const SCAN_TYPE_TO_SCAN_TYPE_CLI_FLAG_VALUE = {
   [ScanType.Secrets]: 'secret',

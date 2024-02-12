@@ -1,5 +1,9 @@
 # Change Log
 
+## [v1.3.0]
+
+- Add new SCA flow which decreases execution time
+
 ## [v1.2.2]
 
 - Fix detections count in SCA notifications
@@ -29,6 +33,8 @@
 ## [v1.0.0]
 
 The first stable release with the support of Secrets, SCA, TreeView, Violation Card, and more.
+
+[v1.3.0]: https://github.com/cycodehq/vscode-extension/releases/tag/v1.3.0
 
 [v1.2.2]: https://github.com/cycodehq/vscode-extension/releases/tag/v1.2.2
 
