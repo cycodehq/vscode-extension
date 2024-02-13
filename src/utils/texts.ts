@@ -3,6 +3,8 @@ export const publisherId = 'cycode';
 export const extensionName = 'Cycode';
 export const scanOnSaveProperty = 'scanOnSave';
 
+export const experimentalScaSyncFlowProperty = 'experimentalScaSyncFlow';
+
 export enum StatusBarTexts {
   ScanButton = '$(cycode-logo) Scan with Cycode',
   ScanWait = '$(loading~spin) Waiting for scan to complete….',

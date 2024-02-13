@@ -1,7 +1,9 @@
+import * as vscode from 'vscode';
 import {IgnoreCommandConfig} from '../types/commands';
 import {CliCommands, CommandParameters, getScanTypeCliValue} from './constants';
 import {IConfig, RunCliResult, UserAgent} from './types';
 import {getRunnableCliCommand} from './runner';
+import {experimentalScaSyncFlowProperty, extensionId} from '../utils/texts';
 
 export const generateUserAgentCommandParam = (config: IConfig) => {
   const userAgent: UserAgent = {
@@ -93,6 +95,15 @@ export const cliWrapper = {
     commandParams.push(CliCommands.Scan);
     commandParams.push(CommandParameters.scanType);
     commandParams.push(CommandParameters.SCAScanType);
+
+    const experimentalScaSyncFlowPropertyEnabled =
+        vscode.workspace.getConfiguration(extensionId).get(experimentalScaSyncFlowProperty);
+    if (experimentalScaSyncFlowPropertyEnabled) {
+      // TODO(MarshalX): remove experimental setting if stable
+      commandParams.push(CommandParameters.Sync);
+      commandParams.push(CommandParameters.NoRestore);
+    }
+
     commandParams.push(CliCommands.Path);
     commandParams.push(`"${params.path}"`);
 
