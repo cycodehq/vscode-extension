@@ -15,6 +15,7 @@ open-source packages' vulnerabilities. The extension provides functionalities su
     - Files
 - Cycode console features a "View Problem" card that enables in-depth violation analysis with remediation
   recommendations.
+- Company’s Custom Remediation Guidelines - If your company has set custom remediation guidelines via the Cycode portal, you'll see a field for "Company Guidelines" that contains those guidelines.
 - Running a new scan from your IDE even before committing the code.
 - Triggering a scan automatically whenever a file is saved.
 - Highlighting vulnerable code in the editor - syntax highlighting for Cycode-specific code and configuration files,
@@ -47,13 +48,16 @@ To configure the plugin go to the extension settings to change the default setti
 
 1. In the Additional Parameters field, you can submit additional CLI parameters, such as `--verbose` mode for debugging
    purposes.
-2. Use the API URL field to change the base URL (on-premises Cycode customers see this explanation).
-3. Use the APP URL if the web URL needs to be changed.
-4. Use CLI PATH to set the path to the Cycode CLI executable. In cases where the CLI can't be downloaded due to your
+2. Use the API URL and APP URL fields to change the base URLs:
+    1. On-premises Cycode customers should ask their admin for the relevant base URLs.
+    2. For EU tenants, you'll need to adjust the API and APP URLs to include the EU tag:
+        1. API URL: `https://api.eu.cycode.com`
+        2. APP URL: `https://app.eu.cycode.com`
+3. Use CLI PATH to set the path to the Cycode CLI executable. In cases where the CLI can't be downloaded due to your
    network configuration (for example, due to firewall rules), use this option.
-5. Clear the Scan on Save option to prevent Cycode from scanning your code every time you save your work. Instead, use
+4. Clear the Scan on Save option to prevent Cycode from scanning your code every time you save your work. Instead, use
    the Scan on-Demand option.
-6. In the SCA Scan On Open field, specify whether to perform a scan when a project opened.
+5. In the SCA Scan On Open field, specify whether to perform a scan when a project opened.
 
 Note: If the "Scan on Save File" option is enabled in the extension settings, Cycode will scan the file in focus (
 including manifest files, such as `package.json` and `dockerfile`) for hardcoded secrets. Package vulnerabilities (SCA)
