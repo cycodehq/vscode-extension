@@ -11,13 +11,19 @@ export default `
       flex-direction: column;
     }
     button {
+      color: var(--vscode-button-foreground);
       background-color: var(--vscode-button-background);
-      color: white;
-      outline: none;
-      border: none;
-      padding: 5px;
+      align-items: center;
+      border: 1px solid var(--vscode-button-border,transparent);
+      border-radius: 2px;
       box-sizing: border-box;
       cursor: pointer;
+      display: flex;
+      justify-content: center;
+      line-height: 18px;
+      padding: 4px;
+      text-align: center;
+      width: 100%;
     }
     .styled-link {
       text-decoration: none;
@@ -26,12 +32,7 @@ export default `
   </style>
   <body>
     <div id="scan-container">
-      <p>
-        Ready to scan.
-        <br />
-        <br />
-        Open a file for editing and then hit the button:
-      </p>
+      <p>Ready to scan.</p>
       <button id="scan-vulnerabilities-button">Scan for hardcoded secrets</button>
       <br />
       <button id="scan-package-vulnerabilities-button">Scan for package vulnerabilities</button>
@@ -54,24 +55,24 @@ export default `
     <script>
       const vscode = acquireVsCodeApi();
       document
-        .getElementById("scan-vulnerabilities-button")
-        .addEventListener("click", () => {
+        .getElementById('scan-vulnerabilities-button')
+        .addEventListener('click', () => {
           // Send a message to the extension code when the button is clicked
-          vscode.postMessage({ command: "runScanCommand" });
+          vscode.postMessage({ command: 'runSecretScanCommand' });
         });
       
       document
-        .getElementById("scan-package-vulnerabilities-button")
-        .addEventListener("click", () => {
+        .getElementById('scan-package-vulnerabilities-button')
+        .addEventListener('click', () => {
           // Send a message to the extension code when the button is clicked
-          vscode.postMessage({ command: "runScaScanCommand" });
+          vscode.postMessage({ command: 'runScaScanCommand' });
         });
 
       document
-        .getElementById("open-cycode-settings")
-        .addEventListener("click", () => {
+        .getElementById('open-cycode-settings')
+        .addEventListener('click', () => {
           // Send a message to the extension code when the button is clicked
-          vscode.postMessage({ command: "runOpenCycodeSettingsCommand" });
+          vscode.postMessage({ command: 'runOpenCycodeSettingsCommand' });
         });
     </script>
   </body>

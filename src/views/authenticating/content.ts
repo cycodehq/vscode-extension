@@ -10,14 +10,20 @@ export default `
       display: flex;
       flex-direction: column;
     }
-    #authenticating-button {
+    button {
+      color: var(--vscode-button-foreground);
       background-color: var(--vscode-button-background);
-      color: white;
-      outline: none;
-      border: none;
-      padding: 5px;
+      align-items: center;
+      border: 1px solid var(--vscode-button-border,transparent);
+      border-radius: 2px;
       box-sizing: border-box;
-      cursor: none;
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      line-height: 18px;
+      padding: 4px;
+      text-align: center;
+      width: 100%;
     }
     .styled-link {
       text-decoration: none;
@@ -34,7 +40,7 @@ export default `
           >Cycode CLI</a
         >
       </p>
-      <button id="authenticating-button">Authenticating...</button>
+      <button>Authenticating...</button>
     </div>
   </body>
 </html>

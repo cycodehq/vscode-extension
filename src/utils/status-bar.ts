@@ -16,7 +16,7 @@ const getStatusBar = () => {
         vscode.StatusBarAlignment.Right,
         0
     );
-    statusBar.command = VscodeCommands.ScanCommandId;
+    statusBar.command = VscodeCommands.SecretScanCommandId;
     statusBar.text = StatusBarTexts.ScanButton;
     statusBar.show();
   }
@@ -48,7 +48,7 @@ export const update = ({
 export const showDefault = () => {
   update({
     text: StatusBarTexts.ScanButton,
-    command: VscodeCommands.ScanCommandId,
+    command: VscodeCommands.SecretScanCommandId,
   });
 };
 

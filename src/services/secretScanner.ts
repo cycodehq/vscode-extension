@@ -1,3 +1,4 @@
+import * as path from 'path';
 import * as vscode from 'vscode';
 import {extensionOutput} from '../logging/extension-output';
 import {cliWrapper} from '../cli-wrapper/cli-wrapper';
@@ -13,8 +14,8 @@ import {TreeView} from '../providers/tree-view/types';
 import {ScanType} from '../constants';
 import {VscodeStates} from '../utils/states';
 
-interface SecretsScanParams {
-  documentToScan: vscode.TextDocument;
+interface SecretScanParams {
+  pathToScan: string;
   workspaceFolderPath?: string;
   diagnosticCollection: vscode.DiagnosticCollection;
   config: IConfig;
@@ -22,7 +23,7 @@ interface SecretsScanParams {
 }
 
 export const secretScan = (
-    params: SecretsScanParams,
+    params: SecretScanParams,
     treeView?: TreeView,
 ) => {
   // we are showing progress bar only for on-demand scans
@@ -42,9 +43,9 @@ export const secretScan = (
   );
 };
 
-const _getRunnableCliSecretsScan = (params: SecretsScanParams): RunCliResult => {
+const _getRunnableCliSecretsScan = (params: SecretScanParams): RunCliResult => {
   const cliParams = {
-    path: params.documentToScan.fileName,
+    path: params.pathToScan,
     workspaceFolderPath: params.workspaceFolderPath,
     config: params.config,
   };
@@ -52,20 +53,20 @@ const _getRunnableCliSecretsScan = (params: SecretsScanParams): RunCliResult => 
   return cliWrapper.getRunnableSecretsScanCommand(cliParams);
 };
 
-const _initScanState = (params: SecretsScanParams, progress?: ProgressBar) => {
+const _initScanState = (params: SecretScanParams, progress?: ProgressBar) => {
   extensionOutput.info(StatusBarTexts.ScanWait);
-  extensionOutput.info('Initiating scan for file: ' + params.documentToScan.fileName);
+  extensionOutput.info('Initiating scan for file: ' + params.pathToScan);
 
   statusBar.showScanningInProgress();
   updateWorkspaceState(VscodeStates.SecretsScanInProgress, true);
 
   progress?.report({
-    message: `Secrets scanning ${params.documentToScan.fileName}...`,
+    message: `Secrets scanning ${params.pathToScan}...`,
   });
 };
 
 export async function _secretScan(
-    params: SecretsScanParams,
+    params: SecretScanParams,
     progress?: ProgressBar,
     cancellationToken?: vscode.CancellationToken,
     treeView?: TreeView,
@@ -75,8 +76,7 @@ export async function _secretScan(
       return;
     }
 
-    // TODO (MarshalX): support folder support
-    if (!params.documentToScan) {
+    if (!params.pathToScan) {
       return;
     }
 
@@ -100,11 +100,9 @@ export async function _secretScan(
     validateCliCommonScanErrors(result);
 
     // Show in "problems" tab
-    handleScanDetections(
+    await handleScanDetections(
         result,
-        params.documentToScan.fileName,
         params.diagnosticCollection,
-        params.documentToScan,
         treeView
     );
 
@@ -122,17 +120,19 @@ export async function _secretScan(
   }
 }
 
-export const detectionsToDiagnostics = (
+export const detectionsToDiagnostics = async (
     detections: Detection[],
-    document: vscode.TextDocument
-): vscode.Diagnostic[] => {
-  const diagnotics: vscode.Diagnostic[] = [];
+): Promise<Record<string, vscode.Diagnostic[]>> => {
+  const result: Record<string, vscode.Diagnostic[]> = {};
 
   for (const detection of detections) {
+    const documentPath = path.join(detection.detection_details.file_path, detection.detection_details.file_name);
+    const documentUri = vscode.Uri.file(documentPath);
+    const document = await vscode.workspace.openTextDocument(documentUri);
+
     const startPosition = document?.positionAt(
         detection.detection_details.start_position
     );
-
     const endPosition = document?.positionAt(
         detection.detection_details.start_position +
       detection.detection_details.length
@@ -164,17 +164,16 @@ export const detectionsToDiagnostics = (
     diagnostic.source = extensionId;
     diagnostic.code = new DiagnosticCode(ScanType.Secrets, detection.detection_rule_id).toString();
 
-    diagnotics.push(diagnostic);
+    result[documentPath] = result[documentPath] || [];
+    result[documentPath].push(diagnostic);
   }
 
-  return diagnotics;
+  return result;
 };
 
-const handleScanDetections = (
+const handleScanDetections = async (
     result: { detections?: Detection[] },
-    filePath: string,
     diagnosticCollection: vscode.DiagnosticCollection,
-    document: vscode.TextDocument,
     treeView?: TreeView
 ) => {
   const {detections} = result;
@@ -187,17 +186,15 @@ const handleScanDetections = (
   setContext(VscodeStates.HasDetections, hasDetections);
   setContext(VscodeStates.TreeViewIsOpen, hasDetections);
 
-  const diagnostics = detectionsToDiagnostics(detections, document) || [];
-  const uri = vscode.Uri.file(filePath);
-  diagnosticCollection.set(uri, diagnostics); // Show in "problems" tab
-
-  if (!diagnostics.length) {
-    return;
+  const diagnostics = await detectionsToDiagnostics(detections) || [];
+  for (const [filePath, fileDiagnostics] of Object.entries(diagnostics)) {
+    const uri = vscode.Uri.file(filePath);
+    diagnosticCollection.set(uri, fileDiagnostics); // Show in "problems" tab
   }
 
-  if (detections.length && !getWorkspaceState(VscodeStates.NotificationIsOpen)) {
+  if (result.detections?.length && !getWorkspaceState(VscodeStates.NotificationIsOpen)) {
     updateWorkspaceState(VscodeStates.NotificationIsOpen, true);
-    TrayNotifications.showProblemsDetection(diagnostics.length, ScanType.Secrets);
+    TrayNotifications.showProblemsDetection(result.detections.length, ScanType.Secrets);
   }
 
   refreshTreeViewData({

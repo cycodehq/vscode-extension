@@ -2,7 +2,7 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 import {extensionOutput} from './logging/extension-output';
-import {secretScan} from './services/secretsScanner';
+import {secretScan} from './services/secretScanner';
 import {auth} from './services/auth';
 import {install} from './services/install';
 import {uninstall} from './services/uninstall';
@@ -121,7 +121,7 @@ export async function activate(context: vscode.ExtensionContext) {
     secretScan(
         {
           config,
-          documentToScan: document,
+          pathToScan: document.fileName,
           workspaceFolderPath: workspaceFolderPath,
           diagnosticCollection,
         },
@@ -212,8 +212,8 @@ function initCommands(
     diagnosticCollection: vscode.DiagnosticCollection,
     treeView: TreeView
 ) {
-  const scanCommand = vscode.commands.registerCommand(
-      VscodeCommands.ScanCommandId,
+  const secretScanCommand = vscode.commands.registerCommand(
+      VscodeCommands.SecretScanCommandId,
       () => {
       // scan the current open document if opened
 
@@ -233,8 +233,33 @@ function initCommands(
         secretScan(
             {
               config,
-              documentToScan: vscode.window.activeTextEditor.document,
+              pathToScan: vscode.window.activeTextEditor.document.fileName,
               workspaceFolderPath: vscode.workspace.workspaceFolders?.[0]?.uri.fsPath,
+              diagnosticCollection,
+              onDemand: true,
+            },
+            treeView
+        );
+      }
+  );
+
+  const secretScanForCurrentProjectCommand = vscode.commands.registerCommand(
+      VscodeCommands.SecretScanForProjectCommandId,
+      () => {
+        if (validateConfig()) {
+          return;
+        }
+
+        const projectPath = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+        if (!projectPath) {
+          return;
+        }
+
+        secretScan(
+            {
+              config,
+              pathToScan: projectPath,
+              workspaceFolderPath: projectPath,
               diagnosticCollection,
               onDemand: true,
             },
@@ -410,7 +435,8 @@ function initCommands(
   );
 
   return [
-    scanCommand,
+    secretScanCommand,
+    secretScanForCurrentProjectCommand,
     scaScanCommand,
     authCommand,
     authCheckCommand,
