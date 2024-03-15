@@ -8,7 +8,7 @@
     "url": "https://github.com/cycodehq/vscode-extension"
   },
   "homepage": "https://cycode.com/",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "publisher": "cycode",
   "engines": {
     "vscode": "^1.63.0"
@@ -53,7 +53,7 @@
       ],
       "view/item/context": [
         {
-          "command": "cycode.scan",
+          "command": "cycode.secretScanForProject",
           "when": "viewItem == Secrets",
           "group": "inline"
         },
@@ -63,7 +63,7 @@
           "group": "inline"
         },
         {
-          "command": "cycode.scan",
+          "command": "cycode.secretScanForProject",
           "when": "view == scan.treeView && viewItem == Secrets"
         },
         {
@@ -120,7 +120,7 @@
     },
     "commands": [
       {
-        "command": "cycode.scan",
+        "command": "cycode.secretScanForProject",
         "title": "Cycode: Scan for hardcoded secrets",
         "icon": "$(testing-run-icon)"
       },

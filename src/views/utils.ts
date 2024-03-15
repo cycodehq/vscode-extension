@@ -1,6 +1,6 @@
 export enum ExecuteCommandMessages {
   Auth = 'runAuthCommand',
-  Scan = 'runScanCommand',
+  SecretScan = 'runSecretScanCommand',
   ScaScan = 'runScaScanCommand',
   OpenCycodeSettings = 'runOpenCycodeSettingsCommand',
 }

@@ -6,7 +6,7 @@ import statusBar from '../utils/status-bar';
 import {validateCliCommonErrors} from './common';
 import {IConfig} from '../cli-wrapper/types';
 import {IgnoreCommandConfig} from '../types/commands';
-import {secretScan} from './secretsScanner';
+import {secretScan} from './secretScanner';
 import TrayNotifications from '../utils/TrayNotifications';
 import {TreeView} from '../providers/tree-view/types';
 import {CommandParameters} from '../cli-wrapper/constants';
@@ -43,7 +43,7 @@ export async function ignore(
     // start rescan to visualize the applied "ignore" action
     // TODO(MarshalX): could be not only Secret scan type...
     secretScan({
-      documentToScan: params.documentInitiatedIgnore,
+      pathToScan: params.documentInitiatedIgnore.fileName,
       workspaceFolderPath: params.workspaceFolderPath,
       diagnosticCollection: params.diagnosticCollection,
       config: params.config,

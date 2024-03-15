@@ -10,8 +10,8 @@ export default class ScanView extends CycodeView {
   constructor() {
     const actionCommandMapping: ActionCommandMapping[] = [
       {
-        command: VscodeCommands.ScanCommandId,
-        commandMessage: ExecuteCommandMessages.Scan,
+        command: VscodeCommands.SecretScanForProjectCommandId,
+        commandMessage: ExecuteCommandMessages.SecretScan,
       },
       {
         command: VscodeCommands.ScaScanCommandId,

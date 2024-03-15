@@ -9,9 +9,11 @@ businesses avoid costly repairs and potential complications down the line.
 Cycode VS Code Extension scans your code for exposed secrets, passwords, tokens, keys, and other credentials, as well as
 open-source packages' vulnerabilities. The extension provides functionalities such as:
 
-- A tree view, breakdown by:
-    - Scanning categories: Hardcoded Secrets, Open-source Threats (SCA), Code Security (SAST), and Infrastructure as
-      Code.
+- A tree view, broken down by:
+    - Scanning categories: 
+      - Hardcoded Secrets
+      - Open-source Threats (SCA)
+      - Coming soon: Code Security (SAST), and Infrastructure as Code.
     - Files
 - Cycode console features a "View Problem" card that enables in-depth violation analysis with remediation
   recommendations.
