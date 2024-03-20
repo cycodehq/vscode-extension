@@ -1,3 +1,6 @@
+import * as path from 'path';
+import {getContext} from './utils/context';
+
 // keep in lowercase.
 // eslint-disable-next-line max-len
 // source: https://github.com/cycodehq/cycode-cli/blob/ec8333707ab2590518fd0f36454c8636ccbf1061/cycode/cli/consts.py#L50-L82
@@ -56,7 +59,7 @@ const _SCA_CONFIGURATION_SCAN_LOCK_FILE_TO_PACKAGE_FILE: { [key: string]: string
 };
 
 const _SCA_CONFIGURATION_SCAN_SUPPORTED_LOCK_FILES: ReadonlyArray<string> =
-  Object.keys(_SCA_CONFIGURATION_SCAN_LOCK_FILE_TO_PACKAGE_FILE);
+    Object.keys(_SCA_CONFIGURATION_SCAN_LOCK_FILE_TO_PACKAGE_FILE);
 
 export const isSupportedPackageFile = (fileName: string): boolean => {
   const lowerCaseFileName = fileName.toLowerCase();
@@ -110,3 +113,30 @@ export const getScanTypeDisplayName = (scanType: string): string => {
 };
 
 export const DIAGNOSTIC_CODE_SEPARATOR = '::';
+
+export const REQUIRED_CLI_VERSION = '1.9.1';
+
+export const CLI_GITHUB = {
+  OWNER: 'cycodehq',
+  REPO: 'cycode-cli',
+  TAG: `v${REQUIRED_CLI_VERSION}`,
+};
+
+export const CLI_CHECK_NEW_VERSION_EVERY_SEC = 24 * 60 * 60; // 24 hours
+
+export const getPluginPath = (): string => {
+  return path.join(getContext().extensionPath, 'cycode-vscode-extension');
+};
+
+export const getDefaultCliPath = (): string => {
+  if (process.platform === 'win32') {
+    return path.join(getPluginPath(), 'cycode.exe');
+  }
+
+  if (process.platform === 'darwin') {
+    // on macOS, we are always using onedir mode because of gatekeeper
+    return path.join(getPluginPath(), 'cycode-cli', 'cycode-cli');
+  }
+
+  return path.join(getPluginPath(), 'cycode');
+};

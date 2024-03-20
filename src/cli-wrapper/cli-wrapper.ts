@@ -1,11 +1,9 @@
-import * as vscode from 'vscode';
 import {IgnoreCommandConfig} from '../types/commands';
 import {CliCommands, CommandParameters, getScanTypeCliValue} from './constants';
 import {IConfig, RunCliResult, UserAgent} from './types';
 import {getRunnableCliCommand} from './runner';
-import {experimentalScaSyncFlowProperty, extensionId} from '../utils/texts';
 
-export const generateUserAgentCommandParam = (config: IConfig) => {
+const generateUserAgentCommandParam = (config: IConfig) => {
   const userAgent: UserAgent = {
     app_name: config.agentName,
     app_version: config.agentVersion,
@@ -19,22 +17,6 @@ export const generateUserAgentCommandParam = (config: IConfig) => {
 };
 
 export const cliWrapper = {
-  getRunnableGetVersionLegacyCommand: (params: {
-    config: IConfig;
-    workspaceFolderPath: string;
-  }): RunCliResult => {
-    // support for legacy versions of the CLI (< 1.0.0)
-    const {config, workspaceFolderPath} = params;
-    const {cliPath, cliEnv} = config;
-
-    return getRunnableCliCommand({
-      cliPath,
-      workspaceFolderPath,
-      commandParams: [CommandParameters.Version],
-      cliEnv,
-      printToOutput: true,
-    });
-  },
   getRunnableGetVersionCommand: (params: {
     config: IConfig;
     workspaceFolderPath?: string;
@@ -42,10 +24,15 @@ export const cliWrapper = {
     const {config, workspaceFolderPath} = params;
     const {cliPath, cliEnv} = config;
 
+    const commandParams: string[] = [];
+    commandParams.push(generateUserAgentCommandParam(config));
+    commandParams.push(CommandParameters.OutputFormatJson);
+    commandParams.push(CliCommands.Version);
+
     return getRunnableCliCommand({
       cliPath,
       workspaceFolderPath,
-      commandParams: [CliCommands.Version],
+      commandParams,
       cliEnv,
       printToOutput: true,
     });
@@ -96,9 +83,7 @@ export const cliWrapper = {
     commandParams.push(CommandParameters.scanType);
     commandParams.push(CommandParameters.SCAScanType);
 
-    const experimentalScaSyncFlowPropertyEnabled =
-        vscode.workspace.getConfiguration(extensionId).get(experimentalScaSyncFlowProperty);
-    if (experimentalScaSyncFlowPropertyEnabled) {
+    if (config.experimentalScaSyncFlow) {
       // TODO(MarshalX): remove experimental setting if stable
       commandParams.push(CommandParameters.Sync);
       commandParams.push(CommandParameters.NoRestore);
@@ -144,40 +129,6 @@ export const cliWrapper = {
     commandParams.push(CliCommands.AuthCheck);
 
     return getRunnableCliCommand({cliPath, cliEnv, commandParams});
-  },
-  getRunnablePipInstallCommand: (params: {
-    config: IConfig;
-    workspaceFolderPath?: string;
-  }): RunCliResult => {
-    const commandParams: string[] = [];
-    const {config, workspaceFolderPath} = params;
-    const {cliEnv} = config;
-    commandParams.push('install');
-    commandParams.push('--upgrade');
-    commandParams.push('cycode');
-
-    return getRunnableCliCommand({
-      cliPath: 'pip',
-      workspaceFolderPath,
-      commandParams,
-      cliEnv,
-      printToOutput: true,
-    });
-  },
-  getRunnablePipUninstallCommand: (params: {
-    config: IConfig;
-    workspaceFolderPath?: string;
-  }): RunCliResult => {
-    const {config, workspaceFolderPath} = params;
-    const {cliEnv} = config;
-
-    return getRunnableCliCommand({
-      cliPath: 'pip3',
-      workspaceFolderPath,
-      commandParams: ['uninstall', '-y', 'cycode'],
-      cliEnv,
-      printToOutput: true,
-    });
   },
   getRunnableIgnoreCommand: (params: {
     config: IConfig;

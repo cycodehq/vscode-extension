@@ -11,15 +11,13 @@ import {
 import {CommandParams} from '../types/commands';
 
 export function auth(params: CommandParams) {
-  extensionOutput.showOutputTab();
-
   vscode.window.withProgress(
       {
         location: vscode.ProgressLocation.Window,
       },
       async (progress) => {
         try {
-        // Controls pacakge.json -> viewsWelcome
+          // Controls pacakge.json -> viewsWelcome
           startAuthenticationProcess();
 
           progress.report({

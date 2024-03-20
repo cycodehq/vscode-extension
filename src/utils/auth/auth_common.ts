@@ -1,5 +1,5 @@
 import TrayNotifications from '../TrayNotifications';
-import {setContext, updateGlobalState} from '../context';
+import {getGlobalState, setContext, updateGlobalState} from '../context';
 import statusBar from '../status-bar';
 import {VscodeStates} from '../states';
 
@@ -31,8 +31,13 @@ function showAuthSuccessNotification(): void {
   TrayNotifications.showAuthSuccess();
 }
 
-function updateAuthState(isAuthorized: boolean): void {
+export function updateAuthState(isAuthorized: boolean): void {
   // Hide the "authenticate" button
   setContext(VscodeStates.IsAuthorized, isAuthorized);
   updateGlobalState(VscodeStates.IsAuthorized, isAuthorized);
+}
+
+export function getAuthState(): boolean {
+  const value = getGlobalState<boolean>(VscodeStates.IsAuthorized);
+  return value === undefined ? false : value;
 }

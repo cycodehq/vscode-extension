@@ -8,7 +8,7 @@
     "url": "https://github.com/cycodehq/vscode-extension"
   },
   "homepage": "https://cycode.com/",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "publisher": "cycode",
   "engines": {
     "vscode": "^1.63.0"
@@ -84,11 +84,17 @@
       "title": "Cycode",
       "id": "cycode",
       "properties": {
+        "cycode.cliAutoManaged": {
+          "type": "boolean",
+          "default": "true",
+          "description": "Enable executable auto-management.",
+          "markdownDescription": "Enable executable auto-management."
+        },
         "cycode.cliPath": {
           "type": "string",
           "default": "",
-          "description": "Path to the Cycode CLI executable. Run `which cycode` in your terminal to find the path.",
-          "markdownDescription": "Path to the Cycode CLI executable. Run `which cycode` in your terminal to find the path."
+          "description": "Path to the Cycode CLI executable.",
+          "markdownDescription": "Path to the Cycode CLI executable."
         },
         "cycode.scanOnSave": {
           "type": "boolean",
@@ -218,6 +224,7 @@
     "test": "node ./out/test/runTest.js"
   },
   "devDependencies": {
+    "@types/decompress": "^4.2.7",
     "@types/glob": "8.1.0",
     "@types/mocha": "10.0.1",
     "@types/node": "16.x",
@@ -238,6 +245,7 @@
     "webpack-cli": "5.0.1"
   },
   "dependencies": {
+    "decompress": "^4.2.1",
     "semver": "7.5.4",
     "shelljs": "0.8.5",
     "showdown": "^2.1.0"

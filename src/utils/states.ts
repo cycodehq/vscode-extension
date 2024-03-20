@@ -7,4 +7,10 @@ export enum VscodeStates {
   NotificationWasShown = 'cycode.notifShown',
   HasDetections = 'scan.hasDetections',
   TreeViewIsOpen = 'treeView.isShowed',
+
+  CliHash = 'cli.hash',
+  CliDirHashes = 'cli.dirHashes',
+  CliVersion = 'cli.version',
+  CliInstalled = 'cli.installed',
+  CliLastUpdateCheckedAt = 'cli.lastUpdateCheckedAt',
 }
