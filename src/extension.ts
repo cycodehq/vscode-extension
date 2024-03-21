@@ -415,7 +415,8 @@ const initExtension = async (
       _runScaScanOnProjectOpen(diagnosticCollection, treeView);
     }
   } catch (error) {
-    extensionOutput.error('Cycode CLI is not installed');
+    extensionOutput.error(`Cycode CLI is not installed: ${error}`,);
+    vscode.window.showErrorMessage('Cycode CLI is not installed or not available');
   }
 };
 
