@@ -166,19 +166,14 @@ class CliDownloadService {
       return;
     }
 
-    const downloadedFilePath = await downloadService.downloadFile(
+    await downloadService.downloadFile(
         assetAndFileChecksum.asset.browser_download_url,
         assetAndFileChecksum.expectedChecksum,
         getDefaultCliPath(),
     );
 
-    if (downloadedFilePath == undefined) {
-      extensionOutput.warn('Failed to download file');
-      return;
-    }
-
     // set executable permissions
-    fs.chmodSync(downloadedFilePath, '755');
+    fs.chmodSync(getDefaultCliPath(), '755');
 
     updateGlobalState(VscodeStates.CliHash, assetAndFileChecksum.expectedChecksum);
   }

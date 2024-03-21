@@ -53,10 +53,13 @@ class DownloadService {
           fs.unlinkSync(localPath);
         }
 
+        const localPathToCreate = path.dirname(localPath);
         try {
-          fs.mkdirSync(path.dirname(localPath));
+          fs.mkdirSync(localPathToCreate);
         } catch (error) {
-          extensionOutput.warn(`Failed to create directories for ${localPath}. Probably exists already`);
+          extensionOutput.warn(
+              `Failed to create directories for ${localPathToCreate}. Probably exists already`
+          );
         }
 
         fs.renameSync(tempPath, localPath);
