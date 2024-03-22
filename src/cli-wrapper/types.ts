@@ -8,12 +8,15 @@ export type CommandResult = {
 
 export interface IConfig {
   cliPath: string;
+  cliAutoManaged: boolean;
   additionalParams: string[];
   cliEnv: { [key: string]: string };
   agentName: string;
   agentVersion: string;
   envName: string;
   envVersion: string;
+  scanOnSaveEnabled: boolean;
+  experimentalScaSyncFlow: boolean;
 }
 
 export type CliConfig = {

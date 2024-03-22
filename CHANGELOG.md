@@ -1,5 +1,9 @@
 # Change Log
 
+## [v1.5.0]
+
+- Migrate to the new architecture that auto-manages the CLI
+
 ## [v1.4.0]
 
 - Add the on-demand scan of an entire project for Secrets
@@ -37,6 +41,8 @@
 ## [v1.0.0]
 
 The first stable release with the support of Secrets, SCA, TreeView, Violation Card, and more.
+
+[v1.5.0]: https://github.com/cycodehq/vscode-extension/releases/tag/v1.5.0
 
 [v1.4.0]: https://github.com/cycodehq/vscode-extension/releases/tag/v1.4.0
 

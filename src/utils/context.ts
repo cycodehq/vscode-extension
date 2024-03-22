@@ -10,8 +10,10 @@ export const setContext = (key: string, value: any) => {
 
 export const initContext = (context: vscode.ExtensionContext) => {
   extensionContext = context;
+  resetState();
+};
 
-  // Reset states
+export const resetState = () => {
   updateWorkspaceState(VscodeStates.SecretsScanInProgress, false);
   updateWorkspaceState(VscodeStates.ScaScanInProgress, false);
   updateWorkspaceState(VscodeStates.NotificationIsOpen, false);
@@ -25,7 +27,7 @@ export const getContext = (): vscode.ExtensionContext => {
   return extensionContext;
 };
 
-export const getGlobalState = (key: string): unknown => {
+export const getGlobalState = <T>(key: string): T | undefined => {
   return getContext().globalState.get(key);
 };
 

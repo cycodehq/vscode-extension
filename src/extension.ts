@@ -4,17 +4,10 @@ import * as vscode from 'vscode';
 import {extensionOutput} from './logging/extension-output';
 import {secretScan} from './services/secretScanner';
 import {auth} from './services/auth';
-import {install} from './services/install';
-import {uninstall} from './services/uninstall';
-import {
-  extensionName,
-  extensionId,
-  scanOnSaveProperty,
-} from './utils/texts';
+import {extensionName} from './utils/texts';
 import {VscodeCommands} from './utils/commands';
 import statusBar from './utils/status-bar';
 import extensionContext, {setContext} from './utils/context';
-import {checkCLI} from './services/checkCli';
 import {config, validateConfig} from './utils/config';
 import TrayNotifications from './utils/TrayNotifications';
 import {IgnoreCommandConfig} from './types/commands';
@@ -24,7 +17,6 @@ import {CodelensProvider} from './providers/CodelensProvider';
 import ScanView from './views/scan/scan-view';
 import LoginView from './views/login/login-view';
 import AuthenticatingView from './views/authenticating/authenticating-view';
-import {authCheck} from './services/auth_check';
 import {TreeView, TreeViewDisplayedData} from './providers/tree-view/types';
 import {TreeViewDataProvider} from './providers/tree-view/provider';
 import {TreeViewItem} from './providers/tree-view/item';
@@ -33,7 +25,8 @@ import {isSupportedPackageFile, ScanType} from './constants';
 import {createPanel} from './panels/violation/violation-panel';
 import {AnyDetection} from './types/detection';
 import {VscodeStates} from './utils/states';
-
+import {cycodeService} from './services/CycodeService';
+import {getAuthState} from './utils/auth/auth_common';
 
 export async function activate(context: vscode.ExtensionContext) {
   extensionOutput.info('Cycode extension is now active');
@@ -44,7 +37,7 @@ export async function activate(context: vscode.ExtensionContext) {
   extensionOutput.info('Cycode plugin is running');
 
   const diagnosticCollection =
-    vscode.languages.createDiagnosticCollection(extensionName);
+      vscode.languages.createDiagnosticCollection(extensionName);
 
   // FIXME(MarshalX): works well on vscode open,
   //  but doesn't work when open another detection without closing the restored panel
@@ -75,10 +68,10 @@ export async function activate(context: vscode.ExtensionContext) {
   initActivityBar(context);
 
   const codeLens =
-    vscode.languages.registerCodeLensProvider(
-        {scheme: 'file', language: '*'},
-        new CodelensProvider()
-    );
+      vscode.languages.registerCodeLensProvider(
+          {scheme: 'file', language: '*'},
+          new CodelensProvider()
+      );
 
   const quickActions = vscode.languages.registerCodeActionsProvider(
       {scheme: 'file', language: '*'},
@@ -89,8 +82,7 @@ export async function activate(context: vscode.ExtensionContext) {
   );
 
   const scanOnSave = vscode.workspace.onDidSaveTextDocument((document) => {
-    const scanOnSaveEnabled = vscode.workspace.getConfiguration(extensionId).get(scanOnSaveProperty);
-    if (!scanOnSaveEnabled) {
+    if (!config.scanOnSaveEnabled) {
       return;
     }
 
@@ -173,7 +165,7 @@ const _runScaScanOnProjectOpen = (
     return;
   }
   const workspaceFolderPath =
-    vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+      vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
 
   // we should run sca scan only if the project is open!
   if (!workspaceFolderPath) {
@@ -215,11 +207,11 @@ function initCommands(
   const secretScanCommand = vscode.commands.registerCommand(
       VscodeCommands.SecretScanCommandId,
       () => {
-      // scan the current open document if opened
+        // scan the current open document if opened
 
         if (
           !vscode.window.activeTextEditor?.document ||
-        vscode.window?.activeTextEditor?.document?.uri.scheme === 'output'
+            vscode.window?.activeTextEditor?.document?.uri.scheme === 'output'
         ) {
           TrayNotifications.showMustBeFocusedOnFile();
 
@@ -278,21 +270,10 @@ function initCommands(
         const params = {
           config,
           workspaceFolderPath:
-          vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || '',
+              vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || '',
         };
 
         auth(params);
-      }
-  );
-
-  const authCheckCommand = vscode.commands.registerCommand(
-      VscodeCommands.AuthCheck,
-      async () => {
-        if (validateConfig()) {
-          return;
-        }
-
-        await authCheck(config);
       }
   );
 
@@ -344,34 +325,6 @@ function initCommands(
         if (detectionType === ScanType.Sca) {
           createPanel(context, detectionType, detection);
         }
-      }
-  );
-
-  const installCommand = vscode.commands.registerCommand(
-      VscodeCommands.InstallCommandId,
-      () => {
-        if (validateConfig()) {
-          return;
-        }
-
-        const params = {
-          config,
-          workspaceFolderPath: vscode.workspace.workspaceFolders?.[0]?.uri.fsPath,
-        };
-        install(params);
-      }
-  );
-
-  const uninstallCommand = vscode.commands.registerCommand(
-      VscodeCommands.UninstallCommandId,
-      () => {
-        const params = {
-          config,
-          workspaceFolderPath: vscode.workspace.workspaceFolders?.[0]?.uri.fsPath,
-        };
-
-        // TODO:: find which workspace folder is the file in
-        uninstall(params);
       }
   );
 
@@ -439,14 +392,11 @@ function initCommands(
     secretScanForCurrentProjectCommand,
     scaScanCommand,
     authCommand,
-    authCheckCommand,
     onTreeItemClickCommand,
     onOpenViolationInFileFromTreeItemContextMenuCommand,
     onOpenViolationPanelFromTreeItemContextMenuCommand,
     openViolationInFileCommand,
     openViolationPanel,
-    installCommand,
-    uninstallCommand,
     openSettingsCommand,
     openMainMenuCommand,
     ignoreCommand,
@@ -458,20 +408,20 @@ const initExtension = async (
     treeView: TreeView
 ): Promise<void> => {
   try {
-    const workspaceFolderPath = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || '';
-    await checkCLI({workspaceFolderPath, config});
+    await cycodeService.installCliIfNeededAndCheckAuthentication();
 
-    const isAuthenticated = await authCheck(config);
-    if (isAuthenticated) {
+    if (getAuthState()) {
       // don't wait until the scan completes to not block the extension init
       _runScaScanOnProjectOpen(diagnosticCollection, treeView);
     }
   } catch (error) {
-    extensionOutput.error('Cycode CLI is not installed');
+    extensionOutput.error(`Cycode CLI is not installed: ${error}`,);
+    vscode.window.showErrorMessage('Cycode CLI is not installed or not available');
   }
 };
 
 // This method is called when your extension is deactivated
 // eslint-disable-next-line @typescript-eslint/no-empty-function
-export function deactivate() {}
+export function deactivate() {
+}
 
