@@ -1,18 +1,18 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
-import {extensionOutput} from '../logging/extension-output';
-import {cliWrapper} from '../cli-wrapper/cli-wrapper';
-import statusBar from '../utils/status-bar';
-import {extensionId, StatusBarTexts, TrayNotificationTexts} from '../utils/texts';
-import {finalizeScanState, DiagnosticCode, validateCliCommonErrors, validateCliCommonScanErrors} from './common';
-import {getWorkspaceState, setContext, updateWorkspaceState} from '../utils/context';
-import {Detection} from '../types/detection';
-import {IConfig, ProgressBar, RunCliResult} from '../cli-wrapper/types';
-import TrayNotifications from '../utils/TrayNotifications';
-import {refreshTreeViewData} from '../providers/tree-view/utils';
-import {TreeView} from '../providers/tree-view/types';
-import {ScanType} from '../constants';
-import {VscodeStates} from '../utils/states';
+import {extensionOutput} from '../../logging/extension-output';
+import {cliWrapper} from '../../cli-wrapper/cli-wrapper';
+import statusBar from '../../utils/status-bar';
+import {extensionId, StatusBarTexts, TrayNotificationTexts} from '../../utils/texts';
+import {finalizeScanState, DiagnosticCode, validateCliCommonErrors, validateCliCommonScanErrors} from '../common';
+import {getWorkspaceState, setContext, updateWorkspaceState} from '../../utils/context';
+import {SecretDetection} from '../../types/detection';
+import {IConfig, ProgressBar, RunCliResult} from '../../cli-wrapper/types';
+import TrayNotifications from '../../utils/TrayNotifications';
+import {refreshTreeViewData} from '../../providers/tree-view/utils';
+import {TreeView} from '../../providers/tree-view/types';
+import {ScanType} from '../../constants';
+import {VscodeStates} from '../../utils/states';
 
 interface SecretScanParams {
   pathToScan: string;
@@ -43,14 +43,14 @@ export const secretScan = (
   );
 };
 
-const _getRunnableCliSecretsScan = (params: SecretScanParams): RunCliResult => {
+const _getRunnableCliSecretScan = (params: SecretScanParams): RunCliResult => {
   const cliParams = {
     path: params.pathToScan,
     workspaceFolderPath: params.workspaceFolderPath,
     config: params.config,
   };
 
-  return cliWrapper.getRunnableSecretsScanCommand(cliParams);
+  return cliWrapper.getRunnableSecretScanCommand(cliParams);
 };
 
 const _initScanState = (params: SecretScanParams, progress?: ProgressBar) => {
@@ -82,14 +82,14 @@ export async function _secretScan(
 
     _initScanState(params, progress);
 
-    const runnableSecretsScan = _getRunnableCliSecretsScan(params);
+    const runnableSecretScan = _getRunnableCliSecretScan(params);
 
     cancellationToken?.onCancellationRequested(async () => {
-      await runnableSecretsScan.getCancelPromise();
+      await runnableSecretScan.getCancelPromise();
       finalizeScanState(VscodeStates.SecretsScanInProgress, true, progress);
     });
 
-    const scanResult = await runnableSecretsScan.getResultPromise();
+    const scanResult = await runnableSecretScan.getResultPromise();
     const {result, stderr} = scanResult;
 
     updateWorkspaceState(VscodeStates.SecretsScanInProgress, false);
@@ -120,8 +120,8 @@ export async function _secretScan(
   }
 }
 
-export const detectionsToDiagnostics = async (
-    detections: Detection[],
+const detectionsToDiagnostics = async (
+    detections: SecretDetection[],
 ): Promise<Record<string, vscode.Diagnostic[]>> => {
   const result: Record<string, vscode.Diagnostic[]> = {};
 
@@ -172,7 +172,7 @@ export const detectionsToDiagnostics = async (
 };
 
 const handleScanDetections = async (
-    result: { detections?: Detection[] },
+    result: { detections?: SecretDetection[] },
     diagnosticCollection: vscode.DiagnosticCollection,
     treeView?: TreeView
 ) => {

@@ -1,4 +1,4 @@
-export type Detection = {
+export type SecretDetection = {
   type: string;
   detection_rule_id: string;
   detection_type_id: string;
@@ -46,4 +46,22 @@ export type ScaDetection = {
   };
 };
 
-export type AnyDetection = Detection | ScaDetection;
+export type IacDetection = {
+  type: string;
+  detection_rule_id: string;
+  detection_type_id: string;
+  message: string;
+  severity: string;
+  detection_details: {
+    info: string;
+    failure_type: string;
+    line_in_file: number;
+    start_position: number;
+    end_position: number;
+    file_name: string;
+    file_path: string;
+    custom_remediation_guidelines?: string;
+  };
+};
+
+export type AnyDetection = SecretDetection | ScaDetection | IacDetection;

@@ -1,5 +1,9 @@
 # Change Log
 
+## [v1.6.0]
+
+- Add Infrastructure as Code (IaC) support
+
 ## [v1.5.0]
 
 - Migrate to the new architecture that auto-manages the CLI
@@ -41,6 +45,8 @@
 ## [v1.0.0]
 
 The first stable release with the support of Secrets, SCA, TreeView, Violation Card, and more.
+
+[v1.6.0]: https://github.com/cycodehq/vscode-extension/releases/tag/v1.6.0
 
 [v1.5.0]: https://github.com/cycodehq/vscode-extension/releases/tag/v1.5.0
 

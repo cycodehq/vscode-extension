@@ -2,7 +2,9 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 import {extensionOutput} from './logging/extension-output';
-import {secretScan} from './services/secretScanner';
+import {secretScan} from './services/scanners/SecretScanner';
+import {scaScan} from './services/scanners/ScaScanner';
+import {iacScan} from './services/scanners/IacScanner';
 import {auth} from './services/auth';
 import {extensionName} from './utils/texts';
 import {VscodeCommands} from './utils/commands';
@@ -20,7 +22,6 @@ import AuthenticatingView from './views/authenticating/authenticating-view';
 import {TreeView, TreeViewDisplayedData} from './providers/tree-view/types';
 import {TreeViewDataProvider} from './providers/tree-view/provider';
 import {TreeViewItem} from './providers/tree-view/item';
-import {scaScan} from './services/scaScanner';
 import {isSupportedPackageFile, ScanType} from './constants';
 import {createPanel} from './panels/violation/violation-panel';
 import {AnyDetection} from './types/detection';
@@ -260,6 +261,31 @@ function initCommands(
       }
   );
 
+  const secretIacForCurrentProjectCommand = vscode.commands.registerCommand(
+      VscodeCommands.IacScanForProjectCommandId,
+      () => {
+        if (validateConfig()) {
+          return;
+        }
+
+        const projectPath = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+        if (!projectPath) {
+          return;
+        }
+
+        iacScan(
+            {
+              config,
+              pathToScan: projectPath,
+              workspaceFolderPath: projectPath,
+              diagnosticCollection,
+              onDemand: true,
+            },
+            treeView
+        );
+      }
+  );
+
   const authCommand = vscode.commands.registerCommand(
       VscodeCommands.AuthCommandId,
       () => {
@@ -391,6 +417,7 @@ function initCommands(
     secretScanCommand,
     secretScanForCurrentProjectCommand,
     scaScanCommand,
+    secretIacForCurrentProjectCommand,
     authCommand,
     onTreeItemClickCommand,
     onOpenViolationInFileFromTreeItemContextMenuCommand,

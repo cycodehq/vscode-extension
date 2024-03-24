@@ -19,7 +19,8 @@ export enum CommandParameters {
   UserAgent = '--user-agent',
   Version = '--version',
   scanType = '--scan-type',
-  SCAScanType = 'sca',
+  scaScanType = 'sca',
+  iacScanType = 'iac',
   Sync = '--sync',
   NoRestore = '--no-restore',
 }

@@ -6,7 +6,7 @@ import statusBar from '../utils/status-bar';
 import {validateCliCommonErrors} from './common';
 import {IConfig} from '../cli-wrapper/types';
 import {IgnoreCommandConfig} from '../types/commands';
-import {secretScan} from './secretScanner';
+import {secretScan} from './scanners/SecretScanner';
 import TrayNotifications from '../utils/TrayNotifications';
 import {TreeView} from '../providers/tree-view/types';
 import {CommandParameters} from '../cli-wrapper/constants';

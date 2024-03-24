@@ -37,7 +37,7 @@ export const cliWrapper = {
       printToOutput: true,
     });
   },
-  getRunnableSecretsScanCommand: (params: {
+  getRunnableSecretScanCommand: (params: {
     config: IConfig;
     path: string;
     workspaceFolderPath?: string;
@@ -81,13 +81,44 @@ export const cliWrapper = {
     commandParams.push(CommandParameters.OutputFormatJson);
     commandParams.push(CliCommands.Scan);
     commandParams.push(CommandParameters.scanType);
-    commandParams.push(CommandParameters.SCAScanType);
+    commandParams.push(CommandParameters.scaScanType);
 
     if (config.experimentalScaSyncFlow) {
       // TODO(MarshalX): remove experimental setting if stable
       commandParams.push(CommandParameters.Sync);
       commandParams.push(CommandParameters.NoRestore);
     }
+
+    commandParams.push(CliCommands.Path);
+    commandParams.push(`"${params.path}"`);
+
+    return getRunnableCliCommand({
+      cliPath,
+      workspaceFolderPath,
+      commandParams,
+      cliEnv,
+      printToOutput: true,
+    });
+  },
+  getRunnableIacScanCommand: (params: {
+    config: IConfig;
+    path: string;
+    workspaceFolderPath?: string;
+  }): RunCliResult => {
+    const {config, workspaceFolderPath} = params;
+    const {cliPath, cliEnv} = config;
+
+    const commandParams: string[] = [];
+    config.additionalParams.forEach((param) => {
+      commandParams.push(param);
+    });
+
+    commandParams.push(generateUserAgentCommandParam(config));
+    commandParams.push(CommandParameters.OutputFormatJson);
+
+    commandParams.push(CliCommands.Scan);
+    commandParams.push(CommandParameters.scanType);
+    commandParams.push(CommandParameters.iacScanType);
 
     commandParams.push(CliCommands.Path);
     commandParams.push(`"${params.path}"`);
