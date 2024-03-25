@@ -7,8 +7,14 @@ import {
   StatusBarTexts,
   extensionId,
 } from '../../utils/texts';
-import {finalizeScanState, DiagnosticCode, validateCliCommonErrors, validateCliCommonScanErrors} from '../common';
-import {getWorkspaceState, setContext, updateWorkspaceState} from '../../utils/context';
+import {
+  finalizeScanState,
+  DiagnosticCode,
+  validateCliCommonErrors,
+  validateCliCommonScanErrors,
+  updateDetectionState,
+} from '../common';
+import {getWorkspaceState, updateWorkspaceState} from '../../utils/context';
 import {ScaDetection} from '../../types/detection';
 import {IConfig, ProgressBar, RunCliResult} from '../../cli-wrapper/types';
 import TrayNotifications from '../../utils/TrayNotifications';
@@ -159,8 +165,7 @@ const handleScanDetections = async (
     return;
   }
 
-  setContext(VscodeStates.HasDetections, hasDetections);
-  setContext(VscodeStates.TreeViewIsOpen, hasDetections);
+  updateDetectionState(ScanType.Sca, detections);
 
   const diagnostics = await detectionsToDiagnostics(result.detections);
 

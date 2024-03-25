@@ -22,7 +22,7 @@ import AuthenticatingView from './views/authenticating/authenticating-view';
 import {TreeView, TreeViewDisplayedData} from './providers/tree-view/types';
 import {TreeViewDataProvider} from './providers/tree-view/provider';
 import {TreeViewItem} from './providers/tree-view/item';
-import {isSupportedPackageFile, ScanType} from './constants';
+import {isSupportedIacFile, isSupportedPackageFile, ScanType} from './constants';
 import {createPanel} from './panels/violation/violation-panel';
 import {AnyDetection} from './types/detection';
 import {VscodeStates} from './utils/states';
@@ -100,6 +100,18 @@ export async function activate(context: vscode.ExtensionContext) {
 
     if (isSupportedPackageFile(document.fileName)) {
       scaScan(
+          {
+            config,
+            pathToScan: fileFsPath,
+            workspaceFolderPath,
+            diagnosticCollection,
+          },
+          treeView,
+      );
+    }
+
+    if (isSupportedIacFile(document.fileName)) {
+      iacScan(
           {
             config,
             pathToScan: fileFsPath,
@@ -210,8 +222,7 @@ function initCommands(
       () => {
         // scan the current open document if opened
 
-        if (
-          !vscode.window.activeTextEditor?.document ||
+        if (!vscode.window.activeTextEditor?.document ||
             vscode.window?.activeTextEditor?.document?.uri.scheme === 'output'
         ) {
           TrayNotifications.showMustBeFocusedOnFile();
@@ -261,7 +272,37 @@ function initCommands(
       }
   );
 
-  const secretIacForCurrentProjectCommand = vscode.commands.registerCommand(
+  const iacScanCommand = vscode.commands.registerCommand(
+      VscodeCommands.IacScanCommandId,
+      () => {
+        // scan the current open document if opened
+
+        if (!vscode.window.activeTextEditor?.document ||
+            vscode.window?.activeTextEditor?.document?.uri.scheme === 'output'
+        ) {
+          TrayNotifications.showMustBeFocusedOnFile();
+
+          return;
+        }
+
+        if (validateConfig()) {
+          return;
+        }
+
+        iacScan(
+            {
+              config,
+              pathToScan: vscode.window.activeTextEditor.document.fileName,
+              workspaceFolderPath: vscode.workspace.workspaceFolders?.[0]?.uri.fsPath,
+              diagnosticCollection,
+              onDemand: true,
+            },
+            treeView
+        );
+      }
+  );
+
+  const iacScanForCurrentProjectCommand = vscode.commands.registerCommand(
       VscodeCommands.IacScanForProjectCommandId,
       () => {
         if (validateConfig()) {
@@ -417,7 +458,8 @@ function initCommands(
     secretScanCommand,
     secretScanForCurrentProjectCommand,
     scaScanCommand,
-    secretIacForCurrentProjectCommand,
+    iacScanCommand,
+    iacScanForCurrentProjectCommand,
     authCommand,
     onTreeItemClickCommand,
     onOpenViolationInFileFromTreeItemContextMenuCommand,

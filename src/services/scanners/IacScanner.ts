@@ -3,8 +3,14 @@ import {extensionOutput} from '../../logging/extension-output';
 import {cliWrapper} from '../../cli-wrapper/cli-wrapper';
 import statusBar from '../../utils/status-bar';
 import {extensionId, StatusBarTexts, TrayNotificationTexts} from '../../utils/texts';
-import {DiagnosticCode, finalizeScanState, validateCliCommonErrors, validateCliCommonScanErrors} from '../common';
-import {getWorkspaceState, setContext, updateWorkspaceState} from '../../utils/context';
+import {
+  DiagnosticCode,
+  finalizeScanState,
+  updateDetectionState,
+  validateCliCommonErrors,
+  validateCliCommonScanErrors,
+} from '../common';
+import {getWorkspaceState, updateWorkspaceState} from '../../utils/context';
 import {IacDetection} from '../../types/detection';
 import {IConfig, ProgressBar, RunCliResult} from '../../cli-wrapper/types';
 import TrayNotifications from '../../utils/TrayNotifications';
@@ -185,8 +191,7 @@ const handleScanDetections = async (
     treeView?: TreeView
 ) => {
   const hasDetections = detections.length > 0;
-  setContext(VscodeStates.HasDetections, hasDetections);
-  setContext(VscodeStates.TreeViewIsOpen, hasDetections);
+  updateDetectionState(ScanType.Iac, detections);
 
   const diagnostics = await detectionsToDiagnostics(detections) || [];
   for (const [filePath, fileDiagnostics] of Object.entries(diagnostics)) {
