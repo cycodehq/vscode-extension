@@ -6,20 +6,22 @@ import statusBar from '../utils/status-bar';
 import {validateCliCommonErrors} from './common';
 import {IConfig} from '../cli-wrapper/types';
 import {IgnoreCommandConfig} from '../types/commands';
-import {secretScan} from './secretScanner';
+import {secretScan} from './scanners/SecretScanner';
 import TrayNotifications from '../utils/TrayNotifications';
 import {TreeView} from '../providers/tree-view/types';
 import {CommandParameters} from '../cli-wrapper/constants';
+import {isSupportedIacFile} from '../constants';
+import {iacScan} from './scanners/IacScanner';
 
 export async function ignore(
     params: {
-    documentInitiatedIgnore: vscode.TextDocument;
-    workspaceFolderPath?: string;
-    config: IConfig;
-    ignoreConfig: IgnoreCommandConfig;
-    diagnosticCollection: vscode.DiagnosticCollection;
-    treeView: TreeView;
-  }
+      documentInitiatedIgnore: vscode.TextDocument;
+      workspaceFolderPath?: string;
+      config: IConfig;
+      ignoreConfig: IgnoreCommandConfig;
+      diagnosticCollection: vscode.DiagnosticCollection;
+      treeView: TreeView;
+    }
 ) {
   try {
     const {stderr, exitCode} = await cliWrapper.getRunnableIgnoreCommand(params).getResultPromise();
@@ -40,16 +42,27 @@ export async function ignore(
       return;
     }
 
+    // FIXME(MarshalX): implement local excluding for rule and value!
+
     // start rescan to visualize the applied "ignore" action
     // TODO(MarshalX): could be not only Secret scan type...
-    secretScan({
+    const secretScanParams = {
       pathToScan: params.documentInitiatedIgnore.fileName,
       workspaceFolderPath: params.workspaceFolderPath,
       diagnosticCollection: params.diagnosticCollection,
       config: params.config,
-    },
-    params.treeView
-    );
+    };
+    secretScan(secretScanParams, params.treeView);
+
+    if (isSupportedIacFile(params.documentInitiatedIgnore.fileName)) {
+      const iacScanParams = {
+        config: params.config,
+        pathToScan: params.documentInitiatedIgnore.fileName,
+        workspaceFolderPath: params.workspaceFolderPath,
+        diagnosticCollection: params.diagnosticCollection,
+      };
+      iacScan(iacScanParams, params.treeView);
+    }
   } catch (error) {
     extensionOutput.error('Error while ignoring: ' + error);
     onIgnoreFailed();

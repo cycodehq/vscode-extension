@@ -36,6 +36,8 @@ export default `
       <button id="scan-vulnerabilities-button">Scan for hardcoded secrets</button>
       <br />
       <button id="scan-package-vulnerabilities-button">Scan for package vulnerabilities</button>
+      <br />
+      <button id="scan-iac-button">Scan for Infrastructure As Code</button>
 
       <p>
         To easily scan your files, enable ScanOnSave in
@@ -66,6 +68,13 @@ export default `
         .addEventListener('click', () => {
           // Send a message to the extension code when the button is clicked
           vscode.postMessage({ command: 'runScaScanCommand' });
+        });
+      
+      document
+        .getElementById('scan-iac-button')
+        .addEventListener('click', () => {
+          // Send a message to the extension code when the button is clicked
+          vscode.postMessage({ command: 'runIacScanCommand' });
         });
 
       document

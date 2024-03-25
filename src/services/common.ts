@@ -1,15 +1,15 @@
 import * as vscode from 'vscode';
 import statusBar from '../utils/status-bar';
 import {TrayNotificationTexts} from '../utils/texts';
-import {getWorkspaceState, updateWorkspaceState} from '../utils/context';
+import {getWorkspaceState, setContext, updateWorkspaceState} from '../utils/context';
 import {onAuthFailure} from '../utils/auth/auth_common';
-import {VscodeStates} from '../utils/states';
+import {getHasDetectionState, VscodeStates} from '../utils/states';
 import {ProgressBar} from '../cli-wrapper/types';
 import {DIAGNOSTIC_CODE_SEPARATOR, ScanType} from '../constants';
+import {AnyDetection} from '../types/detection';
 
 const _cliBadAuthMessageId = 'client id needed';
 const _cliBadAuthMessageSecret = 'client secret needed';
-
 
 const _showMessage = (text: TrayNotificationTexts, isError: boolean) => {
   // TODO(MarshalX): investigate why prev team add limit to only one opened notification at a time
@@ -48,7 +48,7 @@ export const validateCliCommonErrors = (
 
   if (
     error.includes(_cliBadAuthMessageId) ||
-    error.includes(_cliBadAuthMessageSecret)
+      error.includes(_cliBadAuthMessageSecret)
   ) {
     // update status bar
     onAuthFailure();
@@ -86,7 +86,6 @@ export const finalizeScanState = (state: VscodeStates, success: boolean, progres
   }
 };
 
-
 export class DiagnosticCode {
   scanType: string;
   ruleId: string;
@@ -105,3 +104,24 @@ export class DiagnosticCode {
     return new DiagnosticCode(scanType as ScanType, ruleId);
   }
 }
+
+const updateHasDetectionState = (scanType: ScanType, value: boolean) => {
+  setContext(getHasDetectionState(scanType), value);
+
+  const hasAnyDetections =
+      VscodeStates.HasSecretDetections ||
+      VscodeStates.HasScaDetections ||
+      VscodeStates.HasIacDetections;
+
+  setContext(VscodeStates.HasDetections, hasAnyDetections);
+};
+
+export const updateDetectionState = (scanType: ScanType, detections: AnyDetection[]) => {
+  const hasDetections = detections.length > 0;
+
+  updateHasDetectionState(scanType, hasDetections);
+
+  if (hasDetections) {
+    setContext(VscodeStates.TreeViewIsOpen, true);
+  }
+};

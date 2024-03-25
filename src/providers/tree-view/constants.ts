@@ -51,13 +51,12 @@ const getSastSectionItem = (_: string): TreeViewItem => new TreeViewItem({
   description: '(coming soon)', // use fun arg when implemented
 });
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const getIacSectionItem = (_: string): TreeViewItem => new TreeViewItem({
+const getIacSectionItem = (description: string): TreeViewItem => new TreeViewItem({
   title: ScanTypeDisplayName.Iac,
   collapsibleState: vscode.TreeItemCollapsibleState.Collapsed,
   scanSectionType: ScanType.Iac,
   customIconPath: getScanTypeIconPath(ScanType.Iac),
-  description: '(coming soon)', // use fun arg when implemented
+  description,
 });
 
 const _SCAN_TYPE_TO_SECTION_ITEM_CREATOR: { [key: string]: ((description: string) => TreeViewItem)} = {

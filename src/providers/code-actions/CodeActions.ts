@@ -1,8 +1,9 @@
 import * as vscode from 'vscode';
 import {DiagnosticCode} from '../../services/common';
 import {ScanType} from '../../constants';
-import {createCommandCodeActions as createSecretsCommandCodeActions} from './secretsCodeActions';
+import {createCommandCodeActions as createSecretCommandCodeActions} from './secretsCodeActions';
 import {createCommandCodeActions as createScaCommandCodeActions} from './scaCodeActions';
+import {createCommandCodeActions as createIacCommandCodeActions} from './iacCodeActions';
 import {aggregateDiagnosticsByCode} from './uniqueDiagnostics';
 
 export class CycodeActions implements vscode.CodeActionProvider {
@@ -34,9 +35,11 @@ export class CycodeActions implements vscode.CodeActionProvider {
     const diagnosticCode = DiagnosticCode.fromString(rawDiagnosticCode);
     switch (diagnosticCode.scanType) {
       case ScanType.Secrets:
-        return createSecretsCommandCodeActions(document, range, diagnostics, diagnosticCode);
+        return createSecretCommandCodeActions(document, range, diagnostics, diagnosticCode);
       case ScanType.Sca:
         return createScaCommandCodeActions(document, diagnostics, diagnosticCode);
+      case ScanType.Iac:
+        return createIacCommandCodeActions(document, diagnostics, diagnosticCode);
       default:
         return [];
     }
