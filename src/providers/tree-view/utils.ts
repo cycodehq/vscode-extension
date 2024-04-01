@@ -31,8 +31,7 @@ export function refreshTreeViewData(
   const affectedFiles: FileScanResult[] = [];
   const detectionsMapped = mapDetectionsByFileName(detections, scanType);
   detectionsMapped.forEach((vulnerabilities, fullFilePath) => {
-    const fileName = path.basename(fullFilePath);
-    affectedFiles.push(new FileScanResult(fileName, fullFilePath, vulnerabilities));
+    affectedFiles.push(new FileScanResult(fullFilePath, fullFilePath, vulnerabilities));
   });
   provider.refresh(affectedFiles, scanType);
 }

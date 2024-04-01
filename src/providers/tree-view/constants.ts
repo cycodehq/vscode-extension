@@ -66,7 +66,7 @@ const _SCAN_TYPE_TO_SECTION_ITEM_CREATOR: { [key: string]: ((description: string
   [ScanType.Iac]: getIacSectionItem,
 };
 
-export const SECTIONS_ORDER: ReadonlyArray<ScanType> = [ScanType.Secrets, ScanType.Sca, ScanType.Sast, ScanType.Iac];
+export const SECTIONS_ORDER: ReadonlyArray<ScanType> = [ScanType.Secrets, ScanType.Sca, ScanType.Iac, ScanType.Sast];
 
 export const getSectionItem = (scanType: string, description: string): TreeViewItem => {
   if (!(scanType in _SCAN_TYPE_TO_SECTION_ITEM_CREATOR)) {

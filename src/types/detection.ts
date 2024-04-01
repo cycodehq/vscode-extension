@@ -55,6 +55,7 @@ export type IacDetection = {
   detection_details: {
     info: string;
     failure_type: string;
+    infra_provider: string;
     line_in_file: number;
     start_position: number;
     end_position: number;

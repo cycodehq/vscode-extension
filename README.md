@@ -13,7 +13,8 @@ open-source packages' vulnerabilities. The extension provides functionalities su
     - Scanning categories: 
       - Hardcoded Secrets
       - Open-source Threats (SCA)
-      - Coming soon: Code Security (SAST), and Infrastructure as Code.
+      - Infrastructure as Code (IaC)
+      - Coming soon: Code Security (SAST).
     - Files
 - Cycode console features a "View Problem" card that enables in-depth violation analysis with remediation
   recommendations.
