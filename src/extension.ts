@@ -23,7 +23,7 @@ import {TreeView, TreeViewDisplayedData} from './providers/tree-view/types';
 import {TreeViewDataProvider} from './providers/tree-view/provider';
 import {TreeViewItem} from './providers/tree-view/item';
 import {isSupportedIacFile, isSupportedPackageFile, ScanType} from './constants';
-import {createPanel} from './panels/violation/violation-panel';
+import {createAndInitPanel} from './panels/violation/violation-panel';
 import {AnyDetection} from './types/detection';
 import {VscodeStates} from './utils/states';
 import {cycodeService} from './services/CycodeService';
@@ -137,14 +137,6 @@ export async function activate(context: vscode.ExtensionContext) {
   // add all disposables to correctly dispose them on extension deactivating
   context.subscriptions.push(newStatusBar, ...commands, codeLens, quickActions, scanOnSave);
 }
-
-// FIXME (MarshalX): uncomment when will want to restore state after restart
-// class DetectionDetailsSerializer implements vscode.WebviewPanelSerializer {
-//   async deserializeWebviewPanel(webviewPanel: vscode.WebviewPanel, _: any) {
-//     // restore panel on vscode restart
-//     restoreWebViewPanel(webviewPanel);
-//   }
-// }
 
 function createTreeView(
     context: vscode.ExtensionContext
@@ -389,8 +381,8 @@ function initCommands(
   const openViolationPanel = vscode.commands.registerCommand(
       VscodeCommands.OpenViolationPanel,
       (detectionType: ScanType, detection: AnyDetection) => {
-        if (detectionType === ScanType.Sca) {
-          createPanel(context, detectionType, detection);
+        if (detectionType === ScanType.Sca || detectionType === ScanType.Secrets) {
+          createAndInitPanel(context, detectionType, detection);
         }
       }
   );
