@@ -55,6 +55,12 @@ const _enrichSecretDetectionForRender = (detection: SecretDetection): SecretDete
       ''
   );
 
+  if (detection.detection_details.custom_remediation_guidelines) {
+    const markdownConverter = new Converter();
+    detection.detection_details.custom_remediation_guidelines =
+        markdownConverter.makeHtml(detection.detection_details.custom_remediation_guidelines);
+  }
+
   return detection;
 };
 
