@@ -1,10 +1,9 @@
 import * as vscode from 'vscode';
 import content from './content';
 import {Converter} from 'showdown';
-import {AnyDetection, ScaDetection} from '../../types/detection';
+import {AnyDetection, ScaDetection, SecretDetection} from '../../types/detection';
 import {ScanType, SEVERITY_PRIORITIES_FIRST_LETTERS} from '../../constants';
-
-let _currentPanel: vscode.WebviewPanel | undefined = undefined;
+import {createPanel, getPanel, removePanel, revealPanel} from './panel-manager';
 
 const _loadSeverityIcons = (context: vscode.ExtensionContext, panel: vscode.WebviewPanel): Record<string, string> => {
   const webviewUris: Record<string, string> = {};
@@ -17,18 +16,20 @@ const _loadSeverityIcons = (context: vscode.ExtensionContext, panel: vscode.Webv
   return webviewUris;
 };
 
-const _sendSeverityIconsToRender = (context: vscode.ExtensionContext) => {
-  if (!_currentPanel) {
+const _sendSeverityIconsToRender = (detectionType: ScanType, context: vscode.ExtensionContext) => {
+  const panel = getPanel(detectionType);
+  if (!panel) {
     return;
   }
 
-  _currentPanel.webview.postMessage({severityIcons: _loadSeverityIcons(context, _currentPanel)});
+  panel.webview.postMessage({severityIcons: _loadSeverityIcons(context, panel)});
 };
-
 
 const _enrichDetectionForRender = (detectionType: ScanType, detection: AnyDetection): AnyDetection => {
   if (detectionType === ScanType.Sca) {
     detection = _enrichScaDetectionForRender(detection as ScaDetection);
+  } else if (detectionType === ScanType.Secrets) {
+    detection = _enrichSecretDetectionForRender(detection as SecretDetection);
   }
 
   return detection;
@@ -38,7 +39,7 @@ const _enrichScaDetectionForRender = (detection: ScaDetection): ScaDetection => 
   if (detection.detection_details.alert) {
     const markdownConverter = new Converter();
     detection.detection_details.alert.description =
-      markdownConverter.makeHtml(detection.detection_details.alert.description);
+        markdownConverter.makeHtml(detection.detection_details.alert.description);
 
     if (!detection.detection_details.alert.first_patched_version) {
       detection.detection_details.alert.first_patched_version = 'Not fixed';
@@ -48,68 +49,68 @@ const _enrichScaDetectionForRender = (detection: ScaDetection): ScaDetection => 
   return detection;
 };
 
+const _enrichSecretDetectionForRender = (detection: SecretDetection): SecretDetection => {
+  detection.message = detection.message.replace(
+      'within \'\' repository',
+      ''
+  );
+
+  if (detection.detection_details.custom_remediation_guidelines) {
+    const markdownConverter = new Converter();
+    detection.detection_details.custom_remediation_guidelines =
+        markdownConverter.makeHtml(detection.detection_details.custom_remediation_guidelines);
+  }
+
+  return detection;
+};
+
 const _sendDetectionToRender = (detectionType: ScanType, detection: AnyDetection) => {
-  if (!_currentPanel) {
+  const panel = getPanel(detectionType);
+  if (!panel) {
     return;
   }
 
   _enrichDetectionForRender(detectionType, detection);
 
-  _currentPanel.webview.postMessage({detectionType: detectionType, detection: detection});
+  panel.webview.postMessage({detectionType: detectionType, detection: detection});
 };
 
-export const restoreWebViewPanel = (panel: vscode.WebviewPanel) => {
-  _currentPanel = panel;
-  _initPanel(_currentPanel);
-  _currentPanel.reveal(vscode.ViewColumn.Two);
-};
-
-const _createWebviewPanel = () => {
-  return vscode.window.createWebviewPanel(
-      'detectionDetails',
-      'Cycode: Detection Details',
-      vscode.ViewColumn.Two,
-      {
-        enableScripts: true,
-      }
-  );
-};
-
-const _initPanel = (panel: vscode.WebviewPanel, context?: vscode.ExtensionContext) => {
+const _initPanel = (detectionType: ScanType, panel: vscode.WebviewPanel, context?: vscode.ExtensionContext) => {
   let subscriptions;
   if (context) {
     subscriptions = context.subscriptions;
   }
 
-  panel.webview.html = content;
+  panel.webview.html = content(detectionType);
   panel.onDidDispose(
       () => {
-        _currentPanel = undefined;
+        removePanel(detectionType);
       },
       null,
       subscriptions
   );
 };
 
-export const createPanel = (
-    context?: vscode.ExtensionContext,
-    detectionType?: ScanType,
-    detection?: AnyDetection
+export const createAndInitPanel = (
+    context: vscode.ExtensionContext,
+    detectionType: ScanType,
+    detection: AnyDetection
 ) => {
-  if (_currentPanel) {
-    _currentPanel.reveal(vscode.ViewColumn.Two);
+  let panel = getPanel(detectionType);
+  if (panel) {
+    revealPanel(detectionType);
   } else {
-    _currentPanel = _createWebviewPanel();
-    _initPanel(_currentPanel, context);
+    panel = createPanel(detectionType);
+    _initPanel(detectionType, panel, context);
   }
 
   if (context) {
-    _sendSeverityIconsToRender(context);
+    _sendSeverityIconsToRender(detectionType, context);
   }
 
   if (detectionType && detection) {
     _sendDetectionToRender(detectionType, detection);
   }
 
-  return _currentPanel;
+  return panel;
 };
