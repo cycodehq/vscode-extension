@@ -72,8 +72,6 @@ const _sendDetectionToRender = (detectionType: ScanType, detection: AnyDetection
 
   _enrichDetectionForRender(detectionType, detection);
 
-  console.log(detectionType, detection);
-
   panel.webview.postMessage({detectionType: detectionType, detection: detection});
 };
 
