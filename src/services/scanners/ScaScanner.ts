@@ -1,21 +1,27 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
-import {extensionOutput} from '../logging/extension-output';
-import {cliWrapper} from '../cli-wrapper/cli-wrapper';
-import statusBar from '../utils/status-bar';
+import {extensionOutput} from '../../logging/extension-output';
+import {cliWrapper} from '../../cli-wrapper/cli-wrapper';
+import statusBar from '../../utils/status-bar';
 import {
   StatusBarTexts,
   extensionId,
-} from '../utils/texts';
-import {finalizeScanState, DiagnosticCode, validateCliCommonErrors, validateCliCommonScanErrors} from './common';
-import {getWorkspaceState, setContext, updateWorkspaceState} from '../utils/context';
-import {ScaDetection} from '../types/detection';
-import {IConfig, ProgressBar, RunCliResult} from '../cli-wrapper/types';
-import TrayNotifications from '../utils/TrayNotifications';
-import {TreeView} from '../providers/tree-view/types';
-import {refreshTreeViewData} from '../providers/tree-view/utils';
-import {getPackageFileForLockFile, isSupportedLockFile, ScanType} from '../constants';
-import {VscodeStates} from '../utils/states';
+} from '../../utils/texts';
+import {
+  finalizeScanState,
+  DiagnosticCode,
+  validateCliCommonErrors,
+  validateCliCommonScanErrors,
+  updateDetectionState,
+} from '../common';
+import {getWorkspaceState, updateWorkspaceState} from '../../utils/context';
+import {ScaDetection} from '../../types/detection';
+import {IConfig, ProgressBar, RunCliResult} from '../../cli-wrapper/types';
+import TrayNotifications from '../../utils/TrayNotifications';
+import {TreeView} from '../../providers/tree-view/types';
+import {refreshTreeViewData} from '../../providers/tree-view/utils';
+import {getPackageFileForLockFile, isSupportedLockFile, ScanType} from '../../constants';
+import {VscodeStates} from '../../utils/states';
 
 interface ScaScanParams {
   pathToScan: string;
@@ -106,7 +112,7 @@ const _scaScan = async (
   }
 };
 
-export const detectionsToDiagnostics = async (
+const detectionsToDiagnostics = async (
     detections: ScaDetection[]
 ): Promise<Record<string, vscode.Diagnostic[]>> => {
   const result: Record<string, vscode.Diagnostic[]> = {};
@@ -159,8 +165,7 @@ const handleScanDetections = async (
     return;
   }
 
-  setContext(VscodeStates.HasDetections, hasDetections);
-  setContext(VscodeStates.TreeViewIsOpen, hasDetections);
+  updateDetectionState(ScanType.Sca, detections);
 
   const diagnostics = await detectionsToDiagnostics(result.detections);
 

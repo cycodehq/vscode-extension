@@ -61,6 +61,24 @@ const _SCA_CONFIGURATION_SCAN_LOCK_FILE_TO_PACKAGE_FILE: { [key: string]: string
 const _SCA_CONFIGURATION_SCAN_SUPPORTED_LOCK_FILES: ReadonlyArray<string> =
     Object.keys(_SCA_CONFIGURATION_SCAN_LOCK_FILE_TO_PACKAGE_FILE);
 
+// keep in lowercase.
+// source: https://github.com/cycodehq/cycode-cli/blob/ec8333707ab2590518fd0f36454c8636ccbf1061/cycode/cli/consts.py#L16
+const _INFRA_CONFIGURATION_SCAN_SUPPORTED_FILE_SUFFIXES: ReadonlyArray<string> = [
+  '.tf',
+  '.tf.json',
+  '.json',
+  '.yaml',
+  '.yml',
+  'dockerfile',
+];
+
+export const isSupportedIacFile = (fileName: string): boolean => {
+  const lowerCaseFileName = fileName.toLowerCase();
+  return _INFRA_CONFIGURATION_SCAN_SUPPORTED_FILE_SUFFIXES.some(
+      (fileSuffix) => lowerCaseFileName.endsWith(fileSuffix)
+  );
+};
+
 export const isSupportedPackageFile = (fileName: string): boolean => {
   const lowerCaseFileName = fileName.toLowerCase();
   return _SCA_CONFIGURATION_SCAN_SUPPORTED_FILES.some((fileSuffix) => lowerCaseFileName.endsWith(fileSuffix));
@@ -114,7 +132,7 @@ export const getScanTypeDisplayName = (scanType: string): string => {
 
 export const DIAGNOSTIC_CODE_SEPARATOR = '::';
 
-export const REQUIRED_CLI_VERSION = '1.9.1';
+export const REQUIRED_CLI_VERSION = '1.9.2';
 
 export const CLI_GITHUB = {
   OWNER: 'cycodehq',

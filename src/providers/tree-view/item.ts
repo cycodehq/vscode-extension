@@ -41,6 +41,11 @@ export class TreeViewItem extends vscode.TreeItem {
     this.vulnerability = options.vulnerability;
     // file tree item
     this.vulnerabilities = options.vulnerabilities;
+    if (options.vulnerabilities && options.fullFilePath) {
+      // used to enable file theme icon
+      this.iconPath = vscode.ThemeIcon.File;
+      this.resourceUri = vscode.Uri.file(options.fullFilePath);
+    }
 
     if (options.customIconPath) {
       this.iconPath = {

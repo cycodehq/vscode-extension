@@ -1,5 +1,5 @@
 import * as path from 'path';
-import {AnyDetection, Detection, ScaDetection} from '../../types/detection';
+import {AnyDetection, IacDetection, ScaDetection, SecretDetection} from '../../types/detection';
 import {FileScanResult} from './provider';
 import {SeverityFirstLetter, TreeView, TreeViewDisplayedData} from './types';
 import {ScanType, SEVERITY_PRIORITIES} from '../../constants';
@@ -8,6 +8,11 @@ interface RefreshTreeViewDataArgs {
   detections: AnyDetection[];
   treeView?: TreeView;
   scanType: ScanType;
+}
+
+interface ValueItem {
+  fullFilePath: string;
+  data: TreeViewDisplayedData;
 }
 
 type SeverityCounted = { [severity: string]: number };
@@ -26,13 +31,12 @@ export function refreshTreeViewData(
   const affectedFiles: FileScanResult[] = [];
   const detectionsMapped = mapDetectionsByFileName(detections, scanType);
   detectionsMapped.forEach((vulnerabilities, fullFilePath) => {
-    const fileName = path.basename(fullFilePath);
-    affectedFiles.push(new FileScanResult(fileName, fullFilePath, vulnerabilities));
+    affectedFiles.push(new FileScanResult(fullFilePath, fullFilePath, vulnerabilities));
   });
   provider.refresh(affectedFiles, scanType);
 }
 
-const _getSecretValueItem = (detection: Detection): { fullFilePath: string; data: TreeViewDisplayedData } => {
+const _getSecretValueItem = (detection: SecretDetection): ValueItem => {
   const {type, detection_details, severity} = detection;
   const {line, file_path, file_name} = detection_details;
 
@@ -49,7 +53,7 @@ const _getSecretValueItem = (detection: Detection): { fullFilePath: string; data
   return {fullFilePath: path.join(file_path, file_name), data: valueItem};
 };
 
-const _getScaValueItem = (detection: ScaDetection): { fullFilePath: string; data: TreeViewDisplayedData } => {
+const _getScaValueItem = (detection: ScaDetection): ValueItem => {
   const {message, detection_details, severity} = detection;
   const {package_name, package_version, vulnerability_description, line_in_file, file_name} = detection_details;
 
@@ -70,6 +74,21 @@ const _getScaValueItem = (detection: ScaDetection): { fullFilePath: string; data
   return {fullFilePath: file_name, data: valueItem};
 };
 
+const _getIacValueItem = (detection: IacDetection): ValueItem => {
+  const {message, detection_details, severity} = detection;
+  const {line_in_file, file_name} = detection_details;
+
+  const valueItem: TreeViewDisplayedData = {
+    title: `line ${line_in_file}: ${message}`,
+    severityFirstLetter: mapSeverityToFirstLetter(severity),
+    lineNumber: line_in_file,
+    detection: detection,
+    detectionType: ScanType.Iac,
+  };
+
+  return {fullFilePath: file_name, data: valueItem};
+};
+
 function mapDetectionsByFileName(
     detections: AnyDetection[],
     scanType: ScanType,
@@ -77,23 +96,25 @@ function mapDetectionsByFileName(
   const resultMap: Map<string, TreeViewDisplayedData[]> = new Map();
 
   detections.forEach((detection) => {
-    let valueItem;
+    let valueItem: ValueItem | undefined;
 
     if (scanType === ScanType.Secrets) {
-      valueItem = _getSecretValueItem(detection as Detection);
+      valueItem = _getSecretValueItem(detection as SecretDetection);
     } else if (scanType === ScanType.Sca) {
       valueItem = _getScaValueItem(detection as ScaDetection);
+    } else if (scanType === ScanType.Iac) {
+      valueItem = _getIacValueItem(detection as IacDetection);
     }
+    // TODO(MarshalX): Add support for SAST
 
     if (!valueItem) {
       return;
     }
 
-    const {fullFilePath, data} = valueItem;
-    if (resultMap.has(fullFilePath)) {
-      resultMap.get(fullFilePath)?.push(data);
+    if (resultMap.has(valueItem.fullFilePath)) {
+      resultMap.get(valueItem.fullFilePath)?.push(valueItem.data);
     } else {
-      resultMap.set(fullFilePath, [data]);
+      resultMap.set(valueItem.fullFilePath, [valueItem.data]);
     }
   });
 
