@@ -6,6 +6,7 @@ const _scanTypeToPanelMap: Map<ScanType, vscode.WebviewPanel> = new Map();
 const _scanTypeToPanelTitleMap = new Map([
   [ScanType.Sca, 'Cycode: Open Source Threat Detection Details'],
   [ScanType.Secrets, 'Cycode: Hardcoded Secret Detection Details'],
+  [ScanType.Iac, 'Cycode: Infrastructure as Code Detection Details'],
 ]);
 
 export const getPanel = (scanType: ScanType) => {

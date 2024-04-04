@@ -1,7 +1,8 @@
 import * as vscode from 'vscode';
+import * as path from 'path';
 import content from './content';
 import {Converter} from 'showdown';
-import {AnyDetection, ScaDetection, SecretDetection} from '../../types/detection';
+import {AnyDetection, IacDetection, ScaDetection, SecretDetection} from '../../types/detection';
 import {ScanType, SEVERITY_PRIORITIES_FIRST_LETTERS} from '../../constants';
 import {createPanel, getPanel, removePanel, revealPanel} from './panel-manager';
 
@@ -30,6 +31,8 @@ const _enrichDetectionForRender = (detectionType: ScanType, detection: AnyDetect
     detection = _enrichScaDetectionForRender(detection as ScaDetection);
   } else if (detectionType === ScanType.Secrets) {
     detection = _enrichSecretDetectionForRender(detection as SecretDetection);
+  } else if (detectionType === ScanType.Iac) {
+    detection = _enrichIacDetectionForRender(detection as IacDetection);
   }
 
   return detection;
@@ -51,9 +54,23 @@ const _enrichScaDetectionForRender = (detection: ScaDetection): ScaDetection => 
 
 const _enrichSecretDetectionForRender = (detection: SecretDetection): SecretDetection => {
   detection.message = detection.message.replace(
-      'within \'\' repository',
+      'within \'\' repository', // BE bug
       ''
   );
+
+  // TODO(MarshalX): add cycode remediation guidelines!
+
+  if (detection.detection_details.custom_remediation_guidelines) {
+    const markdownConverter = new Converter();
+    detection.detection_details.custom_remediation_guidelines =
+        markdownConverter.makeHtml(detection.detection_details.custom_remediation_guidelines);
+  }
+
+  return detection;
+};
+
+const _enrichIacDetectionForRender = (detection: IacDetection): IacDetection => {
+  detection.detection_details.file_name = path.basename(detection.detection_details.file_name);
 
   if (detection.detection_details.custom_remediation_guidelines) {
     const markdownConverter = new Converter();
