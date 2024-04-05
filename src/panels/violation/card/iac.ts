@@ -18,11 +18,11 @@ export default `
       <div class="details-item-value file">None</div>
     </div>
     <div class="details-item">
-      <div class="details-item-title">Secret SHA:</div>
-      <div class="details-item-value sha">None</div>
+      <div class="details-item-title">IaC Provider:</div>
+      <div class="details-item-value provider">None</div>
     </div>
   </section>
-  
+
   <section class="hr compact-first">
     <div class="section-header">Summary</div>
     <div class="summary-text">None</div>
@@ -31,6 +31,11 @@ export default `
   <section class="company-guidelines compact">
     <div class="section-header">Company Guidelines</div>
     <div class="company-guidelines-text">None</div>
+  </section>
+
+  <section class="cycode-guidelines compact">
+    <div class="section-header">Cycode Guidelines</div>
+    <div class="cycode-guidelines-text">None</div>
   </section>
 </section>
 `;

@@ -85,7 +85,7 @@
         },
         {
           "command": "cycode.openViolationPanelFromTreeItemContextMenu",
-          "when": "view == scan.treeView && (viewItem == SCA-file-vulnerability || viewItem == Secrets-file-vulnerability)"
+          "when": "view == scan.treeView && viewItem != SAST-file-vulnerability"
         }
       ]
     },

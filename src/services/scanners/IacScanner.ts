@@ -166,10 +166,6 @@ const detectionsToDiagnostics = async (
     message += `Rule ID: ${detection.detection_rule_id}\n`;
     message += `In file: ${detection.detection_details.file_name}\n`;
 
-    if (detection.detection_details.custom_remediation_guidelines) {
-      message += `\nCompany Guideline: ${detection.detection_details.custom_remediation_guidelines}`;
-    }
-
     const diagnostic = new vscode.Diagnostic(
         document.lineAt(detection_details.line_in_file - 1).range,
         message,
