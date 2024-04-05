@@ -58,8 +58,6 @@ const _enrichSecretDetectionForRender = (detection: SecretDetection): SecretDete
       ''
   );
 
-  // TODO(MarshalX): add cycode remediation guidelines!
-
   if (detection.detection_details.custom_remediation_guidelines) {
     const markdownConverter = new Converter();
     detection.detection_details.custom_remediation_guidelines =
@@ -72,8 +70,14 @@ const _enrichSecretDetectionForRender = (detection: SecretDetection): SecretDete
 const _enrichIacDetectionForRender = (detection: IacDetection): IacDetection => {
   detection.detection_details.file_name = path.basename(detection.detection_details.file_name);
 
+  const markdownConverter = new Converter();
+
+  if (detection.detection_details.remediation_guidelines) {
+    detection.detection_details.remediation_guidelines =
+        markdownConverter.makeHtml(detection.detection_details.remediation_guidelines);
+  }
+
   if (detection.detection_details.custom_remediation_guidelines) {
-    const markdownConverter = new Converter();
     detection.detection_details.custom_remediation_guidelines =
         markdownConverter.makeHtml(detection.detection_details.custom_remediation_guidelines);
   }

@@ -132,7 +132,7 @@ export const getScanTypeDisplayName = (scanType: string): string => {
 
 export const DIAGNOSTIC_CODE_SEPARATOR = '::';
 
-export const REQUIRED_CLI_VERSION = '1.9.2';
+export const REQUIRED_CLI_VERSION = '1.9.3';
 
 export const CLI_GITHUB = {
   OWNER: 'cycodehq',

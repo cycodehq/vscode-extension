@@ -14,6 +14,8 @@ export type SecretDetection = {
     file_name: string;
     file_extension: string;
     should_resolve_upon_branch_deletion: boolean;
+    description?: string;
+    remediation_guidelines?: string;
     custom_remediation_guidelines?: string;
   };
 };
@@ -61,6 +63,8 @@ export type IacDetection = {
     end_position: number;
     file_name: string;
     file_path: string;
+    description?: string;
+    remediation_guidelines?: string;
     custom_remediation_guidelines?: string;
   };
 };

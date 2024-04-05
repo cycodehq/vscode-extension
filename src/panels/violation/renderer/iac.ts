@@ -16,8 +16,7 @@ const renderDetection = detection => {
 
   ge('title').innerText = detection.message;
   ge('short-details').innerText = detection.severity;
-  // TODO(MarshalX): use another field for summary
-  ge('summary-text').innerText = detection.message;
+  ge('summary-text').innerText = detection.detection_details.description || detection.message;
 
   ge('rule').innerText = detection.detection_rule_id;
   ge('file').innerText = detection.detection_details.file_name;
@@ -28,10 +27,9 @@ const renderDetection = detection => {
     ge('company-guidelines-text').innerHTML = detection.detection_details.custom_remediation_guidelines;    
   }
 
-  // TODO(MarshalX): add cycode remediation guidelines!
-  if (detection.detection_details.custom_remediation_guidelines) {
+  if (detection.detection_details.remediation_guidelines) {
     showElement('cycode-guidelines');
-    ge('cycode-guidelines-text').innerHTML = detection.detection_details.custom_remediation_guidelines;    
+    ge('cycode-guidelines-text').innerHTML = detection.detection_details.remediation_guidelines;    
   }
 };
 </script>
