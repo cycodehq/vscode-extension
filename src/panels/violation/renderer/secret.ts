@@ -13,7 +13,7 @@ const renderDetection = detection => {
 
   ge('title').innerText = 'Hardcoded ' + detection.type + ' is used';
   ge('short-details').innerText = detection.severity;
-  ge('summary-text').innerText = detection.detection_details.description || detection.message;
+  ge('summary-text').innerHTML = detection.detection_details.description;
 
   ge('rule').innerText = detection.detection_rule_id;
   ge('file').innerText = detection.detection_details.file_name;

@@ -23,13 +23,13 @@ export default `
     </div>
   </section>
   
-  <section class="hr">
-    <h2>Summary</h2>
+  <section class="hr compact-first">
+    <div class="section-header">Summary</div>
     <div class="summary-text">None</div>
   </section>
 
-  <section class="company-guidelines">
-    <h2>Company Guidelines</h2>
+  <section class="company-guidelines compact">
+    <div class="section-header">Company Guidelines</div>
     <div class="company-guidelines-text">None</div>
   </section>
 </section>

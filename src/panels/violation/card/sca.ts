@@ -37,8 +37,8 @@ export default `
     </div>
   </section>
 
-  <section class="hr summary">
-    <h2>Summary</h2>
+  <section class="hr summary compact-first">
+    <div class="section-header">Summary</div>
     <div class="summary-text">None</div>
   </section>
 </section>
