@@ -7,6 +7,7 @@ const _scanTypeToPanelTitleMap = new Map([
   [ScanType.Sca, 'Cycode: Open Source Threat Detection Details'],
   [ScanType.Secrets, 'Cycode: Hardcoded Secret Detection Details'],
   [ScanType.Iac, 'Cycode: Infrastructure as Code Detection Details'],
+  [ScanType.Sast, 'Cycode: Code Security Detection Details'],
 ]);
 
 export const getPanel = (scanType: ScanType) => {

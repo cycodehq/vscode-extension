@@ -1,5 +1,5 @@
 import * as path from 'path';
-import {AnyDetection, IacDetection, ScaDetection, SecretDetection} from '../../types/detection';
+import {AnyDetection, IacDetection, SastDetection, ScaDetection, SecretDetection} from '../../types/detection';
 import {FileScanResult} from './provider';
 import {SeverityFirstLetter, TreeView, TreeViewDisplayedData} from './types';
 import {ScanType, SEVERITY_PRIORITIES} from '../../constants';
@@ -89,6 +89,21 @@ const _getIacValueItem = (detection: IacDetection): ValueItem => {
   return {fullFilePath: file_name, data: valueItem};
 };
 
+const _getSastValueItem = (detection: SastDetection): ValueItem => {
+  const {message, detection_details, severity} = detection;
+  const {line_in_file, file_path} = detection_details;
+
+  const valueItem: TreeViewDisplayedData = {
+    title: `line ${line_in_file}: ${message}`,
+    severityFirstLetter: mapSeverityToFirstLetter(severity),
+    lineNumber: line_in_file,
+    detection: detection,
+    detectionType: ScanType.Sast,
+  };
+
+  return {fullFilePath: file_path, data: valueItem};
+};
+
 function mapDetectionsByFileName(
     detections: AnyDetection[],
     scanType: ScanType,
@@ -104,8 +119,9 @@ function mapDetectionsByFileName(
       valueItem = _getScaValueItem(detection as ScaDetection);
     } else if (scanType === ScanType.Iac) {
       valueItem = _getIacValueItem(detection as IacDetection);
+    } else if (scanType == ScanType.Sast) {
+      valueItem = _getSastValueItem(detection as SastDetection);
     }
-    // TODO(MarshalX): Add support for SAST
 
     if (!valueItem) {
       return;

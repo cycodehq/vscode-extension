@@ -28,6 +28,7 @@ import {AnyDetection} from './types/detection';
 import {VscodeStates} from './utils/states';
 import {cycodeService} from './services/CycodeService';
 import {getAuthState} from './utils/auth/auth_common';
+import {sastScan} from './services/scanners/SastScanner';
 
 export async function activate(context: vscode.ExtensionContext) {
   extensionOutput.info('Cycode extension is now active');
@@ -319,6 +320,61 @@ function initCommands(
       }
   );
 
+  const sastScanCommand = vscode.commands.registerCommand(
+      VscodeCommands.SastScanCommandId,
+      () => {
+        // scan the current open document if opened
+
+        if (!vscode.window.activeTextEditor?.document ||
+            vscode.window?.activeTextEditor?.document?.uri.scheme === 'output'
+        ) {
+          TrayNotifications.showMustBeFocusedOnFile();
+
+          return;
+        }
+
+        if (validateConfig()) {
+          return;
+        }
+
+        sastScan(
+            {
+              config,
+              pathToScan: vscode.window.activeTextEditor.document.fileName,
+              workspaceFolderPath: vscode.workspace.workspaceFolders?.[0]?.uri.fsPath,
+              diagnosticCollection,
+              onDemand: true,
+            },
+            treeView
+        );
+      }
+  );
+
+  const sastScanForCurrentProjectCommand = vscode.commands.registerCommand(
+      VscodeCommands.SastScanForProjectCommandId,
+      () => {
+        if (validateConfig()) {
+          return;
+        }
+
+        const projectPath = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+        if (!projectPath) {
+          return;
+        }
+
+        sastScan(
+            {
+              config,
+              pathToScan: projectPath,
+              workspaceFolderPath: projectPath,
+              diagnosticCollection,
+              onDemand: true,
+            },
+            treeView
+        );
+      }
+  );
+
   const authCommand = vscode.commands.registerCommand(
       VscodeCommands.AuthCommandId,
       () => {
@@ -381,9 +437,7 @@ function initCommands(
   const openViolationPanel = vscode.commands.registerCommand(
       VscodeCommands.OpenViolationPanel,
       (detectionType: ScanType, detection: AnyDetection) => {
-        if (detectionType !== ScanType.Sast) {
-          createAndInitPanel(context, detectionType, detection);
-        }
+        createAndInitPanel(context, detectionType, detection);
       }
   );
 
@@ -452,6 +506,8 @@ function initCommands(
     scaScanCommand,
     iacScanCommand,
     iacScanForCurrentProjectCommand,
+    sastScanCommand,
+    sastScanForCurrentProjectCommand,
     authCommand,
     onTreeItemClickCommand,
     onOpenViolationInFileFromTreeItemContextMenuCommand,

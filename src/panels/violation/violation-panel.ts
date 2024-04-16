@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import content from './content';
 import {Converter} from 'showdown';
-import {AnyDetection, IacDetection, ScaDetection, SecretDetection} from '../../types/detection';
+import {AnyDetection, IacDetection, SastDetection, ScaDetection, SecretDetection} from '../../types/detection';
 import {ScanType, SEVERITY_PRIORITIES_FIRST_LETTERS} from '../../constants';
 import {createPanel, getPanel, removePanel, revealPanel} from './panel-manager';
 
@@ -39,6 +39,8 @@ const _enrichDetectionForRender = (detectionType: ScanType, detection: AnyDetect
     detection = _enrichSecretDetectionForRender(detection as SecretDetection);
   } else if (detectionType === ScanType.Iac) {
     detection = _enrichIacDetectionForRender(detection as IacDetection);
+  } else if (detectionType === ScanType.Sast) {
+    detection = _enrichSastDetectionForRender(detection as SastDetection);
   }
 
   return detection;
@@ -96,6 +98,14 @@ const _enrichIacDetectionForRender = (detection: IacDetection): IacDetection => 
     // wrap with P tag to make it consistent with other HTML sections
     detection.detection_details.description =
         _MARKDOWN_CONVERTER.makeHtml(detection.detection_details.description);
+  }
+
+  return detection;
+};
+
+const _enrichSastDetectionForRender = (detection: SastDetection): SastDetection => {
+  if (detection.message) {
+    detection.detection_details.description = _MARKDOWN_CONVERTER.makeHtml(detection.message);
   }
 
   return detection;

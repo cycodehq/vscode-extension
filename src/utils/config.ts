@@ -1,5 +1,11 @@
 import * as vscode from 'vscode';
-import {experimentalScaSyncFlowProperty, extensionId, publisherId, scanOnSaveProperty} from './texts';
+import {
+  experimentalSastSupportProperty,
+  experimentalScaSyncFlowProperty,
+  extensionId,
+  publisherId,
+  scanOnSaveProperty,
+} from './texts';
 import {showSettingsError} from './TrayNotifications';
 import {getDefaultCliPath} from '../constants';
 import * as fs from 'fs';
@@ -62,6 +68,12 @@ export const config = {
     const value = vscode.workspace
         .getConfiguration(extensionId)
         .get<boolean>(experimentalScaSyncFlowProperty);
+    return value === undefined ? false : value;
+  },
+  get experimentalSastSupport(): boolean {
+    const value = vscode.workspace
+        .getConfiguration(extensionId)
+        .get<boolean>(experimentalSastSupportProperty);
     return value === undefined ? false : value;
   },
 };

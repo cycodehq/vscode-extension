@@ -111,7 +111,8 @@ const updateHasDetectionState = (scanType: ScanType, value: boolean) => {
   const hasAnyDetections =
       VscodeStates.HasSecretDetections ||
       VscodeStates.HasScaDetections ||
-      VscodeStates.HasIacDetections;
+      VscodeStates.HasIacDetections ||
+      VscodeStates.HasSastDetections;
 
   setContext(VscodeStates.HasDetections, hasAnyDetections);
 };

@@ -69,4 +69,25 @@ export type IacDetection = {
   };
 };
 
-export type AnyDetection = SecretDetection | ScaDetection | IacDetection;
+export type SastDetection = {
+  type: string;
+  detection_rule_id: string;
+  detection_type_id: string;
+  message: string;
+  severity: string;
+  detection_details: {
+    external_scanner_id: string;
+    description: string; // doesn't come from CLI yet
+    line_in_file: number;
+    start_position: number;
+    end_position: number;
+    file_name: string;
+    file_path: string;
+    cwe: string[];
+    owasp: string[];
+    category: string;
+    languages: string[];
+  };
+};
+
+export type AnyDetection = SecretDetection | ScaDetection | IacDetection | SastDetection;

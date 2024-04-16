@@ -18,6 +18,7 @@ export enum CommandParameters {
   scanType = '--scan-type',
   scaScanType = 'sca',
   iacScanType = 'iac',
+  sastScanType = 'sast',
   Sync = '--sync',
   NoRestore = '--no-restore',
 }
