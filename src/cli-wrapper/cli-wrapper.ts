@@ -131,6 +131,37 @@ export const cliWrapper = {
       printToOutput: true,
     });
   },
+  getRunnableSastScanCommand: (params: {
+    config: IConfig;
+    path: string;
+    workspaceFolderPath?: string;
+  }): RunCliResult => {
+    const {config, workspaceFolderPath} = params;
+    const {cliPath, cliEnv} = config;
+
+    const commandParams: string[] = [];
+    config.additionalParams.forEach((param) => {
+      commandParams.push(param);
+    });
+
+    commandParams.push(generateUserAgentCommandParam(config));
+    commandParams.push(CommandParameters.OutputFormatJson);
+
+    commandParams.push(CliCommands.Scan);
+    commandParams.push(CommandParameters.scanType);
+    commandParams.push(CommandParameters.sastScanType);
+
+    commandParams.push(CliCommands.Path);
+    commandParams.push(`"${params.path}"`);
+
+    return getRunnableCliCommand({
+      cliPath,
+      workspaceFolderPath,
+      commandParams,
+      cliEnv,
+      printToOutput: true,
+    });
+  },
   getRunnableAuthCommand: (params: {
     config: IConfig;
     workspaceFolderPath?: string;

@@ -4,6 +4,7 @@ export const extensionName = 'Cycode';
 export const scanOnSaveProperty = 'scanOnSave';
 
 export const experimentalScaSyncFlowProperty = 'experimentalScaSyncFlow';
+export const experimentalSastSupportProperty = 'experimentalSastSupport';
 
 export enum StatusBarTexts {
   ScanButton = '$(cycode-logo) Scan with Cycode',

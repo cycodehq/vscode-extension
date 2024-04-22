@@ -4,6 +4,8 @@ export enum VscodeCommands {
   ScaScanCommandId = 'cycode.scaScan',
   IacScanCommandId = 'cycode.iacScan',
   IacScanForProjectCommandId = 'cycode.iacScanForProject',
+  SastScanCommandId = 'cycode.sastScan',
+  SastScanForProjectCommandId = 'cycode.sastScanForProject',
 
   AuthCommandId = 'cycode.auth',
   IgnoreCommandId = 'cycode.ignore',

@@ -68,12 +68,21 @@
           "group": "inline"
         },
         {
+          "command": "cycode.sastScanForProject",
+          "when": "viewItem == SAST && config.cycode.experimentalSastSupport",
+          "group": "inline"
+        },
+        {
           "command": "cycode.secretScanForProject",
           "when": "view == scan.treeView && viewItem == Secrets"
         },
         {
           "command": "cycode.iacScanForProject",
           "when": "view == scan.treeView && viewItem == IaC"
+        },
+        {
+          "command": "cycode.sastScanForProject",
+          "when": "view == scan.treeView && viewItem == SAST && config.cycode.experimentalSastSupport"
         },
         {
           "command": "cycode.scaScan",
@@ -85,7 +94,7 @@
         },
         {
           "command": "cycode.openViolationPanelFromTreeItemContextMenu",
-          "when": "view == scan.treeView && viewItem != SAST-file-vulnerability"
+          "when": "view == scan.treeView && viewItem =~ /-file-vulnerability$/"
         }
       ]
     },
@@ -95,7 +104,7 @@
       "properties": {
         "cycode.cliAutoManaged": {
           "type": "boolean",
-          "default": "true",
+          "default": true,
           "description": "Enable executable auto-management.",
           "markdownDescription": "Enable executable auto-management."
         },
@@ -107,7 +116,7 @@
         },
         "cycode.scanOnSave": {
           "type": "boolean",
-          "default": "true",
+          "default": true,
           "description": "Scan your files for secrets upon save. If auto-scan disabled you can still trigger scans manually from the command palette. Open the command palette with `Ctrl+Shift+P` and search for `Cycode: Scan for hardcoded secrets`.",
           "markdownDescription": "Perform a scan on save"
         },
@@ -128,8 +137,13 @@
         },
         "cycode.experimentalScaSyncFlow": {
           "type": "boolean",
-          "default": "true",
+          "default": true,
           "description": "Enable experimental SCA sync flow"
+        },
+        "cycode.experimentalSastSupport": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable experimental SAST support"
         }
       }
     },
@@ -142,6 +156,11 @@
       {
         "command": "cycode.iacScanForProject",
         "title": "Cycode: Scan for Infrastructure As Code",
+        "icon": "$(testing-run-icon)"
+      },
+      {
+        "command": "cycode.sastScanForProject",
+        "title": "Cycode: Scan for Cycode Security",
         "icon": "$(testing-run-icon)"
       },
       {

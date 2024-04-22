@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import {TreeViewItem} from './item';
 import {ScanType, ScanTypeDisplayName} from '../../constants';
+import {config} from '../../utils/config';
 
 const _PATH_TO_RESOURCES = path.join(__filename, '..', '..', 'resources');
 const PATH_TO_SCAN_TYPE_ICONS = path.join(_PATH_TO_RESOURCES, 'scan-type');
@@ -42,13 +43,12 @@ const getScaSectionItem = (description: string): TreeViewItem => new TreeViewIte
   description,
 });
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const getSastSectionItem = (_: string): TreeViewItem => new TreeViewItem({
+const getSastSectionItem = (description: string): TreeViewItem => new TreeViewItem({
   title: ScanTypeDisplayName.Sast,
   collapsibleState: vscode.TreeItemCollapsibleState.Collapsed,
   scanSectionType: ScanType.Sast,
   customIconPath: getScanTypeIconPath(ScanType.Sast),
-  description: '(coming soon)', // use fun arg when implemented
+  description: config.experimentalSastSupport ? description : '(coming soon)',
 });
 
 const getIacSectionItem = (description: string): TreeViewItem => new TreeViewItem({

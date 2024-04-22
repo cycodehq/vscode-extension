@@ -2,6 +2,7 @@ import {ScanType} from '../../constants';
 import scaRenderer from './renderer/sca';
 import secretRenderer from './renderer/secret';
 import iacRenderer from './renderer/iac';
+import sastRenderer from './renderer/sast';
 
 export default (detectionType: ScanType) => `
 <script>
@@ -30,6 +31,7 @@ export default (detectionType: ScanType) => `
     ${detectionType === ScanType.Sca ? scaRenderer : ''}
     ${detectionType === ScanType.Secrets ? secretRenderer : ''}
     ${detectionType === ScanType.Iac ? iacRenderer : ''}
+    ${detectionType === ScanType.Sast ? sastRenderer : ''}
 <script>
     if (detection) {
         renderDetection(detection);

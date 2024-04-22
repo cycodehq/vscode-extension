@@ -4,6 +4,7 @@ export enum ExecuteCommandMessages {
   SecretScan = 'runSecretScanCommand',
   ScaScan = 'runScaScanCommand',
   IacScan = 'runIacScanCommand',
+  SastScan = 'runSastScanCommand',
 
   OpenCycodeSettings = 'runOpenCycodeSettingsCommand',
 }

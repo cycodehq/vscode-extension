@@ -36,6 +36,8 @@ export default `
       <button id="scan-vulnerabilities-button">Scan for hardcoded secrets</button>
       <br />
       <button id="scan-package-vulnerabilities-button">Scan for package vulnerabilities</button>
+      <br id="scan-sast-br" />
+      <button id="scan-sast-button">Scan for Code Security</button>
       <br />
       <button id="scan-iac-button">Scan for Infrastructure As Code</button>
 
@@ -59,30 +61,38 @@ export default `
       document
         .getElementById('scan-vulnerabilities-button')
         .addEventListener('click', () => {
-          // Send a message to the extension code when the button is clicked
           vscode.postMessage({ command: 'runSecretScanCommand' });
         });
       
       document
         .getElementById('scan-package-vulnerabilities-button')
         .addEventListener('click', () => {
-          // Send a message to the extension code when the button is clicked
           vscode.postMessage({ command: 'runScaScanCommand' });
         });
-      
+
+      document
+        .getElementById('scan-sast-button')
+        .addEventListener('click', () => {
+          vscode.postMessage({ command: 'runSastScanCommand' });
+        });
+
       document
         .getElementById('scan-iac-button')
         .addEventListener('click', () => {
-          // Send a message to the extension code when the button is clicked
           vscode.postMessage({ command: 'runIacScanCommand' });
         });
 
       document
         .getElementById('open-cycode-settings')
         .addEventListener('click', () => {
-          // Send a message to the extension code when the button is clicked
           vscode.postMessage({ command: 'runOpenCycodeSettingsCommand' });
         });
+
+      window.addEventListener('message', event => {
+        const display = event.data.isSastSupported ? 'block' : 'none';
+        document.getElementById('scan-sast-br').style.display = display;
+        document.getElementById('scan-sast-button').style.display = display;
+      });
     </script>
   </body>
 </html>

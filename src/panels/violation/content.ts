@@ -2,6 +2,7 @@ import style from './style';
 import scaCard from './card/sca';
 import secretCard from './card/secret';
 import iacCard from './card/iac';
+import sastCard from './card/sast';
 import js from './js';
 import {ScanType} from '../../constants';
 
@@ -19,6 +20,7 @@ export default (detectionType: ScanType) => `
     ${detectionType == ScanType.Sca ? scaCard : ''}
     ${detectionType == ScanType.Secrets ? secretCard : ''}
     ${detectionType == ScanType.Iac ? iacCard : ''}
+    ${detectionType == ScanType.Sast ? sastCard : ''}
 
     ${js(detectionType)}
 </body>
