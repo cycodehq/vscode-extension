@@ -24,7 +24,7 @@ export class CycodeActions implements vscode.CodeActionProvider {
       codeActions.push(...this.createCodeActions(diagnosticCode, diagnostics, document, range));
     }
 
-    return codeActions;
+    return this.getUniqueCodeActions(codeActions);
   }
 
   private createCodeActions(
@@ -46,5 +46,30 @@ export class CycodeActions implements vscode.CodeActionProvider {
       default:
         return [];
     }
+  }
+
+  private getUniqueCodeActions(actions: vscode.CodeAction[]): vscode.CodeAction[] {
+    /*
+    * The idea behind this function is to remove duplicate code actions using display name as a key.
+    * The aggregation of diagnostics by code is not enough for "ignore path" action.
+    * One range could have multiple diagnostics with different codes, *ignore path* action is the same for all of them.
+    *
+    * We don't have this problem in Intellij Plugin because, I assume, they have this deduplication logic in place.
+    *
+    * Note: display name must be unique for each action, for example, "Ignore rule: UUID"
+    */
+    const codeActions: vscode.CodeAction[] = [];
+    const visitedActions = new Set<string>();
+
+    for (const action of actions) {
+      if (visitedActions.has(action.title)) {
+        continue;
+      }
+
+      visitedActions.add(action.title);
+      codeActions.push(action);
+    }
+
+    return codeActions;
   }
 }
