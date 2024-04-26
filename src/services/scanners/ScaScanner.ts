@@ -128,7 +128,6 @@ const detectionsToDiagnostics = async (
     if (detection_details.alert?.first_patched_version) {
       message += `First patched version: ${detection_details.alert?.first_patched_version}\n`;
     }
-    message += `Rule ID: ${detection.detection_rule_id}`;
 
     if (isSupportedLockFile(file_name)) {
       const packageFileName = getPackageFileForLockFile(path.basename(file_name));

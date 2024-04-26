@@ -163,7 +163,6 @@ const detectionsToDiagnostics = async (
     let message = `Severity: ${detection.severity}\n`;
     message += `Description: ${detection.message}\n`;
     message += `IaC Provider: ${detection.detection_details.infra_provider}\n`;
-    message += `Rule ID: ${detection.detection_rule_id}\n`;
     message += `In file: ${detection.detection_details.file_name}\n`;
 
     const diagnostic = new vscode.Diagnostic(

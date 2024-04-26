@@ -10,10 +10,6 @@ export default `
 
   <section class="hr details">
     <div class="details-item">
-      <div class="details-item-title">Rule ID:</div>
-      <div class="details-item-value rule">None</div>
-    </div>
-    <div class="details-item">
       <div class="details-item-title">In file:</div>
       <div class="details-item-value file">None</div>
     </div>
@@ -21,8 +17,12 @@ export default `
       <div class="details-item-title">Secret SHA:</div>
       <div class="details-item-value sha">None</div>
     </div>
+    <div class="details-item">
+      <div class="details-item-title">Rule ID:</div>
+      <div class="details-item-value rule">None</div>
+    </div>
   </section>
-  
+
   <section class="hr compact-first">
     <div class="section-header">Summary</div>
     <div class="summary-text">None</div>

@@ -10,16 +10,16 @@ export default `
 
   <section class="hr details">
     <div class="details-item">
-      <div class="details-item-title">Rule ID:</div>
-      <div class="details-item-value rule">None</div>
-    </div>
-    <div class="details-item">
       <div class="details-item-title">In file:</div>
       <div class="details-item-value file">None</div>
     </div>
     <div class="details-item">
       <div class="details-item-title">IaC Provider:</div>
       <div class="details-item-value provider">None</div>
+    </div>
+    <div class="details-item">
+      <div class="details-item-title">Rule ID:</div>
+      <div class="details-item-value rule">None</div>
     </div>
   </section>
 
