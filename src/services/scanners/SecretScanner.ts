@@ -153,7 +153,6 @@ const detectionsToDiagnostics = async (
         'within \'\' repository',
         ''
     )}\n`;
-    message += `Rule ID: ${detection.detection_rule_id}\n`;
     message += `In file: ${detection.detection_details.file_name}\n`;
     message += `Secret SHA: ${detection.detection_details.sha512}`;
 

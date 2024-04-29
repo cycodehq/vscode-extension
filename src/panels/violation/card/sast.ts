@@ -10,10 +10,6 @@ export default `
 
   <section class="hr details">
     <div class="details-item">
-      <div class="details-item-title">Rule ID:</div>
-      <div class="details-item-value rule">None</div>
-    </div>
-    <div class="details-item">
       <div class="details-item-title">In file:</div>
       <div class="details-item-value file">None</div>
     </div>
@@ -26,8 +22,12 @@ export default `
       <div class="details-item-value language">None</div>
     </div>
     <div class="details-item">
-      <div class="details-item-title">SAST Engine:</div>
+      <div class="details-item-title">Security Tool:</div>
       <div class="details-item-value engine">None</div>
+    </div>
+    <div class="details-item">
+      <div class="details-item-title">Rule ID:</div>
+      <div class="details-item-value rule">None</div>
     </div>
   </section>
 
