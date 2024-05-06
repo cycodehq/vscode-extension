@@ -3,6 +3,7 @@ import {AnyDetection, IacDetection, SastDetection, ScaDetection, SecretDetection
 import {FileScanResult} from './provider';
 import {SeverityFirstLetter, TreeView, TreeViewDisplayedData} from './types';
 import {ScanType, SEVERITY_PRIORITIES} from '../../constants';
+import {cliService} from '../../services/CliService';
 
 interface RefreshTreeViewDataArgs {
   detections: AnyDetection[];
@@ -27,11 +28,14 @@ export function refreshTreeViewData(
     return;
   }
 
+  const projectRoot = cliService.getProjectRootDirectory();
+
   const {provider} = treeView;
   const affectedFiles: FileScanResult[] = [];
   const detectionsMapped = mapDetectionsByFileName(detections, scanType);
   detectionsMapped.forEach((vulnerabilities, fullFilePath) => {
-    affectedFiles.push(new FileScanResult(fullFilePath, fullFilePath, vulnerabilities));
+    const projectRelativePath = path.relative(projectRoot, fullFilePath);
+    affectedFiles.push(new FileScanResult(projectRelativePath, fullFilePath, vulnerabilities));
   });
   provider.refresh(affectedFiles, scanType);
 }
