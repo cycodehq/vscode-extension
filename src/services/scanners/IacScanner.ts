@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import * as path from 'path';
 import {extensionOutput} from '../../logging/extension-output';
 import {cliWrapper} from '../../cli-wrapper/cli-wrapper';
 import statusBar from '../../utils/status-bar';
@@ -162,8 +163,11 @@ const detectionsToDiagnostics = async (
 
     let message = `Severity: ${detection.severity}\n`;
     message += `Description: ${detection.message}\n`;
+
     message += `IaC Provider: ${detection.detection_details.infra_provider}\n`;
-    message += `In file: ${detection.detection_details.file_name}\n`;
+
+    const fileName = path.basename(detection.detection_details.file_name);
+    message += `In file: ${fileName}\n`;
 
     const diagnostic = new vscode.Diagnostic(
         document.lineAt(detection_details.line_in_file - 1).range,
