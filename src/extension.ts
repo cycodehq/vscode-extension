@@ -41,14 +41,6 @@ export async function activate(context: vscode.ExtensionContext) {
   const diagnosticCollection =
       vscode.languages.createDiagnosticCollection(extensionName);
 
-  // FIXME(MarshalX): works well on vscode open,
-  //  but doesn't work when open another detection without closing the restored panel
-  //  don't forget to register in context.subscriptions when will be fixed
-  //  register "onWebviewPanel:detectionDetails" in activationEvents
-  // const detectionDetainsPanel = vscode.window.registerWebviewPanelSerializer(
-  //   'detectionDetails', new DetectionDetailsSerializer()
-  // );
-
   const isAuthed = extensionContext.getGlobalState(VscodeStates.IsAuthorized);
   extensionContext.setContext(VscodeStates.IsAuthorized, !!isAuthed);
 

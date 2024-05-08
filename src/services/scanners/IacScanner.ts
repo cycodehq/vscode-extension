@@ -19,6 +19,7 @@ import {refreshTreeViewData} from '../../providers/tree-view/utils';
 import {TreeView} from '../../providers/tree-view/types';
 import {ScanType} from '../../constants';
 import {VscodeStates} from '../../utils/states';
+import {calculateUniqueDetectionId, scanResultsService} from '../ScanResultsService';
 
 interface IacScanParams {
   pathToScan: string;
@@ -176,7 +177,7 @@ const detectionsToDiagnostics = async (
     );
 
     diagnostic.source = extensionId;
-    diagnostic.code = new DiagnosticCode(ScanType.Iac, detection.detection_rule_id).toString();
+    diagnostic.code = new DiagnosticCode(ScanType.Iac, calculateUniqueDetectionId(detection)).toString();
 
     result[documentPath] = result[documentPath] || [];
     result[documentPath].push(diagnostic);
@@ -203,6 +204,8 @@ const handleScanDetections = async (
     updateWorkspaceState(VscodeStates.NotificationIsOpen, true);
     TrayNotifications.showProblemsDetection(detections.length, ScanType.Iac);
   }
+
+  scanResultsService.saveDetections(ScanType.Iac, detections);
 
   refreshTreeViewData({
     detections,

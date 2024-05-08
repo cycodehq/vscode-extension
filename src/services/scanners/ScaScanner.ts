@@ -3,16 +3,13 @@ import * as vscode from 'vscode';
 import {extensionOutput} from '../../logging/extension-output';
 import {cliWrapper} from '../../cli-wrapper/cli-wrapper';
 import statusBar from '../../utils/status-bar';
+import {extensionId, StatusBarTexts} from '../../utils/texts';
 import {
-  StatusBarTexts,
-  extensionId,
-} from '../../utils/texts';
-import {
-  finalizeScanState,
   DiagnosticCode,
+  finalizeScanState,
+  updateDetectionState,
   validateCliCommonErrors,
   validateCliCommonScanErrors,
-  updateDetectionState,
 } from '../common';
 import {getWorkspaceState, updateWorkspaceState} from '../../utils/context';
 import {ScaDetection} from '../../types/detection';
@@ -22,6 +19,7 @@ import {TreeView} from '../../providers/tree-view/types';
 import {refreshTreeViewData} from '../../providers/tree-view/utils';
 import {getPackageFileForLockFile, isSupportedLockFile, ScanType} from '../../constants';
 import {VscodeStates} from '../../utils/states';
+import {calculateUniqueDetectionId, scanResultsService} from '../ScanResultsService';
 
 interface ScaScanParams {
   pathToScan: string;
@@ -143,7 +141,7 @@ const detectionsToDiagnostics = async (
     );
 
     diagnostic.source = extensionId;
-    diagnostic.code = new DiagnosticCode(ScanType.Sca, detection.detection_rule_id).toString();
+    diagnostic.code = new DiagnosticCode(ScanType.Sca, calculateUniqueDetectionId(detection)).toString();
 
     result[file_name] = result[file_name] || [];
     result[file_name].push(diagnostic);
@@ -178,6 +176,8 @@ const handleScanDetections = async (
     updateWorkspaceState(VscodeStates.NotificationIsOpen, true);
     TrayNotifications.showProblemsDetection(result.detections.length, ScanType.Sca);
   }
+
+  scanResultsService.saveDetections(ScanType.Sca, detections);
 
   refreshTreeViewData({
     detections,

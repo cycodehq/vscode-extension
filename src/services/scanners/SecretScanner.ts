@@ -5,11 +5,11 @@ import {cliWrapper} from '../../cli-wrapper/cli-wrapper';
 import statusBar from '../../utils/status-bar';
 import {extensionId, StatusBarTexts, TrayNotificationTexts} from '../../utils/texts';
 import {
-  finalizeScanState,
   DiagnosticCode,
+  finalizeScanState,
+  updateDetectionState,
   validateCliCommonErrors,
   validateCliCommonScanErrors,
-  updateDetectionState,
 } from '../common';
 import {getWorkspaceState, updateWorkspaceState} from '../../utils/context';
 import {SecretDetection} from '../../types/detection';
@@ -19,6 +19,7 @@ import {refreshTreeViewData} from '../../providers/tree-view/utils';
 import {TreeView} from '../../providers/tree-view/types';
 import {ScanType} from '../../constants';
 import {VscodeStates} from '../../utils/states';
+import {calculateUniqueDetectionId, scanResultsService} from '../ScanResultsService';
 
 interface SecretScanParams {
   pathToScan: string;
@@ -141,7 +142,7 @@ const detectionsToDiagnostics = async (
     );
     const endPosition = document?.positionAt(
         detection.detection_details.start_position +
-      detection.detection_details.length
+        detection.detection_details.length
     );
 
     if (!startPosition || !endPosition) {
@@ -163,7 +164,7 @@ const detectionsToDiagnostics = async (
     );
 
     diagnostic.source = extensionId;
-    diagnostic.code = new DiagnosticCode(ScanType.Secrets, detection.detection_rule_id).toString();
+    diagnostic.code = new DiagnosticCode(ScanType.Secrets, calculateUniqueDetectionId(detection)).toString();
 
     result[documentPath] = result[documentPath] || [];
     result[documentPath].push(diagnostic);
@@ -194,6 +195,8 @@ const handleScanDetections = async (
     updateWorkspaceState(VscodeStates.NotificationIsOpen, true);
     TrayNotifications.showProblemsDetection(result.detections.length, ScanType.Secrets);
   }
+
+  scanResultsService.saveDetections(ScanType.Secrets, detections);
 
   refreshTreeViewData({
     detections,
