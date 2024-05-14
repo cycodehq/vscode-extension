@@ -3,7 +3,7 @@ import {DiagnosticCode} from '../../services/common';
 import {VscodeCommands} from '../../utils/commands';
 import {CommandParameters} from '../../cli-wrapper/constants';
 import {IgnoreCommandConfig} from '../../types/commands';
-import {createIgnorePathAction, createIgnoreRuleAction} from './commonActions';
+import {createIgnorePathAction, createIgnoreRuleAction, createOpenViolationCardAction} from './commonActions';
 import {ScanType} from '../../constants';
 
 const createIgnoreValueAction = (
@@ -41,6 +41,7 @@ export const createCommandCodeActions = (
     diagnosticCode: DiagnosticCode,
 ): vscode.CodeAction[] => {
   return [
+    createOpenViolationCardAction(diagnostics, diagnosticCode),
     createIgnoreValueAction(diagnostics, range, document),
     createIgnoreRuleAction(diagnostics, diagnosticCode, document),
     createIgnorePathAction(diagnostics, diagnosticCode, document),

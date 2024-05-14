@@ -3,23 +3,27 @@ import {DiagnosticCode} from '../../services/common';
 import {VscodeCommands} from '../../utils/commands';
 import {CommandParameters} from '../../cli-wrapper/constants';
 import {IgnoreCommandConfig} from '../../types/commands';
+import {scanResultsService} from '../../services/ScanResultsService';
 
 export const createIgnoreRuleAction = (
     diagnostics: vscode.Diagnostic[], diagnosticCode: DiagnosticCode, document: vscode.TextDocument
 ): vscode.CodeAction => {
+  const detection = scanResultsService.getDetectionById(diagnosticCode.uniqueDetectionId);
+  const ruleId = detection?.detection_rule_id;
+
   const ignoreRuleAction = new vscode.CodeAction(
-      `ignore rule ${diagnosticCode.ruleId}`,
+      `ignore rule ${ruleId}`,
       vscode.CodeActionKind.QuickFix
   );
   ignoreRuleAction.command = {
     command: VscodeCommands.IgnoreCommandId,
-    title: `Ignore rule ID: ${diagnosticCode.ruleId}`,
+    title: `Ignore rule ID: ${ruleId}`,
     tooltip: 'This will always ignore this rule type',
     arguments: [
       {
         scanType: diagnosticCode.scanType,
         ignoreBy: CommandParameters.ByRule,
-        param: diagnosticCode.ruleId,
+        param: ruleId,
         document: document,
       } as IgnoreCommandConfig,
     ],
@@ -54,5 +58,34 @@ export const createIgnorePathAction = (
   ignorePathAction.isPreferred = false;
 
   return ignorePathAction;
+};
+
+export const createOpenViolationCardAction = (
+    diagnostics: vscode.Diagnostic[], diagnosticCode: DiagnosticCode
+): vscode.CodeAction => {
+  const detection = scanResultsService.getDetectionById(diagnosticCode.uniqueDetectionId);
+
+  let message = detection?.message;
+  if (message && message.length > 50) {
+    message = message.slice(0, 50) + '...';
+  }
+
+  const openViolationCardAction = new vscode.CodeAction(
+      `open violation card for ${message}`,
+      vscode.CodeActionKind.QuickFix
+  );
+  openViolationCardAction.command = {
+    command: VscodeCommands.OpenViolationPanel,
+    title: `Open Violation Card: ${message}`,
+    tooltip: 'This will open violation card for this detection',
+    arguments: [
+      diagnosticCode.scanType,
+      detection,
+    ],
+  };
+  openViolationCardAction.diagnostics = diagnostics;
+  openViolationCardAction.isPreferred = true;
+
+  return openViolationCardAction;
 };
 

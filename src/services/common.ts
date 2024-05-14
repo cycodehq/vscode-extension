@@ -88,15 +88,15 @@ export const finalizeScanState = (state: VscodeStates, success: boolean, progres
 
 export class DiagnosticCode {
   scanType: string;
-  ruleId: string;
+  uniqueDetectionId: string;
 
-  constructor(scanType: ScanType, ruleId: string) {
+  constructor(scanType: ScanType, uniqueDetectionId: string) {
     this.scanType = scanType;
-    this.ruleId = ruleId;
+    this.uniqueDetectionId = uniqueDetectionId;
   }
 
   toString(): string {
-    return `${this.scanType}${DIAGNOSTIC_CODE_SEPARATOR}${this.ruleId}`;
+    return `${this.scanType}${DIAGNOSTIC_CODE_SEPARATOR}${this.uniqueDetectionId}`;
   }
 
   static fromString(diagnosticCode: string): DiagnosticCode {
