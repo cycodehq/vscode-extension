@@ -94,11 +94,11 @@ const _getIacValueItem = (detection: IacDetection): ValueItem => {
 };
 
 const _getSastValueItem = (detection: SastDetection): ValueItem => {
-  const {message, detection_details, severity} = detection;
+  const {detection_details, severity} = detection;
   const {line_in_file, file_path} = detection_details;
 
   const valueItem: TreeViewDisplayedData = {
-    title: `line ${line_in_file}: ${message}`,
+    title: `line ${line_in_file}: ${detection_details.policy_display_name}`,
     severityFirstLetter: mapSeverityToFirstLetter(severity),
     lineNumber: line_in_file,
     detection: detection,

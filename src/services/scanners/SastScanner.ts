@@ -82,9 +82,6 @@ const normalizeSastDetections = (result: { detections?: SastDetection[] }): Sast
     if (!detection_details.file_path.startsWith('/')) {
       detection_details.file_path = '/' + detection_details.file_path;
     }
-
-    detection_details.description = detection.message;
-    detection.message = detection.message.slice(0, 50) + '...';
   }
 
   return result.detections;
@@ -158,7 +155,7 @@ const detectionsToDiagnostics = async (
     const document = await vscode.workspace.openTextDocument(documentUri);
 
     let message = `Severity: ${detection.severity}\n`;
-    message += `Description: ${detection.message}\n`;
+    message += `Rule: ${detection.detection_details.policy_display_name}\n`;
     message += `In file: ${detection.detection_details.file_name}\n`;
 
     const diagnostic = new vscode.Diagnostic(

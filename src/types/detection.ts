@@ -17,6 +17,7 @@ export type SecretDetection = {
     description?: string;
     remediation_guidelines?: string;
     custom_remediation_guidelines?: string;
+    policy_display_name: string;
   };
 };
 
@@ -45,6 +46,10 @@ export type ScaDetection = {
       vulnerable_requirements: string;
       first_patched_version: string;
     };
+    description?: string;
+    remediation_guidelines?: string;
+    custom_remediation_guidelines?: string;
+    policy_display_name: string;
   };
 };
 
@@ -66,6 +71,7 @@ export type IacDetection = {
     description?: string;
     remediation_guidelines?: string;
     custom_remediation_guidelines?: string;
+    policy_display_name: string;
   };
 };
 
@@ -77,7 +83,6 @@ export type SastDetection = {
   severity: string;
   detection_details: {
     external_scanner_id: string;
-    description: string; // doesn't come from CLI yet
     line_in_file: number;
     start_position: number;
     end_position: number;
@@ -87,6 +92,10 @@ export type SastDetection = {
     owasp: string[];
     category: string;
     languages: string[];
+    description?: string;
+    remediation_guidelines?: string;
+    custom_remediation_guidelines?: string;
+    policy_display_name: string;
   };
 };
 

@@ -104,7 +104,7 @@ const _enrichIacDetectionForRender = (detection: IacDetection): IacDetection => 
 };
 
 const _enrichSastDetectionForRender = (detection: SastDetection): SastDetection => {
-  if (detection.message) {
+  if (detection.detection_details.description) {
     detection.detection_details.description =
         _MARKDOWN_CONVERTER.makeHtml(detection.detection_details.description);
   }
