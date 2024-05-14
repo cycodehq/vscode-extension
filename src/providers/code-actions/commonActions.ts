@@ -65,13 +65,18 @@ export const createOpenViolationCardAction = (
 ): vscode.CodeAction => {
   const detection = scanResultsService.getDetectionById(diagnosticCode.uniqueDetectionId);
 
+  let message = detection?.message;
+  if (message && message.length > 50) {
+    message = message.slice(0, 50) + '...';
+  }
+
   const openViolationCardAction = new vscode.CodeAction(
-      `open violation card for ${detection?.message}`,
+      `open violation card for ${message}`,
       vscode.CodeActionKind.QuickFix
   );
   openViolationCardAction.command = {
     command: VscodeCommands.OpenViolationPanel,
-    title: `Open Violation Card: ${detection?.message}`,
+    title: `Open Violation Card: ${message}`,
     tooltip: 'This will open violation card for this detection',
     arguments: [
       diagnosticCode.scanType,
