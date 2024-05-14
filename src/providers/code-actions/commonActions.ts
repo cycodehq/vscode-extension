@@ -65,11 +65,11 @@ export const createOpenViolationCardAction = (
 ): vscode.CodeAction => {
   const detection = scanResultsService.getDetectionById(diagnosticCode.uniqueDetectionId);
 
-  const ignorePathAction = new vscode.CodeAction(
+  const openViolationCardAction = new vscode.CodeAction(
       `open violation card for ${detection?.message}`,
       vscode.CodeActionKind.QuickFix
   );
-  ignorePathAction.command = {
+  openViolationCardAction.command = {
     command: VscodeCommands.OpenViolationPanel,
     title: `Open Violation Card: ${detection?.message}`,
     tooltip: 'This will open violation card for this detection',
@@ -78,9 +78,9 @@ export const createOpenViolationCardAction = (
       detection,
     ],
   };
-  ignorePathAction.diagnostics = diagnostics;
-  ignorePathAction.isPreferred = true;
+  openViolationCardAction.diagnostics = diagnostics;
+  openViolationCardAction.isPreferred = true;
 
-  return ignorePathAction;
+  return openViolationCardAction;
 };
 
