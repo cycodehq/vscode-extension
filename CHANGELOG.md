@@ -1,5 +1,14 @@
 # Change Log
 
+## [v1.7.0]
+
+- Add experimental SAST support
+- Add code actions to open violation card
+- Add policy display name as the title of SAST detections
+- Improve UX of violation cards by clarifying fields
+- Improve UX of tree view by using relative paths
+- Fix "quick fix" duplications
+
 ## [v1.6.0]
 
 - Add Infrastructure as Code (IaC) support
@@ -49,6 +58,8 @@
 ## [v1.0.0]
 
 The first stable release with the support of Secrets, SCA, TreeView, Violation Card, and more.
+
+[v1.7.0]: https://github.com/cycodehq/vscode-extension/releases/tag/v1.7.0
 
 [v1.6.0]: https://github.com/cycodehq/vscode-extension/releases/tag/v1.6.0
 
