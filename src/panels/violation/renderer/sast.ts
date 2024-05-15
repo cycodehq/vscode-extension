@@ -10,7 +10,7 @@ const renderDetection = detection => {
   const severityFirstLetter = detection.severity[0].toUpperCase();
   ge('severity-icon').src = severityIcons[severityFirstLetter];
 
-  ge('title').innerText = detection.message;
+  ge('title').innerText = detection.detection_details.policy_display_name;
 
   const cwes = detection.detection_details.cwe.join(', ');
   if (cwes) {

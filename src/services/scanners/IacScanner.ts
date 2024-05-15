@@ -163,7 +163,7 @@ const detectionsToDiagnostics = async (
     const document = await vscode.workspace.openTextDocument(documentUri);
 
     let message = `Severity: ${detection.severity}\n`;
-    message += `Description: ${detection.message}\n`;
+    message += `Rule: ${detection.message}\n`;
 
     message += `IaC Provider: ${detection.detection_details.infra_provider}\n`;
 

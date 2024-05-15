@@ -66,6 +66,10 @@ export const createOpenViolationCardAction = (
   const detection = scanResultsService.getDetectionById(diagnosticCode.uniqueDetectionId);
 
   let message = detection?.message;
+  if (detection?.type === 'SAST') {
+    message = detection?.detection_details.policy_display_name;
+  }
+
   if (message && message.length > 50) {
     message = message.slice(0, 50) + '...';
   }
