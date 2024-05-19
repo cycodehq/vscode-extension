@@ -24,7 +24,7 @@ const createIgnoreValueAction = (
         scanType: ScanType.Secrets,
         ignoreBy: CommandParameters.ByValue,
         param: value,
-        document: document,
+        filePath: document.fileName,
       } as IgnoreCommandConfig,
     ],
   };

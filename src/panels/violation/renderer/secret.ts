@@ -8,6 +8,10 @@ const _resetDomState = () => {
 const renderDetection = detection => {
   _resetDomState();
 
+  ge('ignore-btn').onclick = () => {
+    vscode.postMessage({ command: 'ignoreSecretByValue', uniqueDetectionId });
+  };
+
   const severityFirstLetter = detection.severity[0].toUpperCase();
   ge('severity-icon').src = severityIcons[severityFirstLetter];
 

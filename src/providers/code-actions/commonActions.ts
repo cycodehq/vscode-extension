@@ -24,7 +24,7 @@ export const createIgnoreRuleAction = (
         scanType: diagnosticCode.scanType,
         ignoreBy: CommandParameters.ByRule,
         param: ruleId,
-        document: document,
+        filePath: document.fileName,
       } as IgnoreCommandConfig,
     ],
   };
@@ -50,7 +50,7 @@ export const createIgnorePathAction = (
         scanType: diagnosticCode.scanType,
         ignoreBy: CommandParameters.ByPath,
         param: document.uri.fsPath,
-        document: document,
+        filePath: document.fileName,
       } as IgnoreCommandConfig,
     ],
   };

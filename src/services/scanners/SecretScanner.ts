@@ -127,27 +127,44 @@ export async function _secretScan(
   }
 }
 
+interface SecretDetectionIdeData {
+  documentPath: string;
+  document: vscode.TextDocument;
+  range: vscode.Range;
+  value: string;
+}
+
+export const getSecretDetectionIdeData = async (detection: SecretDetection): Promise<SecretDetectionIdeData> => {
+  const documentPath = path.join(detection.detection_details.file_path, detection.detection_details.file_name);
+  const documentUri = vscode.Uri.file(documentPath);
+  const document = await vscode.workspace.openTextDocument(documentUri);
+
+  const startPosition = document?.positionAt(
+      detection.detection_details.start_position
+  );
+  const endPosition = document?.positionAt(
+      detection.detection_details.start_position +
+      detection.detection_details.length
+  );
+  const range = new vscode.Range(startPosition, endPosition);
+
+  const value = document.getText(range);
+
+  return {
+    documentPath,
+    document,
+    range,
+    value,
+  };
+};
+
 const detectionsToDiagnostics = async (
     detections: SecretDetection[],
 ): Promise<Record<string, vscode.Diagnostic[]>> => {
   const result: Record<string, vscode.Diagnostic[]> = {};
 
   for (const detection of detections) {
-    const documentPath = path.join(detection.detection_details.file_path, detection.detection_details.file_name);
-    const documentUri = vscode.Uri.file(documentPath);
-    const document = await vscode.workspace.openTextDocument(documentUri);
-
-    const startPosition = document?.positionAt(
-        detection.detection_details.start_position
-    );
-    const endPosition = document?.positionAt(
-        detection.detection_details.start_position +
-        detection.detection_details.length
-    );
-
-    if (!startPosition || !endPosition) {
-      continue;
-    }
+    const ideData = await getSecretDetectionIdeData(detection);
 
     let message = `Severity: ${detection.severity}\n`;
     message += `${detection.type}: ${detection.message.replace(
@@ -158,7 +175,7 @@ const detectionsToDiagnostics = async (
     message += `Secret SHA: ${detection.detection_details.sha512}`;
 
     const diagnostic = new vscode.Diagnostic(
-        new vscode.Range(startPosition, endPosition),
+        ideData.range,
         message,
         vscode.DiagnosticSeverity.Error
     );
@@ -166,8 +183,8 @@ const detectionsToDiagnostics = async (
     diagnostic.source = extensionId;
     diagnostic.code = new DiagnosticCode(ScanType.Secrets, calculateUniqueDetectionId(detection)).toString();
 
-    result[documentPath] = result[documentPath] || [];
-    result[documentPath].push(diagnostic);
+    result[ideData.documentPath] = result[ideData.documentPath] || [];
+    result[ideData.documentPath].push(diagnostic);
   }
 
   return result;
