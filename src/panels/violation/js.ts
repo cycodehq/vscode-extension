@@ -28,6 +28,32 @@ export default (detectionType: ScanType) => `
           element.className = element.className.replace(' hidden', '');
       }
     };
+
+    const getCweCveLink = cweCve => {
+      if (!cweCve || typeof cweCve !== 'string') {
+        return undefined;
+      }
+
+      if (cweCve.startsWith('GHSA')) {
+        return 'https://github.com/advisories/' + cweCve;
+      } else if (cweCve.startsWith('CWE')) {
+          const cweNumber = parseInt(cweCve.split('-')[1]);
+        return 'https://cwe.mitre.org/data/definitions/' + cweNumber;
+      } else if (cweCve.startsWith('CVE')) {
+        return 'https://cve.mitre.org/cgi-bin/cvename.cgi?name=' + cweCve;
+      } else {
+          return undefined;
+      }
+    };
+
+    const renderCweCveLink = cweCve => {
+      const link = getCweCveLink(cweCve);
+      if (link) {
+        return \`<a href="\${link}" target="_blank" rel="noopener noreferrer">\${cweCve}</a>\`;
+      } else {
+        return cweCve;
+      }
+    };
 </script>
     ${detectionType === ScanType.Sca ? scaRenderer : ''}
     ${detectionType === ScanType.Secrets ? secretRenderer : ''}

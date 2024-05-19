@@ -12,9 +12,10 @@ const renderDetection = detection => {
 
   ge('title').innerText = detection.detection_details.policy_display_name;
 
-  const cwes = detection.detection_details.cwe.join(', ');
+  const renderedCwes = detection.detection_details.cwe.map(cwe => renderCweCveLink(cwe));
+  const cwes = renderedCwes.join(', ');
   if (cwes) {
-    ge('short-details').innerText = [detection.severity, cwes].join(' | ');    
+    ge('short-details').innerHTML = [detection.severity, cwes].join(' | ');    
   } else {
     ge('short-details').innerText = detection.severity;
   }
