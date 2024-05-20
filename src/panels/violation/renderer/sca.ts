@@ -24,13 +24,13 @@ const renderDetection = detection => {
     // if package vulnerability
     ge('title').innerText = detection.detection_details.alert.summary;
     
-    const cwe = detection.detection_details.vulnerability_id;
+    const cwe = renderCweCveLink(detection.detection_details.vulnerability_id);
     const severity = detection.severity;
-    ge('short-details').innerText = severity + ' | ' + cwe;
-    
+    ge('short-details').innerHTML = severity + ' | ' + cwe;
+
     showElement('first-patched-version');
     ge('first-patched-version-value').innerText = detection.detection_details.alert.first_patched_version;
-    
+
     showElement('summary');
     ge('summary-text').innerHTML = detection.detection_details.alert.description;
   } else {

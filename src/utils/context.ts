@@ -14,10 +14,17 @@ export const initContext = (context: vscode.ExtensionContext) => {
 };
 
 export const resetState = () => {
+  updateWorkspaceState(VscodeStates.AuthenticatingInProgress, false);
+
   updateWorkspaceState(VscodeStates.SecretsScanInProgress, false);
   updateWorkspaceState(VscodeStates.ScaScanInProgress, false);
+  updateWorkspaceState(VscodeStates.IacScanInProgress, false);
+  updateWorkspaceState(VscodeStates.SastScanInProgress, false);
+
   updateWorkspaceState(VscodeStates.NotificationIsOpen, false);
   updateWorkspaceState(VscodeStates.NotificationWasShown, false);
+
+  updateWorkspaceState(VscodeStates.HasDetections, false);
 };
 
 export const getContext = (): vscode.ExtensionContext => {
