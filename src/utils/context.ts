@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import {VscodeStates} from './states';
+import {scanResultsService} from '../services/ScanResultsService';
 
 // A module to handle vscode extension context global state
 let extensionContext: vscode.ExtensionContext | null = null;
@@ -25,6 +26,8 @@ export const resetState = () => {
   updateWorkspaceState(VscodeStates.NotificationWasShown, false);
 
   updateWorkspaceState(VscodeStates.HasDetections, false);
+
+  scanResultsService.dropAllScanResults();
 };
 
 export const getContext = (): vscode.ExtensionContext => {

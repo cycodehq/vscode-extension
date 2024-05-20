@@ -87,7 +87,7 @@ export const finalizeScanState = (state: VscodeStates, success: boolean, progres
 };
 
 export class DiagnosticCode {
-  scanType: string;
+  scanType: ScanType;
   uniqueDetectionId: string;
 
   constructor(scanType: ScanType, uniqueDetectionId: string) {
