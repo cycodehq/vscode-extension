@@ -39,6 +39,7 @@ export const revealPanel = (scanType: ScanType) => {
 export const removePanel = (scanType: ScanType) => {
   const panel = getPanel(scanType);
   if (panel) {
+    panel.dispose();
     _scanTypeToPanelMap.delete(scanType);
   }
 };

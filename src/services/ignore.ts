@@ -15,7 +15,6 @@ import {iacScan} from './scanners/IacScanner';
 
 export async function ignore(
     params: {
-      documentInitiatedIgnore: vscode.TextDocument;
       workspaceFolderPath?: string;
       config: IConfig;
       ignoreConfig: IgnoreCommandConfig;
@@ -35,9 +34,12 @@ export async function ignore(
       throw new Error(stderr);
     }
 
+    const filePath = params.ignoreConfig.filePath;
+    const fileUri = vscode.Uri.file(filePath);
+
     onIgnoreComplete();
     if (params.ignoreConfig.ignoreBy === CommandParameters.ByPath) {
-      params.diagnosticCollection.delete(params.documentInitiatedIgnore.uri);
+      params.diagnosticCollection.delete(fileUri);
       params.treeView.provider.excludeViolationsByPath(params.ignoreConfig.param);
       return;
     }
@@ -47,17 +49,17 @@ export async function ignore(
     // start rescan to visualize the applied "ignore" action
     // TODO(MarshalX): could be not only Secret scan type...
     const secretScanParams = {
-      pathToScan: params.documentInitiatedIgnore.fileName,
+      pathToScan: filePath,
       workspaceFolderPath: params.workspaceFolderPath,
       diagnosticCollection: params.diagnosticCollection,
       config: params.config,
     };
     secretScan(secretScanParams, params.treeView);
 
-    if (isSupportedIacFile(params.documentInitiatedIgnore.fileName)) {
+    if (isSupportedIacFile(filePath)) {
       const iacScanParams = {
         config: params.config,
-        pathToScan: params.documentInitiatedIgnore.fileName,
+        pathToScan: filePath,
         workspaceFolderPath: params.workspaceFolderPath,
         diagnosticCollection: params.diagnosticCollection,
       };

@@ -441,7 +441,6 @@ function initCommands(
         }
 
         await ignore({
-          documentInitiatedIgnore: ignoreConfig.document,
           config,
           workspaceFolderPath: vscode.workspace.workspaceFolders?.[0]?.uri.fsPath,
           ignoreConfig,

@@ -11,6 +11,7 @@ export default (detectionType: ScanType) => `
 
     let severityIcons = (prevState && prevState.severityIcons) || {};
     let detection = (prevState && prevState.detection) || undefined; 
+    let uniqueDetectionId = (prevState && prevState.uniqueDetectionId) || undefined; 
 
     const ge = className => document.getElementsByClassName(className)[0];
 
@@ -43,6 +44,10 @@ export default (detectionType: ScanType) => `
 
     const messageHandler = event => {
         const message = event.data;
+
+        if (message.uniqueDetectionId) {
+            uniqueDetectionId = message.uniqueDetectionId;
+        }
 
         if (message.severityIcons) {
             severityIcons = message.severityIcons;

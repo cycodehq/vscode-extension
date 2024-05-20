@@ -16,6 +16,25 @@ export default `
     line-height: 1.5;
   }
 
+  button {
+    color: var(--vscode-button-foreground);
+    background-color: var(--vscode-button-background);
+    align-items: center;
+    border: 1px solid var(--vscode-button-border,transparent);
+    border-radius: 2px;
+    box-sizing: border-box;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    line-height: 18px;
+    padding: 4px 10px;
+    text-align: center;
+  }
+
+  button:hover {
+      background-color: var(--vscode-button-background);
+  }
+
   .hidden {
     display: none;
   }
@@ -24,6 +43,12 @@ export default `
     display: block;
     font-size: 1.5em;
     font-weight: bold;
+  }
+  
+  .section-footer {
+    display: flex;
+    justify-content: flex-end;
+    padding: 10px;
   }
 
   .card {
