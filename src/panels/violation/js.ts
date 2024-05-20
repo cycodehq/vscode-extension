@@ -31,16 +31,16 @@ export default (detectionType: ScanType) => `
 
     const getCweCveLink = cweCve => {
       if (!cweCve || typeof cweCve !== 'string') {
-        return undefined;
+          return undefined;
       }
 
       if (cweCve.startsWith('GHSA')) {
-        return 'https://github.com/advisories/' + cweCve;
+          return 'https://github.com/advisories/' + cweCve;
       } else if (cweCve.startsWith('CWE')) {
           const cweNumber = parseInt(cweCve.split('-')[1]);
-        return 'https://cwe.mitre.org/data/definitions/' + cweNumber;
+          return 'https://cwe.mitre.org/data/definitions/' + cweNumber;
       } else if (cweCve.startsWith('CVE')) {
-        return 'https://cve.mitre.org/cgi-bin/cvename.cgi?name=' + cweCve;
+          return 'https://cve.mitre.org/cgi-bin/cvename.cgi?name=' + cweCve;
       } else {
           return undefined;
       }
@@ -49,9 +49,9 @@ export default (detectionType: ScanType) => `
     const renderCweCveLink = cweCve => {
       const link = getCweCveLink(cweCve);
       if (link) {
-        return \`<a href="\${link}" target="_blank" rel="noopener noreferrer">\${cweCve}</a>\`;
+          return \`<a href="\${link}" target="_blank" rel="noopener noreferrer">\${cweCve}</a>\`;
       } else {
-        return cweCve;
+          return cweCve;
       }
     };
 </script>
