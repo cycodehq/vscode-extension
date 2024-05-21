@@ -13,15 +13,15 @@ export class CycodeActions implements vscode.CodeActionProvider {
   ];
 
   provideCodeActions(
-      document: vscode.TextDocument,
-      range: vscode.Range | vscode.Selection,
+      _document: vscode.TextDocument,
+      _range: vscode.Range | vscode.Selection,
       context: vscode.CodeActionContext
   ): vscode.CodeAction[] {
     const aggregatedDiagnostics = aggregateDiagnosticsByCode(context.diagnostics);
 
     const codeActions: vscode.CodeAction[] = [];
     for (const [diagnosticCode, diagnostics] of aggregatedDiagnostics.entries()) {
-      codeActions.push(...this.createCodeActions(diagnosticCode, diagnostics, document, range));
+      codeActions.push(...this.createCodeActions(diagnosticCode, diagnostics));
     }
 
     return this.getUniqueCodeActions(codeActions);
@@ -30,19 +30,17 @@ export class CycodeActions implements vscode.CodeActionProvider {
   private createCodeActions(
       rawDiagnosticCode: string,
       diagnostics: vscode.Diagnostic[],
-      document: vscode.TextDocument,
-      range: vscode.Range | vscode.Selection,
   ) {
     const diagnosticCode = DiagnosticCode.fromString(rawDiagnosticCode);
     switch (diagnosticCode.scanType) {
       case ScanType.Secrets:
-        return createSecretCommandCodeActions(document, range, diagnostics, diagnosticCode);
+        return createSecretCommandCodeActions(diagnostics, diagnosticCode);
       case ScanType.Sca:
-        return createScaCommandCodeActions(document, diagnostics, diagnosticCode);
+        return createScaCommandCodeActions(diagnostics, diagnosticCode);
       case ScanType.Iac:
-        return createIacCommandCodeActions(document, diagnostics, diagnosticCode);
+        return createIacCommandCodeActions(diagnostics, diagnosticCode);
       case ScanType.Sast:
-        return createSastCommandCodeActions(document, diagnostics, diagnosticCode);
+        return createSastCommandCodeActions(diagnostics, diagnosticCode);
       default:
         return [];
     }

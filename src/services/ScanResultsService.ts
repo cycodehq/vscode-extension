@@ -1,8 +1,17 @@
 import * as crypto from 'crypto';
 import {getWorkspaceState, updateWorkspaceState} from '../utils/context';
 import {AnyDetection} from '../types/detection';
+import {ScanType} from '../constants';
 
 const _STORAGE_KEY_PREFIX = 'CS:';
+
+const getScanTypeKey = (scanType: ScanType): string => {
+  return `${_STORAGE_KEY_PREFIX}${scanType}`;
+};
+
+const getDetectionsKey = (): string => {
+  return `${_STORAGE_KEY_PREFIX}DETECTIONS`;
+};
 
 export const calculateUniqueDetectionId = (detection: AnyDetection): string => {
   const hash = crypto.createHash('sha256');
@@ -15,37 +24,55 @@ export const calculateUniqueDetectionId = (detection: AnyDetection): string => {
   return hexHash.slice(0, shortHashLength);
 };
 
-class ScanResultsService {
-  public getDetectionById(detectionId: string): AnyDetection | undefined {
-    const value = getWorkspaceState(detectionId);
-    if (!value) {
-      return undefined;
-    }
+interface ScanResult {
+  scanType: ScanType;
+  detection: AnyDetection;
+}
 
-    return getWorkspaceState(detectionId) as AnyDetection;
+type LocalStorage = Record<string, ScanResult>;
+
+class ScanResultsService {
+  public getDetectionById(detectionId: string): ScanResult | undefined {
+    const detections = getWorkspaceState(getDetectionsKey()) as LocalStorage;
+    return detections[detectionId] as ScanResult | undefined;
   }
 
-  public getDetections(scanType: string): AnyDetection[] {
-    const scanTypeKey = `${_STORAGE_KEY_PREFIX}${scanType}`;
+  public getDetections(scanType: ScanType): AnyDetection[] {
+    const scanTypeKey = getScanTypeKey(scanType);
     return getWorkspaceState(scanTypeKey) as AnyDetection[] || [];
   }
 
-  public saveDetections(scanType: string, detections: AnyDetection[]): void {
+  public saveDetections(scanType: ScanType, detections: AnyDetection[]): void {
     detections.forEach((detection) => {
       this.saveDetection(scanType, detection);
     });
   }
 
-  public saveDetection(scanType: string, detection: AnyDetection): void {
-    const scanTypeKey = `${_STORAGE_KEY_PREFIX}${scanType}`;
+  public saveDetection(scanType: ScanType, detection: AnyDetection): void {
+    const scanTypeKey = getScanTypeKey(scanType);
 
-    const detections = getWorkspaceState(scanTypeKey) as AnyDetection[] || [];
-    detections.push(detection);
+    const scanTypeDetections = getWorkspaceState(scanTypeKey) as AnyDetection[] || [];
+    scanTypeDetections.push(detection);
+    updateWorkspaceState(scanTypeKey, scanTypeDetections);
 
-    updateWorkspaceState(scanTypeKey, detections);
+    const detectionsKey = getDetectionsKey();
+    const detections = getWorkspaceState(detectionsKey) as LocalStorage;
 
     const uniqueDetectionKey = calculateUniqueDetectionId(detection);
-    updateWorkspaceState(uniqueDetectionKey, detection);
+    detections[uniqueDetectionKey] = {scanType, detection};
+
+    updateWorkspaceState(detectionsKey, detections);
+  }
+
+  public dropAllScanResults(): void {
+    // free memory, clean state
+    // typically called on launch to drop all previous scan results
+    const detectionsKey = getDetectionsKey();
+    updateWorkspaceState(detectionsKey, {});
+
+    for (const scanType of Object.values(ScanType)) {
+      updateWorkspaceState(getScanTypeKey(scanType), []);
+    }
   }
 }
 

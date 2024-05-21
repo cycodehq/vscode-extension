@@ -1,90 +1,89 @@
 import * as vscode from 'vscode';
 import {DiagnosticCode} from '../../services/common';
 import {VscodeCommands} from '../../utils/commands';
-import {CommandParameters} from '../../cli-wrapper/constants';
-import {IgnoreCommandConfig} from '../../types/commands';
 import {scanResultsService} from '../../services/ScanResultsService';
+import {AnyDetection, IacDetection, SastDetection, ScaDetection, SecretDetection} from '../../types/detection';
+import {ScanType} from '../../constants';
 
-export const createIgnoreRuleAction = (
-    diagnostics: vscode.Diagnostic[], diagnosticCode: DiagnosticCode, document: vscode.TextDocument
-): vscode.CodeAction => {
-  const detection = scanResultsService.getDetectionById(diagnosticCode.uniqueDetectionId);
-  const ruleId = detection?.detection_rule_id;
-
-  const ignoreRuleAction = new vscode.CodeAction(
-      `ignore rule ${ruleId}`,
-      vscode.CodeActionKind.QuickFix
-  );
-  ignoreRuleAction.command = {
-    command: VscodeCommands.IgnoreCommandId,
-    title: `Ignore rule ID: ${ruleId}`,
-    tooltip: 'This will always ignore this rule type',
-    arguments: [
-      {
-        scanType: diagnosticCode.scanType,
-        ignoreBy: CommandParameters.ByRule,
-        param: ruleId,
-        filePath: document.fileName,
-      } as IgnoreCommandConfig,
-    ],
-  };
-  ignoreRuleAction.diagnostics = diagnostics;
-  ignoreRuleAction.isPreferred = false;
-
-  return ignoreRuleAction;
+const _getOpenViolationCardActionSastTitle = (detection: SastDetection) => {
+  return detection?.detection_details.policy_display_name;
 };
 
-export const createIgnorePathAction = (
-    diagnostics: vscode.Diagnostic[], diagnosticCode: DiagnosticCode, document: vscode.TextDocument
-): vscode.CodeAction => {
-  const ignorePathAction = new vscode.CodeAction(
-      `ignore path ${document.uri.fsPath}`,
-      vscode.CodeActionKind.QuickFix
-  );
-  ignorePathAction.command = {
-    command: VscodeCommands.IgnoreCommandId,
-    title: `Ignore path: ${document.uri.fsPath}`,
-    tooltip: 'This will always ignore this path',
-    arguments: [
-      {
-        scanType: diagnosticCode.scanType,
-        ignoreBy: CommandParameters.ByPath,
-        param: document.uri.fsPath,
-        filePath: document.fileName,
-      } as IgnoreCommandConfig,
-    ],
-  };
-  ignorePathAction.diagnostics = diagnostics;
-  ignorePathAction.isPreferred = false;
+const _getOpenViolationCardActionIacTitle = (detection: IacDetection) => {
+  return detection?.message;
+};
 
-  return ignorePathAction;
+const _getOpenViolationCardActionScaTitle = (detection: ScaDetection) => {
+  let description = detection.detection_details.vulnerability_description;
+  if (!description) {
+    // if detection is about non-premise licence
+    description = detection.message;
+  }
+
+  return description;
+};
+
+const _getOpenViolationCardActionSecretTitle = (detection: SecretDetection) => {
+  return `a hardcoded ${detection.type} is used`;
+};
+
+const _getOpenViolationCardActionDetectionSpecificTitle = (
+    detection: AnyDetection, diagnosticCode: DiagnosticCode
+): string => {
+  switch (diagnosticCode.scanType) {
+    case ScanType.Sast:
+      return _getOpenViolationCardActionSastTitle(detection as SastDetection);
+    case ScanType.Secrets:
+      return _getOpenViolationCardActionSecretTitle(detection as SecretDetection);
+    case ScanType.Sca:
+      return _getOpenViolationCardActionScaTitle(detection as ScaDetection);
+    case ScanType.Iac:
+      return _getOpenViolationCardActionIacTitle(detection as IacDetection);
+    default:
+      return detection?.message;
+  }
+};
+
+const _getOpenViolationCardActionTitle = (
+    detection: AnyDetection, diagnosticCode: DiagnosticCode
+): string => {
+  let title = _getOpenViolationCardActionDetectionSpecificTitle(detection, diagnosticCode);
+
+  // cut too long messages
+  if (title && title.length > 50) {
+    title = title.slice(0, 50) + '...';
+  }
+
+  // Cut too long ID.
+  // The original unique ID is 2 ** 64 combinations (16 characters).
+  // We cut it to 6 characters to make it more readable.
+  // It gives as 2 ** 24 combinations that are still enough to be collision-free.
+  // Because it's super rare to have the same detections in the same file in the same text range.
+  const uniqueDetectionId = diagnosticCode.uniqueDetectionId.slice(0, 6);
+
+  return `Cycode: ${title} (${uniqueDetectionId})`;
 };
 
 export const createOpenViolationCardAction = (
     diagnostics: vscode.Diagnostic[], diagnosticCode: DiagnosticCode
 ): vscode.CodeAction => {
-  const detection = scanResultsService.getDetectionById(diagnosticCode.uniqueDetectionId);
-
-  let message = detection?.message;
-  if (detection?.type === 'SAST') {
-    message = detection?.detection_details.policy_display_name;
+  const scanResult = scanResultsService.getDetectionById(diagnosticCode.uniqueDetectionId);
+  if (!scanResult) {
+    throw new Error(`Detection with id ${diagnosticCode.uniqueDetectionId} not found`);
   }
 
-  if (message && message.length > 50) {
-    message = message.slice(0, 50) + '...';
-  }
+  const title = _getOpenViolationCardActionTitle(scanResult.detection, diagnosticCode);
 
   const openViolationCardAction = new vscode.CodeAction(
-      `open violation card for ${message}`,
-      vscode.CodeActionKind.QuickFix
+      title, vscode.CodeActionKind.QuickFix
   );
   openViolationCardAction.command = {
     command: VscodeCommands.OpenViolationPanel,
-    title: `Open Violation Card: ${message}`,
+    title: title,
     tooltip: 'This will open violation card for this detection',
     arguments: [
       diagnosticCode.scanType,
-      detection,
+      scanResult.detection,
     ],
   };
   openViolationCardAction.diagnostics = diagnostics;
@@ -92,4 +91,3 @@ export const createOpenViolationCardAction = (
 
   return openViolationCardAction;
 };
-

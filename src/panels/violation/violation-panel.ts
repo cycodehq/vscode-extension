@@ -55,12 +55,12 @@ const _onDidReceiveMessage = async (message: Record<string, string>) => {
     return;
   }
 
-  const detection = scanResultsService.getDetectionById(message.uniqueDetectionId);
-  if (!detection) {
+  const scanResult = scanResultsService.getDetectionById(message.uniqueDetectionId);
+  if (!scanResult) {
     return;
   }
 
-  const ideData = await getSecretDetectionIdeData(detection as SecretDetection);
+  const ideData = await getSecretDetectionIdeData(scanResult.detection as SecretDetection);
 
   vscode.commands.executeCommand(
       VscodeCommands.IgnoreCommandId,
