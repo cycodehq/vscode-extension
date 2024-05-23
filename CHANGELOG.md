@@ -1,5 +1,11 @@
 # Change Log
 
+## [v1.8.0]
+
+- Add "Ignore this violation" for violation card of secrets
+- Make CWE and CVE clickable on violation cards
+- Leave "Open violation card" as only one quick fix action
+
 ## [v1.7.0]
 
 - Add experimental SAST support
@@ -58,6 +64,8 @@
 ## [v1.0.0]
 
 The first stable release with the support of Secrets, SCA, TreeView, Violation Card, and more.
+
+[v1.8.0]: https://github.com/cycodehq/vscode-extension/releases/tag/v1.8.0
 
 [v1.7.0]: https://github.com/cycodehq/vscode-extension/releases/tag/v1.7.0
 

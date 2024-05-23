@@ -8,7 +8,7 @@
     "url": "https://github.com/cycodehq/vscode-extension"
   },
   "homepage": "https://cycode.com/",
-  "version": "1.7.0",
+  "version": "1.8.0",
   "publisher": "cycode",
   "engines": {
     "vscode": "^1.63.0"
