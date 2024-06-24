@@ -36,7 +36,7 @@ export default `
       <button id="scan-vulnerabilities-button">Scan for hardcoded secrets</button>
       <br />
       <button id="scan-package-vulnerabilities-button">Scan for package vulnerabilities</button>
-      <br id="scan-sast-br" />
+      <br />
       <button id="scan-sast-button">Scan for Code Security</button>
       <br />
       <button id="scan-iac-button">Scan for Infrastructure As Code</button>
@@ -87,12 +87,6 @@ export default `
         .addEventListener('click', () => {
           vscode.postMessage({ command: 'runOpenCycodeSettingsCommand' });
         });
-
-      window.addEventListener('message', event => {
-        const display = event.data.isSastSupported ? 'block' : 'none';
-        document.getElementById('scan-sast-br').style.display = display;
-        document.getElementById('scan-sast-button').style.display = display;
-      });
     </script>
   </body>
 </html>

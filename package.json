@@ -8,7 +8,7 @@
     "url": "https://github.com/cycodehq/vscode-extension"
   },
   "homepage": "https://cycode.com/",
-  "version": "1.8.0",
+  "version": "1.9.0",
   "publisher": "cycode",
   "engines": {
     "vscode": "^1.63.0"
@@ -69,7 +69,7 @@
         },
         {
           "command": "cycode.sastScanForProject",
-          "when": "viewItem == SAST && config.cycode.experimentalSastSupport",
+          "when": "viewItem == SAST",
           "group": "inline"
         },
         {
@@ -82,7 +82,7 @@
         },
         {
           "command": "cycode.sastScanForProject",
-          "when": "view == scan.treeView && viewItem == SAST && config.cycode.experimentalSastSupport"
+          "when": "view == scan.treeView && viewItem == SAST"
         },
         {
           "command": "cycode.scaScan",
@@ -139,11 +139,6 @@
           "type": "boolean",
           "default": true,
           "description": "Enable experimental SCA sync flow"
-        },
-        "cycode.experimentalSastSupport": {
-          "type": "boolean",
-          "default": false,
-          "description": "Enable experimental SAST support"
         }
       }
     },

@@ -1,9 +1,7 @@
-import * as vscode from 'vscode';
 import {ActionCommandMapping, CycodeView} from '../cycode-view';
 import {ExecuteCommandMessages} from '../utils';
 import {VscodeCommands} from '../../utils/commands';
 import content from './content';
-import {config} from '../../utils/config';
 
 
 export default class ScanView extends CycodeView {
@@ -33,10 +31,5 @@ export default class ScanView extends CycodeView {
       },
     ];
     super(content, actionCommandMapping);
-  }
-
-  public resolveWebviewView(webviewView: vscode.WebviewView): void {
-    super.resolveWebviewView(webviewView);
-    this._view?.webview.postMessage({isSastSupported: config.experimentalSastSupport});
   }
 }
