@@ -2,7 +2,6 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import {TreeViewItem} from './item';
 import {ScanType, ScanTypeDisplayName} from '../../constants';
-import {config} from '../../utils/config';
 
 const _PATH_TO_RESOURCES = path.join(__filename, '..', '..', 'resources');
 const PATH_TO_SCAN_TYPE_ICONS = path.join(_PATH_TO_RESOURCES, 'scan-type');
@@ -48,7 +47,7 @@ const getSastSectionItem = (description: string): TreeViewItem => new TreeViewIt
   collapsibleState: vscode.TreeItemCollapsibleState.Collapsed,
   scanSectionType: ScanType.Sast,
   customIconPath: getScanTypeIconPath(ScanType.Sast),
-  description: config.experimentalSastSupport ? description : '(coming soon)',
+  description: description,
 });
 
 const getIacSectionItem = (description: string): TreeViewItem => new TreeViewItem({

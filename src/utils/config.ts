@@ -1,6 +1,5 @@
 import * as vscode from 'vscode';
 import {
-  experimentalSastSupportProperty,
   experimentalScaSyncFlowProperty,
   extensionId,
   publisherId,
@@ -68,12 +67,6 @@ export const config = {
     const value = vscode.workspace
         .getConfiguration(extensionId)
         .get<boolean>(experimentalScaSyncFlowProperty);
-    return value === undefined ? false : value;
-  },
-  get experimentalSastSupport(): boolean {
-    const value = vscode.workspace
-        .getConfiguration(extensionId)
-        .get<boolean>(experimentalSastSupportProperty);
     return value === undefined ? false : value;
   },
 };

@@ -1,5 +1,9 @@
 # Change Log
 
+## [v1.9.0]
+
+- Add SAST support
+
 ## [v1.8.0]
 
 - Add "Ignore this violation" for violation card of secrets
@@ -64,6 +68,8 @@
 ## [v1.0.0]
 
 The first stable release with the support of Secrets, SCA, TreeView, Violation Card, and more.
+
+[v1.9.0]: https://github.com/cycodehq/vscode-extension/releases/tag/v1.9.0
 
 [v1.8.0]: https://github.com/cycodehq/vscode-extension/releases/tag/v1.8.0
 
