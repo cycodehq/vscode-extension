@@ -3,6 +3,7 @@ import extensionOutput from '../logging/extension-output';
 import * as path from 'path';
 import * as os from 'os';
 import * as fs from 'fs';
+import {captureException} from '../sentry';
 
 class DownloadService {
   shouldSaveFile(tempFilePath: string, checksum: string | undefined): boolean {
@@ -16,6 +17,7 @@ class DownloadService {
       const response = await fetch(url);
       return await response.text();
     } catch (error) {
+      captureException(error);
       extensionOutput.error(`Error while retrieving file content: ${error}`);
     }
 
@@ -65,6 +67,7 @@ class DownloadService {
         fs.renameSync(tempPath, localPath);
       }
     } catch (error) {
+      captureException(error);
       extensionOutput.error(`Error while downloading file: ${error}`);
     } finally {
       if (fs.existsSync(tempPath)) {

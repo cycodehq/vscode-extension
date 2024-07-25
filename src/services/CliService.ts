@@ -9,6 +9,7 @@ import {IConfig} from '../cli-wrapper/types';
 import {validateCliCommonErrors} from './common';
 import {onAuthFailure, updateAuthState} from '../utils/auth/auth_common';
 import {prettyPrintJson} from '../utils/text_formatting';
+import {captureException, setSentryUser} from '../sentry';
 
 class CliService {
   getProjectRootDirectory(): string {
@@ -72,9 +73,10 @@ class CliService {
             const authCheckResult = await cliWrapper
                 .getRunnableAuthCheckCommand(config)
                 .getResultPromise();
+
             const {
               stderr,
-              result: {result: isAuthenticated},
+              result: {result: isAuthenticated, data: sentryData},
             } = authCheckResult;
 
             if (validateCliCommonErrors(stderr)) {
@@ -85,12 +87,18 @@ class CliService {
               throw new Error('User is not authorized');
             }
 
+            if (sentryData) {
+              const {user_id, tenant_id} = sentryData;
+              setSentryUser(user_id, tenant_id);
+            }
+
             updateGlobalState(VscodeStates.CliInstalled, true);
             updateAuthState(true);
 
             const output = `Auth check completed successfully with an "authenticated" status`;
             extensionOutput.info(output);
           } catch (error) {
+            captureException(error);
             this.resetPluginCLiState();
 
             const errorMessage = `Auth check failed with the following error: ${error}`;

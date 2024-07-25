@@ -1,4 +1,5 @@
 import extensionOutput from '../logging/extension-output';
+import {captureException} from '../sentry';
 
 export interface GitHubReleaseAsset {
   name: string;
@@ -20,6 +21,7 @@ class GithubReleaseService {
       const response = await fetch(apiUrl);
       return await response.json() as GitHubRelease;
     } catch (error) {
+      captureException(error);
       extensionOutput.error('Error while getting GitHub release: ' + error);
       return undefined;
     }

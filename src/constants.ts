@@ -132,7 +132,7 @@ export const getScanTypeDisplayName = (scanType: string): string => {
 
 export const DIAGNOSTIC_CODE_SEPARATOR = '::';
 
-export const REQUIRED_CLI_VERSION = '1.10.1';
+export const REQUIRED_CLI_VERSION = '1.10.7';
 
 export const CLI_GITHUB = {
   OWNER: 'cycodehq',
@@ -158,3 +158,13 @@ export const getDefaultCliPath = (): string => {
 
   return path.join(getPluginPath(), 'cycode');
 };
+
+export const CYCODE_DOMAIN = 'cycode.com';
+export const DEFAULT_CYCODE_API_URL = `https://api.${CYCODE_DOMAIN}`;
+export const DEFAULT_CYCODE_APP_URL = `https://app.${CYCODE_DOMAIN}`;
+
+export const SENTRY_DSN = 'https://d9527c2348300201235516c0c33a5824@o1026942.ingest.us.sentry.io/4507543875813376';
+export const SENTRY_DEBUG = false;
+export const SENTRY_SAMPLE_RATE = 1.0;
+export const SENTRY_SEND_DEFAULT_PII = false;
+export const SENTRY_INCLUDE_LOCAL_VARIABLES = false;

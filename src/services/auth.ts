@@ -9,6 +9,7 @@ import {
   startAuthenticationProcess,
 } from '../utils/auth/auth_common';
 import {CommandParams} from '../types/commands';
+import {captureException} from '../sentry';
 
 export function auth(params: CommandParams) {
   vscode.window.withProgress(
@@ -34,6 +35,7 @@ export function auth(params: CommandParams) {
 
           handleAuthStatus(exitCode, result, stderr);
         } catch (error) {
+          captureException(error);
           extensionOutput.error('Error while creating scan: ' + error);
           onAuthFailure();
         }

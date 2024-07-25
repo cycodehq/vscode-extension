@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import * as crypto from 'crypto';
 import * as path from 'path';
 import extensionOutput from '../logging/extension-output';
+import {captureException} from '../sentry';
 
 const getFileShaHash = (filePath: string): string => {
   const fileBuffer = fs.readFileSync(filePath);
@@ -19,6 +20,7 @@ export const verifyFileChecksum = (filePath: string, checksum: string): boolean 
   try {
     return getFileShaHash(filePath).toLowerCase() === checksum.toLowerCase();
   } catch (error) {
+    captureException(error);
     extensionOutput.error(`Failed to verify file checksum ${error}`);
   }
 

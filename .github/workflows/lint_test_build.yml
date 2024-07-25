@@ -18,23 +18,31 @@ jobs:
             registry.yarnpkg.com
             marketplace.visualstudio.com
             update.code.visualstudio.com
+
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 18
+
       - name: Install dependencies
         run: npm install
+
       - name: Code Linting
         run: npm run lint
+
       - name: Run tests
         run: |
           sudo apt-get install xvfb
           export DISPLAY=:99.0
           Xvfb -ac :99 -screen 0 1920x1080x16 &
           npm run test
+
       - name: Build extension
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
         run: |
           npm install -g @vscode/vsce
           vsce package

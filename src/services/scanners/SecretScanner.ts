@@ -20,6 +20,7 @@ import {TreeView} from '../../providers/tree-view/types';
 import {ScanType} from '../../constants';
 import {VscodeStates} from '../../utils/states';
 import {calculateUniqueDetectionId, scanResultsService} from '../ScanResultsService';
+import {captureException} from '../../sentry';
 
 interface SecretScanParams {
   pathToScan: string;
@@ -115,6 +116,8 @@ export async function _secretScan(
 
     finalizeScanState(VscodeStates.SecretsScanInProgress, true, progress);
   } catch (error: any) {
+    captureException(error);
+
     finalizeScanState(VscodeStates.SecretsScanInProgress, false, progress);
 
     let notificationText: string = TrayNotificationTexts.ScanError;

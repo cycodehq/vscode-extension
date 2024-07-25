@@ -190,7 +190,7 @@ export const cliWrapper = {
     commandParams.push(CommandParameters.OutputFormatJson);
     commandParams.push(CliCommands.AuthCheck);
 
-    return getRunnableCliCommand({cliPath, cliEnv, commandParams});
+    return getRunnableCliCommand({cliPath, cliEnv, commandParams, printToOutput: true});
   },
   getRunnableIgnoreCommand: (params: {
     config: IConfig;

@@ -29,8 +29,11 @@ import {VscodeStates} from './utils/states';
 import {cycodeService} from './services/CycodeService';
 import {getAuthState} from './utils/auth/auth_common';
 import {sastScan} from './services/scanners/SastScanner';
+import {captureException, initSentry} from './sentry';
 
 export async function activate(context: vscode.ExtensionContext) {
+  initSentry();
+
   extensionOutput.info('Cycode extension is now active');
 
   extensionContext.initContext(context);
@@ -523,6 +526,7 @@ const initExtension = async (
       _runScaScanOnProjectOpen(diagnosticCollection, treeView);
     }
   } catch (error) {
+    captureException(error);
     extensionOutput.error(`Cycode CLI is not installed: ${error}`,);
     vscode.window.showErrorMessage('Cycode CLI is not installed or not available');
   }

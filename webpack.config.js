@@ -3,6 +3,7 @@
 "use strict";
 
 const path = require("path");
+const { sentryWebpackPlugin } = require("@sentry/webpack-plugin");
 
 //@ts-check
 /** @typedef {import('webpack').Configuration} WebpackConfig **/
@@ -40,7 +41,15 @@ const extensionConfig = {
       },
     ],
   },
-  devtool: "nosources-source-map",
+  devtool: "source-map",
+    plugins: [
+        sentryWebpackPlugin({
+            org: "cycode",
+            project: "vscode-extension",
+            telemetry: false,
+            authToken: process.env.SENTRY_AUTH_TOKEN,
+        }),
+    ],
   infrastructureLogging: {
     level: "log", // enables logging required for problem matchers
   },

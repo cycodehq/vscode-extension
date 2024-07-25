@@ -8,7 +8,7 @@
     "url": "https://github.com/cycodehq/vscode-extension"
   },
   "homepage": "https://cycode.com/",
-  "version": "1.9.0",
+  "version": "1.9.1",
   "publisher": "cycode",
   "engines": {
     "vscode": "^1.63.0"
@@ -244,7 +244,7 @@
     "vscode:prepublish": "yarn run package",
     "compile": "webpack",
     "watch": "webpack --watch",
-    "package": "webpack --mode production --devtool hidden-source-map",
+    "package": "webpack --mode production",
     "compile-tests": "tsc -p . --outDir out",
     "watch-tests": "tsc -p . -w --outDir out",
     "pretest": "yarn run compile-tests && yarn run compile && yarn run lint",
@@ -252,6 +252,7 @@
     "test": "node ./out/test/runTest.js"
   },
   "devDependencies": {
+    "@sentry/webpack-plugin": "^2.21.1",
     "@types/decompress": "^4.2.7",
     "@types/glob": "8.1.0",
     "@types/mocha": "10.0.1",
@@ -273,6 +274,7 @@
     "webpack-cli": "5.0.1"
   },
   "dependencies": {
+    "@sentry/node": "^8.20.0",
     "decompress": "^4.2.1",
     "semver": "7.5.4",
     "shelljs": "0.8.5",

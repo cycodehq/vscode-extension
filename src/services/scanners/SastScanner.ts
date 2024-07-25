@@ -19,6 +19,7 @@ import {TreeView} from '../../providers/tree-view/types';
 import {ScanType} from '../../constants';
 import {VscodeStates} from '../../utils/states';
 import {calculateUniqueDetectionId, scanResultsService} from '../ScanResultsService';
+import {captureException} from '../../sentry';
 
 interface SastScanParams {
   pathToScan: string;
@@ -130,6 +131,8 @@ export async function _sastScan(
 
     finalizeScanState(VscodeStates.SastScanInProgress, true, progress);
   } catch (error: any) {
+    captureException(error);
+
     finalizeScanState(VscodeStates.SastScanInProgress, false, progress);
 
     let notificationText: string = TrayNotificationTexts.ScanError;

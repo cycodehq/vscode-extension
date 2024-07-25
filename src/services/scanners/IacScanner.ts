@@ -20,6 +20,7 @@ import {TreeView} from '../../providers/tree-view/types';
 import {ScanType} from '../../constants';
 import {VscodeStates} from '../../utils/states';
 import {calculateUniqueDetectionId, scanResultsService} from '../ScanResultsService';
+import {captureException} from '../../sentry';
 
 interface IacScanParams {
   pathToScan: string;
@@ -138,6 +139,8 @@ export async function _iacScan(
 
     finalizeScanState(VscodeStates.IacScanInProgress, true, progress);
   } catch (error: any) {
+    captureException(error);
+
     finalizeScanState(VscodeStates.IacScanInProgress, false, progress);
 
     let notificationText: string = TrayNotificationTexts.ScanError;
