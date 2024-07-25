@@ -6,7 +6,7 @@ import {
   scanOnSaveProperty,
 } from './texts';
 import {showSettingsError} from './TrayNotifications';
-import {getDefaultCliPath} from '../constants';
+import {CYCODE_DOMAIN, DEFAULT_CYCODE_API_URL, DEFAULT_CYCODE_APP_URL, getDefaultCliPath} from '../constants';
 import * as fs from 'fs';
 
 export const config = {
@@ -23,13 +23,19 @@ export const config = {
     return value === undefined ? true : value; // enabled by default
   },
   get cliEnv(): { [key: string]: string } {
-    const CYCODE_API_URL = vscode.workspace
+    let CYCODE_API_URL = vscode.workspace
         .getConfiguration(extensionId)
-        .get('apiUrl') as string;
+        .get('apiUrl') as string | null;
+    if (!CYCODE_API_URL) {
+      CYCODE_API_URL = DEFAULT_CYCODE_API_URL;
+    }
 
-    const CYCODE_APP_URL = vscode.workspace
+    let CYCODE_APP_URL = vscode.workspace
         .getConfiguration(extensionId)
-        .get('appUrl') as string;
+        .get('appUrl') as string | null;
+    if (!CYCODE_APP_URL) {
+      CYCODE_APP_URL = DEFAULT_CYCODE_APP_URL;
+    }
 
     const env = {CYCODE_API_URL, CYCODE_APP_URL};
 
@@ -68,6 +74,9 @@ export const config = {
         .getConfiguration(extensionId)
         .get<boolean>(experimentalScaSyncFlowProperty);
     return value === undefined ? false : value;
+  },
+  get isOnPremiseInstallation(): boolean {
+    return !config.cliEnv.CYCODE_API_URL.endsWith(CYCODE_DOMAIN);
   },
 };
 

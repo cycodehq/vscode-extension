@@ -20,6 +20,7 @@ import {refreshTreeViewData} from '../../providers/tree-view/utils';
 import {getPackageFileForLockFile, isSupportedLockFile, ScanType} from '../../constants';
 import {VscodeStates} from '../../utils/states';
 import {calculateUniqueDetectionId, scanResultsService} from '../ScanResultsService';
+import {captureException} from '../../sentry';
 
 interface ScaScanParams {
   pathToScan: string;
@@ -104,6 +105,8 @@ const _scaScan = async (
 
     finalizeScanState(VscodeStates.ScaScanInProgress, true, progress);
   } catch (error) {
+    captureException(error);
+
     finalizeScanState(VscodeStates.ScaScanInProgress, false, progress);
 
     extensionOutput.error('Error while creating scan: ' + error);

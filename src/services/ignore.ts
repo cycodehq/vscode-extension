@@ -12,6 +12,7 @@ import {TreeView} from '../providers/tree-view/types';
 import {CommandParameters} from '../cli-wrapper/constants';
 import {isSupportedIacFile} from '../constants';
 import {iacScan} from './scanners/IacScanner';
+import {captureException} from '../sentry';
 
 export async function ignore(
     params: {
@@ -66,6 +67,7 @@ export async function ignore(
       iacScan(iacScanParams, params.treeView);
     }
   } catch (error) {
+    captureException(error);
     extensionOutput.error('Error while ignoring: ' + error);
     onIgnoreFailed();
   }
