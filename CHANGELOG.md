@@ -1,5 +1,9 @@
 # Change Log
 
+## [v1.9.2]
+
+- Fix CodeLens updating
+
 ## [v1.9.1]
 
 - Integrate Sentry
@@ -72,6 +76,8 @@
 ## [v1.0.0]
 
 The first stable release with the support of Secrets, SCA, TreeView, Violation Card, and more.
+
+[v1.9.2]: https://github.com/cycodehq/vscode-extension/releases/tag/v1.9.2
 
 [v1.9.1]: https://github.com/cycodehq/vscode-extension/releases/tag/v1.9.1
 
