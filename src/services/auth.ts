@@ -36,7 +36,7 @@ export function auth(params: CommandParams) {
           handleAuthStatus(exitCode, result, stderr);
         } catch (error) {
           captureException(error);
-          extensionOutput.error('Error while creating scan: ' + error);
+          extensionOutput.error('Error while authing: ' + error);
           onAuthFailure();
         }
       }

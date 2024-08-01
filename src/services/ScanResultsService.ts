@@ -39,7 +39,12 @@ class ScanResultsService {
 
   public getDetections(scanType: ScanType): AnyDetection[] {
     const scanTypeKey = getScanTypeKey(scanType);
-    return getWorkspaceState(scanTypeKey) as AnyDetection[] || [];
+    const detection = getWorkspaceState(scanTypeKey) as AnyDetection[] || [];
+    return [...detection]; // return a copy
+  }
+
+  public clearDetections(scanType: ScanType): void {
+    updateWorkspaceState(getScanTypeKey(scanType), []);
   }
 
   public saveDetections(scanType: ScanType, detections: AnyDetection[]): void {
@@ -48,12 +53,16 @@ class ScanResultsService {
     });
   }
 
-  public saveDetection(scanType: ScanType, detection: AnyDetection): void {
-    const scanTypeKey = getScanTypeKey(scanType);
+  public setDetections(scanType: ScanType, detections: AnyDetection[]): void {
+    // TODO(MarshalX): smart merge with existing detections will be cool someday
+    this.clearDetections(scanType);
+    this.saveDetections(scanType, detections);
+  }
 
-    const scanTypeDetections = getWorkspaceState(scanTypeKey) as AnyDetection[] || [];
+  public saveDetection(scanType: ScanType, detection: AnyDetection): void {
+    const scanTypeDetections = this.getDetections(scanType);
     scanTypeDetections.push(detection);
-    updateWorkspaceState(scanTypeKey, scanTypeDetections);
+    updateWorkspaceState(getScanTypeKey(scanType), scanTypeDetections);
 
     const detectionsKey = getDetectionsKey();
     const detections = getWorkspaceState(detectionsKey) as LocalStorage;
@@ -71,7 +80,7 @@ class ScanResultsService {
     updateWorkspaceState(detectionsKey, {});
 
     for (const scanType of Object.values(ScanType)) {
-      updateWorkspaceState(getScanTypeKey(scanType), []);
+      this.clearDetections(scanType);
     }
   }
 }

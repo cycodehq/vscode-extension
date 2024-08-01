@@ -30,6 +30,7 @@ import {cycodeService} from './services/CycodeService';
 import {getAuthState} from './utils/auth/auth_common';
 import {sastScan} from './services/scanners/SastScanner';
 import {captureException, initSentry} from './sentry';
+import {refreshDiagnosticCollectionData} from './services/diagnostics/common';
 
 export async function activate(context: vscode.ExtensionContext) {
   initSentry();
@@ -43,6 +44,12 @@ export async function activate(context: vscode.ExtensionContext) {
 
   const diagnosticCollection =
       vscode.languages.createDiagnosticCollection(extensionName);
+  const updateDiagnosticsOnChanges = vscode.window.onDidChangeActiveTextEditor((editor) => {
+    if (editor) {
+      // TODO(MarshalX): refresh only for editor.document if we will need better performance
+      refreshDiagnosticCollectionData(diagnosticCollection);
+    }
+  });
 
   const isAuthed = extensionContext.getGlobalState(VscodeStates.IsAuthorized);
   extensionContext.setContext(VscodeStates.IsAuthorized, !!isAuthed);
@@ -131,7 +138,9 @@ export async function activate(context: vscode.ExtensionContext) {
   });
 
   // add all disposables to correctly dispose them on extension deactivating
-  context.subscriptions.push(newStatusBar, ...commands, codeLens, quickActions, scanOnSave);
+  context.subscriptions.push(
+      newStatusBar, ...commands, codeLens, quickActions, scanOnSave, updateDiagnosticsOnChanges
+  );
 }
 
 function createTreeView(

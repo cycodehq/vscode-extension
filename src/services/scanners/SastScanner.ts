@@ -2,24 +2,20 @@ import * as vscode from 'vscode';
 import {extensionOutput} from '../../logging/extension-output';
 import {cliWrapper} from '../../cli-wrapper/cli-wrapper';
 import statusBar from '../../utils/status-bar';
-import {extensionId, StatusBarTexts, TrayNotificationTexts} from '../../utils/texts';
+import {StatusBarTexts, TrayNotificationTexts} from '../../utils/texts';
 import {
-  DiagnosticCode,
   finalizeScanState,
-  updateDetectionState,
   validateCliCommonErrors,
   validateCliCommonScanErrors,
 } from '../common';
 import {getWorkspaceState, updateWorkspaceState} from '../../utils/context';
 import {SastDetection} from '../../types/detection';
 import {IConfig, ProgressBar, RunCliResult} from '../../cli-wrapper/types';
-import TrayNotifications from '../../utils/TrayNotifications';
-import {refreshTreeViewData} from '../../providers/tree-view/utils';
 import {TreeView} from '../../providers/tree-view/types';
 import {ScanType} from '../../constants';
 import {VscodeStates} from '../../utils/states';
-import {calculateUniqueDetectionId, scanResultsService} from '../ScanResultsService';
 import {captureException} from '../../sentry';
+import {handleScanResult} from './common';
 
 interface SastScanParams {
   pathToScan: string;
@@ -29,13 +25,12 @@ interface SastScanParams {
   onDemand?: boolean;
 }
 
-export const sastScan = (
-    params: SastScanParams,
-    treeView?: TreeView,
-) => {
+type SastScanResult = { detections?: SastDetection[] };
+
+export const sastScan = (params: SastScanParams, treeView: TreeView) => {
   // we are showing progress bar only for on-demand scans
   if (!params.onDemand) {
-    _sastScan(params, undefined, undefined, treeView);
+    _sastScan(params, treeView, undefined, undefined);
     return;
   }
 
@@ -45,7 +40,7 @@ export const sastScan = (
         cancellable: true,
       },
       async (progress, token) => {
-        await _sastScan(params, progress, token, treeView);
+        await _sastScan(params, treeView, progress, token);
       },
   );
 };
@@ -72,9 +67,9 @@ const _initScanState = (params: SastScanParams, progress?: ProgressBar) => {
   });
 };
 
-const normalizeSastDetections = (result: { detections?: SastDetection[] }): SastDetection[] => {
+const normalizeSastDetections = (result: SastScanResult): SastScanResult => {
   if (!result || !result.detections) {
-    return [];
+    return {detections: []};
   }
 
   for (const detection of result.detections) {
@@ -85,14 +80,14 @@ const normalizeSastDetections = (result: { detections?: SastDetection[] }): Sast
     }
   }
 
-  return result.detections;
+  return {detections: result.detections};
 };
 
 export async function _sastScan(
     params: SastScanParams,
+    treeView: TreeView,
     progress?: ProgressBar,
     cancellationToken?: vscode.CancellationToken,
-    treeView?: TreeView,
 ) {
   try {
     if (getWorkspaceState(VscodeStates.SastScanInProgress)) {
@@ -122,8 +117,8 @@ export async function _sastScan(
     }
     validateCliCommonScanErrors(result);
 
-    // Show in "problems" tab
-    await handleScanDetections(
+    await handleScanResult(
+        ScanType.Sast,
         normalizeSastDetections(result),
         params.diagnosticCollection,
         treeView
@@ -141,66 +136,6 @@ export async function _sastScan(
     }
     vscode.window.showErrorMessage(notificationText);
 
-    extensionOutput.error('Error while creating scan: ' + error);
+    extensionOutput.error('Error while creating SAST scan: ' + error);
   }
 }
-
-const detectionsToDiagnostics = async (
-    detections: SastDetection[],
-): Promise<Record<string, vscode.Diagnostic[]>> => {
-  const result: Record<string, vscode.Diagnostic[]> = {};
-
-  for (const detection of detections) {
-    const {detection_details} = detection;
-
-    const documentPath = detection_details.file_path;
-    const documentUri = vscode.Uri.file(documentPath);
-    const document = await vscode.workspace.openTextDocument(documentUri);
-
-    let message = `Severity: ${detection.severity}\n`;
-    message += `Rule: ${detection.detection_details.policy_display_name}\n`;
-    message += `In file: ${detection.detection_details.file_name}\n`;
-
-    const diagnostic = new vscode.Diagnostic(
-        document.lineAt(detection_details.line_in_file - 1).range,
-        message,
-        vscode.DiagnosticSeverity.Error
-    );
-
-    diagnostic.source = extensionId;
-    diagnostic.code = new DiagnosticCode(ScanType.Sast, calculateUniqueDetectionId(detection)).toString();
-
-    result[documentPath] = result[documentPath] || [];
-    result[documentPath].push(diagnostic);
-  }
-
-  return result;
-};
-
-const handleScanDetections = async (
-    detections: SastDetection[],
-    diagnosticCollection: vscode.DiagnosticCollection,
-    treeView?: TreeView
-) => {
-  const hasDetections = detections.length > 0;
-  updateDetectionState(ScanType.Sast, detections);
-
-  const diagnostics = await detectionsToDiagnostics(detections) || [];
-  for (const [filePath, fileDiagnostics] of Object.entries(diagnostics)) {
-    const uri = vscode.Uri.file(filePath);
-    diagnosticCollection.set(uri, fileDiagnostics); // Show in "problems" tab
-  }
-
-  if (hasDetections && !getWorkspaceState(VscodeStates.NotificationIsOpen)) {
-    updateWorkspaceState(VscodeStates.NotificationIsOpen, true);
-    TrayNotifications.showProblemsDetection(detections.length, ScanType.Sast);
-  }
-
-  scanResultsService.saveDetections(ScanType.Sast, detections);
-
-  refreshTreeViewData({
-    detections,
-    treeView: treeView,
-    scanType: ScanType.Sast,
-  });
-};

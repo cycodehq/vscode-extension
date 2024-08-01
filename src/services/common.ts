@@ -6,7 +6,7 @@ import {onAuthFailure} from '../utils/auth/auth_common';
 import {getHasDetectionState, VscodeStates} from '../utils/states';
 import {ProgressBar} from '../cli-wrapper/types';
 import {DIAGNOSTIC_CODE_SEPARATOR, ScanType} from '../constants';
-import {AnyDetection} from '../types/detection';
+import {scanResultsService} from './ScanResultsService';
 
 const _cliBadAuthMessageId = 'client id needed';
 const _cliBadAuthMessageSecret = 'client secret needed';
@@ -117,7 +117,8 @@ const updateHasDetectionState = (scanType: ScanType, value: boolean) => {
   setContext(VscodeStates.HasDetections, hasAnyDetections);
 };
 
-export const updateDetectionState = (scanType: ScanType, detections: AnyDetection[]) => {
+export const updateDetectionState = (scanType: ScanType) => {
+  const detections = scanResultsService.getDetections(scanType);
   const hasDetections = detections.length > 0;
 
   updateHasDetectionState(scanType, hasDetections);
