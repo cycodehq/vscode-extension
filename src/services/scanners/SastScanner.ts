@@ -69,7 +69,7 @@ const _initScanState = (params: SastScanParams, progress?: ProgressBar) => {
 
 const normalizeSastDetections = (result: SastScanResult): SastScanResult => {
   if (!result || !result.detections) {
-    return {detections: []};
+    return result;
   }
 
   for (const detection of result.detections) {
@@ -80,7 +80,7 @@ const normalizeSastDetections = (result: SastScanResult): SastScanResult => {
     }
   }
 
-  return {detections: result.detections};
+  return result;
 };
 
 export async function _sastScan(

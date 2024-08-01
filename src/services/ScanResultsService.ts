@@ -39,8 +39,8 @@ class ScanResultsService {
 
   public getDetections(scanType: ScanType): AnyDetection[] {
     const scanTypeKey = getScanTypeKey(scanType);
-    const detection = getWorkspaceState(scanTypeKey) as AnyDetection[] || [];
-    return [...detection]; // return a copy
+    const detections = getWorkspaceState(scanTypeKey) as AnyDetection[] || [];
+    return [...detections]; // return a copy
   }
 
   public clearDetections(scanType: ScanType): void {
