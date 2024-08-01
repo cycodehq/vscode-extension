@@ -31,16 +31,25 @@ interface ScanResult {
 
 type LocalStorage = Record<string, ScanResult>;
 
+const _slowDeepClone = (obj: any): any => {
+  // TODO(MarshalX): move to faster approauch if the performance is critical
+  return JSON.parse(JSON.stringify(obj));
+};
+
 class ScanResultsService {
+  // We are returning cloned objects to prevent mutations in the storage.
+  // The mutations of detections itself happen, for example, for enriching detections for rendering violation card.
+  // But not mutated detections are used to create diagnostics, tree view, etc.
+
   public getDetectionById(detectionId: string): ScanResult | undefined {
     const detections = getWorkspaceState(getDetectionsKey()) as LocalStorage;
-    return detections[detectionId] as ScanResult | undefined;
+    return _slowDeepClone(detections[detectionId]) as ScanResult | undefined;
   }
 
   public getDetections(scanType: ScanType): AnyDetection[] {
     const scanTypeKey = getScanTypeKey(scanType);
     const detections = getWorkspaceState(scanTypeKey) as AnyDetection[] || [];
-    return [...detections]; // return a copy
+    return _slowDeepClone(detections);
   }
 
   public clearDetections(scanType: ScanType): void {

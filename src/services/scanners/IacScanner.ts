@@ -68,26 +68,18 @@ const _initScanState = (params: IacScanParams, progress?: ProgressBar) => {
 };
 
 const filterUnsupportedIacDetections = (result: IacScanResult): IacScanResult => {
-  const filteredResult: IacDetection[] = [];
-
   if (!result || !result.detections) {
-    return {detections: filteredResult};
+    return result;
   }
 
-  for (const detection of result.detections) {
-    const {detection_details} = detection;
-
+  result.detections = result.detections.filter((detection) => {
     // TF plans are virtual files what is not exist in the file system
     // "file_name": "1711298252-/Users/ilyasiamionau/projects/cycode/ilya-siamionau-payloads/tfplan.tf",
     // skip such detections
-    if (!detection_details.file_name.startsWith('/')) {
-      continue;
-    }
+    return detection.detection_details.file_name.startsWith('/');
+  });
 
-    filteredResult.push(detection);
-  }
-
-  return {detections: filteredResult};
+  return result;
 };
 
 export async function _iacScan(

@@ -22,9 +22,9 @@ export const createDiagnostics = async (
     let message = `Severity: ${detection.severity}\n`;
     message += `Rule: ${detection.message}\n`;
 
-    message += `IaC Provider: ${detection.detection_details.infra_provider}\n`;
+    message += `IaC Provider: ${detection_details.infra_provider}\n`;
 
-    const fileName = path.basename(detection.detection_details.file_name);
+    const fileName = path.basename(detection_details.file_name);
     message += `In file: ${fileName}\n`;
 
     const diagnostic = new vscode.Diagnostic(
