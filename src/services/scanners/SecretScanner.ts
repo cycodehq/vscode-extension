@@ -3,24 +3,16 @@ import * as vscode from 'vscode';
 import {extensionOutput} from '../../logging/extension-output';
 import {cliWrapper} from '../../cli-wrapper/cli-wrapper';
 import statusBar from '../../utils/status-bar';
-import {extensionId, StatusBarTexts, TrayNotificationTexts} from '../../utils/texts';
-import {
-  DiagnosticCode,
-  finalizeScanState,
-  updateDetectionState,
-  validateCliCommonErrors,
-  validateCliCommonScanErrors,
-} from '../common';
+import {StatusBarTexts, TrayNotificationTexts} from '../../utils/texts';
+import {finalizeScanState, validateCliCommonErrors, validateCliCommonScanErrors} from '../common';
 import {getWorkspaceState, updateWorkspaceState} from '../../utils/context';
 import {SecretDetection} from '../../types/detection';
 import {IConfig, ProgressBar, RunCliResult} from '../../cli-wrapper/types';
-import TrayNotifications from '../../utils/TrayNotifications';
-import {refreshTreeViewData} from '../../providers/tree-view/utils';
 import {TreeView} from '../../providers/tree-view/types';
 import {ScanType} from '../../constants';
 import {VscodeStates} from '../../utils/states';
-import {calculateUniqueDetectionId, scanResultsService} from '../ScanResultsService';
 import {captureException} from '../../sentry';
+import {handleScanResult} from './common';
 
 interface SecretScanParams {
   pathToScan: string;
@@ -30,13 +22,10 @@ interface SecretScanParams {
   onDemand?: boolean;
 }
 
-export const secretScan = (
-    params: SecretScanParams,
-    treeView?: TreeView,
-) => {
+export const secretScan = (params: SecretScanParams, treeView: TreeView) => {
   // we are showing progress bar only for on-demand scans
   if (!params.onDemand) {
-    _secretScan(params, undefined, undefined, treeView);
+    _secretScan(params, treeView, undefined, undefined);
     return;
   }
 
@@ -46,7 +35,7 @@ export const secretScan = (
         cancellable: true,
       },
       async (progress, token) => {
-        await _secretScan(params, progress, token, treeView);
+        await _secretScan(params, treeView, progress, token);
       },
   );
 };
@@ -75,9 +64,9 @@ const _initScanState = (params: SecretScanParams, progress?: ProgressBar) => {
 
 export async function _secretScan(
     params: SecretScanParams,
+    treeView: TreeView,
     progress?: ProgressBar,
     cancellationToken?: vscode.CancellationToken,
-    treeView?: TreeView,
 ) {
   try {
     if (getWorkspaceState(VscodeStates.SecretsScanInProgress)) {
@@ -107,8 +96,8 @@ export async function _secretScan(
     }
     validateCliCommonScanErrors(result);
 
-    // Show in "problems" tab
-    await handleScanDetections(
+    await handleScanResult(
+        ScanType.Secrets,
         result,
         params.diagnosticCollection,
         treeView
@@ -126,7 +115,7 @@ export async function _secretScan(
     }
     vscode.window.showErrorMessage(notificationText);
 
-    extensionOutput.error('Error while creating scan: ' + error);
+    extensionOutput.error('Error while creating Secret scan: ' + error);
   }
 }
 
@@ -159,68 +148,4 @@ export const getSecretDetectionIdeData = async (detection: SecretDetection): Pro
     range,
     value,
   };
-};
-
-const detectionsToDiagnostics = async (
-    detections: SecretDetection[],
-): Promise<Record<string, vscode.Diagnostic[]>> => {
-  const result: Record<string, vscode.Diagnostic[]> = {};
-
-  for (const detection of detections) {
-    const ideData = await getSecretDetectionIdeData(detection);
-
-    let message = `Severity: ${detection.severity}\n`;
-    message += `${detection.type}: ${detection.message.replace(
-        'within \'\' repository',
-        ''
-    )}\n`;
-    message += `In file: ${detection.detection_details.file_name}\n`;
-    message += `Secret SHA: ${detection.detection_details.sha512}`;
-
-    const diagnostic = new vscode.Diagnostic(
-        ideData.range,
-        message,
-        vscode.DiagnosticSeverity.Error
-    );
-
-    diagnostic.source = extensionId;
-    diagnostic.code = new DiagnosticCode(ScanType.Secrets, calculateUniqueDetectionId(detection)).toString();
-
-    result[ideData.documentPath] = result[ideData.documentPath] || [];
-    result[ideData.documentPath].push(diagnostic);
-  }
-
-  return result;
-};
-
-const handleScanDetections = async (
-    result: { detections?: SecretDetection[] },
-    diagnosticCollection: vscode.DiagnosticCollection,
-    treeView?: TreeView
-) => {
-  const {detections} = result;
-  if (detections === undefined) {
-    return;
-  }
-
-  updateDetectionState(ScanType.Secrets, detections);
-
-  const diagnostics = await detectionsToDiagnostics(detections) || [];
-  for (const [filePath, fileDiagnostics] of Object.entries(diagnostics)) {
-    const uri = vscode.Uri.file(filePath);
-    diagnosticCollection.set(uri, fileDiagnostics); // Show in "problems" tab
-  }
-
-  if (result.detections?.length && !getWorkspaceState(VscodeStates.NotificationIsOpen)) {
-    updateWorkspaceState(VscodeStates.NotificationIsOpen, true);
-    TrayNotifications.showProblemsDetection(result.detections.length, ScanType.Secrets);
-  }
-
-  scanResultsService.saveDetections(ScanType.Secrets, detections);
-
-  refreshTreeViewData({
-    detections,
-    treeView: treeView,
-    scanType: ScanType.Secrets,
-  });
 };

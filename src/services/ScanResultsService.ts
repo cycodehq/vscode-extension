@@ -31,15 +31,29 @@ interface ScanResult {
 
 type LocalStorage = Record<string, ScanResult>;
 
+const _slowDeepClone = (obj: any): any => {
+  // TODO(MarshalX): move to faster approauch if the performance is critical
+  return JSON.parse(JSON.stringify(obj));
+};
+
 class ScanResultsService {
+  // We are returning cloned objects to prevent mutations in the storage.
+  // The mutations of detections itself happen, for example, for enriching detections for rendering violation card.
+  // But not mutated detections are used to create diagnostics, tree view, etc.
+
   public getDetectionById(detectionId: string): ScanResult | undefined {
     const detections = getWorkspaceState(getDetectionsKey()) as LocalStorage;
-    return detections[detectionId] as ScanResult | undefined;
+    return _slowDeepClone(detections[detectionId]) as ScanResult | undefined;
   }
 
   public getDetections(scanType: ScanType): AnyDetection[] {
     const scanTypeKey = getScanTypeKey(scanType);
-    return getWorkspaceState(scanTypeKey) as AnyDetection[] || [];
+    const detections = getWorkspaceState(scanTypeKey) as AnyDetection[] || [];
+    return _slowDeepClone(detections);
+  }
+
+  public clearDetections(scanType: ScanType): void {
+    updateWorkspaceState(getScanTypeKey(scanType), []);
   }
 
   public saveDetections(scanType: ScanType, detections: AnyDetection[]): void {
@@ -48,12 +62,16 @@ class ScanResultsService {
     });
   }
 
-  public saveDetection(scanType: ScanType, detection: AnyDetection): void {
-    const scanTypeKey = getScanTypeKey(scanType);
+  public setDetections(scanType: ScanType, detections: AnyDetection[]): void {
+    // TODO(MarshalX): smart merge with existing detections will be cool someday
+    this.clearDetections(scanType);
+    this.saveDetections(scanType, detections);
+  }
 
-    const scanTypeDetections = getWorkspaceState(scanTypeKey) as AnyDetection[] || [];
+  public saveDetection(scanType: ScanType, detection: AnyDetection): void {
+    const scanTypeDetections = this.getDetections(scanType);
     scanTypeDetections.push(detection);
-    updateWorkspaceState(scanTypeKey, scanTypeDetections);
+    updateWorkspaceState(getScanTypeKey(scanType), scanTypeDetections);
 
     const detectionsKey = getDetectionsKey();
     const detections = getWorkspaceState(detectionsKey) as LocalStorage;
@@ -71,7 +89,7 @@ class ScanResultsService {
     updateWorkspaceState(detectionsKey, {});
 
     for (const scanType of Object.values(ScanType)) {
-      updateWorkspaceState(getScanTypeKey(scanType), []);
+      this.clearDetections(scanType);
     }
   }
 }

@@ -1,5 +1,9 @@
 # Change Log
 
+## [v1.9.3]
+
+- Rework scan results handling
+
 ## [v1.9.2]
 
 - Fix CodeLens updating
@@ -76,6 +80,8 @@
 ## [v1.0.0]
 
 The first stable release with the support of Secrets, SCA, TreeView, Violation Card, and more.
+
+[v1.9.3]: https://github.com/cycodehq/vscode-extension/releases/tag/v1.9.3
 
 [v1.9.2]: https://github.com/cycodehq/vscode-extension/releases/tag/v1.9.2
 

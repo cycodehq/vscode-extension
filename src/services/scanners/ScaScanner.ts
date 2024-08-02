@@ -1,26 +1,16 @@
-import * as path from 'path';
 import * as vscode from 'vscode';
 import {extensionOutput} from '../../logging/extension-output';
 import {cliWrapper} from '../../cli-wrapper/cli-wrapper';
 import statusBar from '../../utils/status-bar';
-import {extensionId, StatusBarTexts} from '../../utils/texts';
-import {
-  DiagnosticCode,
-  finalizeScanState,
-  updateDetectionState,
-  validateCliCommonErrors,
-  validateCliCommonScanErrors,
-} from '../common';
+import {StatusBarTexts} from '../../utils/texts';
+import {finalizeScanState, validateCliCommonErrors, validateCliCommonScanErrors} from '../common';
 import {getWorkspaceState, updateWorkspaceState} from '../../utils/context';
-import {ScaDetection} from '../../types/detection';
 import {IConfig, ProgressBar, RunCliResult} from '../../cli-wrapper/types';
-import TrayNotifications from '../../utils/TrayNotifications';
 import {TreeView} from '../../providers/tree-view/types';
-import {refreshTreeViewData} from '../../providers/tree-view/utils';
-import {getPackageFileForLockFile, isSupportedLockFile, ScanType} from '../../constants';
+import {ScanType} from '../../constants';
 import {VscodeStates} from '../../utils/states';
-import {calculateUniqueDetectionId, scanResultsService} from '../ScanResultsService';
 import {captureException} from '../../sentry';
+import {handleScanResult} from './common';
 
 interface ScaScanParams {
   pathToScan: string;
@@ -30,16 +20,13 @@ interface ScaScanParams {
   onDemand?: boolean;
 }
 
-export function scaScan(
-    params: ScaScanParams,
-    treeView: TreeView,
-) {
+export function scaScan(params: ScaScanParams, treeView: TreeView) {
   if (getWorkspaceState(VscodeStates.ScaScanInProgress)) {
     return;
   }
 
   if (!params.onDemand) {
-    _scaScan(params, undefined, undefined, treeView);
+    _scaScan(params, treeView, undefined, undefined);
     return;
   }
 
@@ -49,7 +36,7 @@ export function scaScan(
         cancellable: true,
       },
       async (progress, token) => {
-        await _scaScan(params, progress, token, treeView);
+        await _scaScan(params, treeView, progress, token);
       },
   );
 }
@@ -80,9 +67,9 @@ const _getRunnableCliScaScan = (params: ScaScanParams): RunCliResult => {
 
 const _scaScan = async (
     params: ScaScanParams,
+    treeView: TreeView,
     progress?: ProgressBar,
     cancellationToken?: vscode.CancellationToken,
-    treeView?: TreeView
 ) => {
   try {
     _initScanState(params, progress);
@@ -101,7 +88,7 @@ const _scaScan = async (
     }
     validateCliCommonScanErrors(result);
 
-    await handleScanDetections(result, params.diagnosticCollection, treeView);
+    await handleScanResult(ScanType.Sca, result, params.diagnosticCollection, treeView);
 
     finalizeScanState(VscodeStates.ScaScanInProgress, true, progress);
   } catch (error) {
@@ -109,82 +96,6 @@ const _scaScan = async (
 
     finalizeScanState(VscodeStates.ScaScanInProgress, false, progress);
 
-    extensionOutput.error('Error while creating scan: ' + error);
+    extensionOutput.error('Error while creating SCA scan: ' + error);
   }
-};
-
-const detectionsToDiagnostics = async (
-    detections: ScaDetection[]
-): Promise<Record<string, vscode.Diagnostic[]>> => {
-  const result: Record<string, vscode.Diagnostic[]> = {};
-
-  for (const detection of detections) {
-    const {detection_details} = detection;
-    const file_name = detection_details.file_name;
-    const uri = vscode.Uri.file(file_name);
-    const document = await vscode.workspace.openTextDocument(uri);
-
-    let message = `Severity: ${detection.severity}\n`;
-    message += `${detection.message}\n`;
-    if (detection_details.alert?.first_patched_version) {
-      message += `First patched version: ${detection_details.alert?.first_patched_version}\n`;
-    }
-
-    if (isSupportedLockFile(file_name)) {
-      const packageFileName = getPackageFileForLockFile(path.basename(file_name));
-      message += `\n\nAvoid manual packages upgrades in lock files. 
-      Update the ${packageFileName} file and re-generate the lock file.`;
-    }
-
-    const diagnostic = new vscode.Diagnostic(
-        // BE of SCA counts lines from 1, while VSCode counts from 0
-        document.lineAt(detection_details.line_in_file - 1).range,
-        message,
-        vscode.DiagnosticSeverity.Error
-    );
-
-    diagnostic.source = extensionId;
-    diagnostic.code = new DiagnosticCode(ScanType.Sca, calculateUniqueDetectionId(detection)).toString();
-
-    result[file_name] = result[file_name] || [];
-    result[file_name].push(diagnostic);
-  }
-
-  return result;
-};
-
-const handleScanDetections = async (
-    result: any,
-    diagnosticCollection: vscode.DiagnosticCollection,
-    treeView?: TreeView
-) => {
-  const {detections} = result;
-
-  const hasDetections = detections.length > 0;
-  if (!hasDetections) {
-    return;
-  }
-
-  updateDetectionState(ScanType.Sca, detections);
-
-  const diagnostics = await detectionsToDiagnostics(result.detections);
-
-  // add the diagnostics to the diagnostic collection
-  for (const [filePath, fileDiagnostics] of Object.entries(diagnostics)) {
-    const uri = vscode.Uri.file(filePath);
-    diagnosticCollection.set(uri, fileDiagnostics); // Show in "problems" tab
-  }
-
-  if (result.detections.length && !getWorkspaceState(VscodeStates.NotificationIsOpen)) {
-    updateWorkspaceState(VscodeStates.NotificationIsOpen, true);
-    TrayNotifications.showProblemsDetection(result.detections.length, ScanType.Sca);
-  }
-
-  scanResultsService.saveDetections(ScanType.Sca, detections);
-
-  refreshTreeViewData({
-    detections,
-    treeView,
-    scanType: ScanType.Sca,
-  });
 };

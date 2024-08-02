@@ -4,12 +4,7 @@ import {FileScanResult} from './provider';
 import {SeverityFirstLetter, TreeView, TreeViewDisplayedData} from './types';
 import {ScanType, SEVERITY_PRIORITIES} from '../../constants';
 import {cliService} from '../../services/CliService';
-
-interface RefreshTreeViewDataArgs {
-  detections: AnyDetection[];
-  treeView?: TreeView;
-  scanType: ScanType;
-}
+import {scanResultsService} from '../../services/ScanResultsService';
 
 interface ValueItem {
   fullFilePath: string;
@@ -20,25 +15,21 @@ type SeverityCounted = { [severity: string]: number };
 
 const VSCODE_ENTRY_LINE_NUMBER = 1;
 
-export function refreshTreeViewData(
-    args: RefreshTreeViewDataArgs
-): void {
-  const {detections, treeView, scanType} = args;
-  if (treeView === undefined) {
-    return;
-  }
-
+export const refreshTreeViewData = (
+    scanType: ScanType, treeView: TreeView
+) => {
   const projectRoot = cliService.getProjectRootDirectory();
+  const detections = scanResultsService.getDetections(scanType);
 
-  const {provider} = treeView;
   const affectedFiles: FileScanResult[] = [];
   const detectionsMapped = mapDetectionsByFileName(detections, scanType);
   detectionsMapped.forEach((vulnerabilities, fullFilePath) => {
     const projectRelativePath = path.relative(projectRoot, fullFilePath);
     affectedFiles.push(new FileScanResult(projectRelativePath, fullFilePath, vulnerabilities));
   });
-  provider.refresh(affectedFiles, scanType);
-}
+
+  treeView.provider.refresh(affectedFiles, scanType);
+};
 
 const _getSecretValueItem = (detection: SecretDetection): ValueItem => {
   const {type, detection_details, severity} = detection;
@@ -108,10 +99,10 @@ const _getSastValueItem = (detection: SastDetection): ValueItem => {
   return {fullFilePath: file_path, data: valueItem};
 };
 
-function mapDetectionsByFileName(
+const mapDetectionsByFileName = (
     detections: AnyDetection[],
     scanType: ScanType,
-): Map<string, TreeViewDisplayedData[]> {
+): Map<string, TreeViewDisplayedData[]> => {
   const resultMap: Map<string, TreeViewDisplayedData[]> = new Map();
 
   detections.forEach((detection) => {
@@ -139,9 +130,9 @@ function mapDetectionsByFileName(
   });
 
   return resultMap;
-}
+};
 
-function mapSeverityToFirstLetter(severity: string): SeverityFirstLetter {
+const mapSeverityToFirstLetter = (severity: string): SeverityFirstLetter => {
   switch (severity.toLowerCase()) {
     case 'info':
       return SeverityFirstLetter.Info;
@@ -158,7 +149,7 @@ function mapSeverityToFirstLetter(severity: string): SeverityFirstLetter {
           `Supplied unsupported severity ${severity}, can not map to severity first letter`
       );
   }
-}
+};
 
 export const mapScanResultsToSeverityStatsString = (scanResults: FileScanResult[]): string => {
   const severityToCount: SeverityCounted = {};
