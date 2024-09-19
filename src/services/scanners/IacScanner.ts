@@ -16,6 +16,7 @@ import {ScanType} from '../../constants';
 import {VscodeStates} from '../../utils/states';
 import {captureException} from '../../sentry';
 import {handleScanResult} from './common';
+import * as fs from 'node:fs';
 
 interface IacScanParams {
   pathToScan: string;
@@ -76,7 +77,7 @@ const filterUnsupportedIacDetections = (result: IacScanResult): IacScanResult =>
     // TF plans are virtual files what is not exist in the file system
     // "file_name": "1711298252-/Users/ilyasiamionau/projects/cycode/ilya-siamionau-payloads/tfplan.tf",
     // skip such detections
-    return detection.detection_details.file_name.startsWith('/');
+    return fs.existsSync(detection.detection_details.file_name);
   });
 
   return result;
