@@ -1,5 +1,9 @@
 # Change Log
 
+## [Unreleased]
+
+- Fix empty IaC scan results on Windows
+
 ## [v1.9.3]
 
 - Rework scan results handling
@@ -111,4 +115,6 @@ The first stable release with the support of Secrets, SCA, TreeView, Violation C
 
 [v1.0.1]: https://github.com/cycodehq/vscode-extension/releases/tag/v1.0.1
 
-[v1.0.0]: https://github.com/cycodehq/vscode-extension/releases/tag/v1.0.0 
+[v1.0.0]: https://github.com/cycodehq/vscode-extension/releases/tag/v1.0.0
+
+[Unreleased]: https://github.com/cycodehq/vscode-extension/compare/v1.9.3...HEAD
