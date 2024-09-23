@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 - Fix empty IaC scan results on Windows
+- Fix missed markdown blocks on violation cards
 
 ## [v1.9.3]
 

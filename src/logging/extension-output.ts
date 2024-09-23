@@ -20,6 +20,10 @@ const error = (logMessage: string) => {
   log('ERROR', logMessage);
 };
 
+const debug = (logMessage: string) => {
+  log('DEBUG', logMessage);
+};
+
 const showOutputTab = () => {
   if (!options.output) {
     return;
@@ -39,6 +43,7 @@ export const extensionOutput = {
   info,
   warn,
   error,
+  debug,
 };
 
 export default extensionOutput;

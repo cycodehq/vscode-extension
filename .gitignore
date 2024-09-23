@@ -1,6 +1,7 @@
 .DS_Store
 npm-debug.log
 Thumbs.db
+cycode-vscode-extension/
 node_modules/
 out/
 */.vs/
@@ -11,6 +12,7 @@ dist/
 .vscode-test/
 *.log
 **/.vscode/
+.idea
 
 # Extension files
 *.vsix
