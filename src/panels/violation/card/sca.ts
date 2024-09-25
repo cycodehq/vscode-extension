@@ -41,5 +41,15 @@ export default `
     <div class="section-header">Summary</div>
     <div class="summary-text">None</div>
   </section>
+
+  <section class="company-guidelines compact">
+    <div class="section-header">Company Guidelines</div>
+    <div class="company-guidelines-text">None</div>
+  </section>
+
+  <section class="cycode-guidelines compact">
+    <div class="section-header">Cycode Guidelines</div>
+    <div class="cycode-guidelines-text">None</div>
+  </section>
 </section>
 `;

@@ -9,6 +9,12 @@ const _resetDomState = () => {
 
   hideElement('licence');
   ge('licence-value').innerText = 'None';
+
+  hideElement('company-guidelines');
+  ge('company-guidelines-text').innerText = 'None';
+
+  hideElement('cycode-guidelines');
+  ge('cycode-guidelines-text').innerText = 'None';
 };
 
 const renderDetection = detection => {
@@ -30,15 +36,27 @@ const renderDetection = detection => {
 
     showElement('first-patched-version');
     ge('first-patched-version-value').innerText = detection.detection_details.alert.first_patched_version;
-
-    showElement('summary');
-    ge('summary-text').innerHTML = detection.detection_details.alert.description;
   } else {
     // if non-permissive license
     ge('title').innerText = detection.message;
 
     showElement('licence');
     ge('licence-value').innerText = detection.detection_details.license;
+  }
+
+  if (detection.detection_details.description) {
+    showElement('summary');
+    ge('summary-text').innerHTML = detection.detection_details.description;
+  }
+
+  if (detection.detection_details.custom_remediation_guidelines) {
+    showElement('company-guidelines');
+    ge('company-guidelines-text').innerHTML = detection.detection_details.custom_remediation_guidelines;    
+  }
+
+  if (detection.detection_details.remediation_guidelines) {
+    showElement('cycode-guidelines');
+    ge('cycode-guidelines-text').innerHTML = detection.detection_details.remediation_guidelines;    
   }
 };
 </script>

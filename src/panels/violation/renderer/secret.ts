@@ -3,6 +3,9 @@ export default `
 const _resetDomState = () => {
   hideElement('company-guidelines');
   ge('company-guidelines-text').innerText = 'None';
+
+  hideElement('cycode-guidelines');
+  ge('cycode-guidelines-text').innerText = 'None';
 };
 
 const renderDetection = detection => {
@@ -26,6 +29,11 @@ const renderDetection = detection => {
   if (detection.detection_details.custom_remediation_guidelines) {
     showElement('company-guidelines');
     ge('company-guidelines-text').innerHTML = detection.detection_details.custom_remediation_guidelines;    
+  }
+
+  if (detection.detection_details.remediation_guidelines) {
+    showElement('cycode-guidelines');
+    ge('cycode-guidelines-text').innerHTML = detection.detection_details.remediation_guidelines;    
   }
 };
 </script>

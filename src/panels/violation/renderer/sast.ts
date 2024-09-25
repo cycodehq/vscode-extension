@@ -1,7 +1,11 @@
 export default `
 <script>
 const _resetDomState = () => {
-  // nothing to hide yet
+  hideElement('company-guidelines');
+  ge('company-guidelines-text').innerText = 'None';
+
+  hideElement('cycode-guidelines');
+  ge('cycode-guidelines-text').innerText = 'None';
 };
 
 const renderDetection = detection => {
@@ -31,8 +35,18 @@ const renderDetection = detection => {
   }
   const engineId = detection.detection_details.external_scanner_id;
   ge('engine').innerText = engineIdToDisplayName[engineId] || 'None';
-  
+
   ge('summary-text').innerHTML = detection.detection_details.description;
+
+  if (detection.detection_details.custom_remediation_guidelines) {
+    showElement('company-guidelines');
+    ge('company-guidelines-text').innerHTML = detection.detection_details.custom_remediation_guidelines;    
+  }
+
+  if (detection.detection_details.remediation_guidelines) {
+    showElement('cycode-guidelines');
+    ge('cycode-guidelines-text').innerHTML = detection.detection_details.remediation_guidelines;    
+  }
 };
 </script>
 `;

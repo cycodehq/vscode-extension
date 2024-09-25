@@ -25,14 +25,34 @@ export const enrichDetectionForRender = (detectionType: ScanType, detection: Any
   }
 };
 
-const _enrichScaDetectionForRender = (detection: ScaDetection): ScaDetection => {
-  if (detection.detection_details.alert) {
-    detection.detection_details.alert.description =
-        _MARKDOWN_CONVERTER.makeHtml(detection.detection_details.alert.description);
+const _updateFieldWithHtmlIfValid = (object: Record<string, any>, field: string) => {
+  // a little bit hacky because of any type
 
-    if (!detection.detection_details.alert.first_patched_version) {
-      detection.detection_details.alert.first_patched_version = 'Not fixed';
-    }
+  if (!object || !object[field]) {
+    return;
+  }
+
+  if (typeof object[field] !== 'string') {
+    return;
+  }
+
+  object[field] = _MARKDOWN_CONVERTER.makeHtml(object[field]);
+};
+
+const _enrichScaDetectionForRender = (detection: ScaDetection): ScaDetection => {
+  detection.detection_details.description =
+      detection.detection_details.alert?.description || detection.detection_details.description;
+  _updateFieldWithHtmlIfValid(detection.detection_details, 'description');
+
+  if (!detection.detection_details.alert) {
+    return detection;
+  }
+
+  _updateFieldWithHtmlIfValid(detection.detection_details, 'custom_remediation_guidelines');
+  _updateFieldWithHtmlIfValid(detection.detection_details, 'remediation_guidelines');
+
+  if (!detection.detection_details.alert.first_patched_version) {
+    detection.detection_details.alert.first_patched_version = 'Not fixed';
   }
 
   return detection;
@@ -45,16 +65,10 @@ const _enrichSecretDetectionForRender = (detection: SecretDetection): SecretDete
   );
 
   detection.detection_details.description = detection.detection_details.description || detection.message;
-  if (detection.detection_details.description) {
-    // wrap with P tag to make it consistent with other HTML sections
-    detection.detection_details.description =
-        _MARKDOWN_CONVERTER.makeHtml(detection.detection_details.description);
-  }
+  _updateFieldWithHtmlIfValid(detection.detection_details, 'description');
 
-  if (detection.detection_details.custom_remediation_guidelines) {
-    detection.detection_details.custom_remediation_guidelines =
-        _MARKDOWN_CONVERTER.makeHtml(detection.detection_details.custom_remediation_guidelines);
-  }
+  _updateFieldWithHtmlIfValid(detection.detection_details, 'custom_remediation_guidelines');
+  _updateFieldWithHtmlIfValid(detection.detection_details, 'remediation_guidelines');
 
   return detection;
 };
@@ -62,31 +76,19 @@ const _enrichSecretDetectionForRender = (detection: SecretDetection): SecretDete
 const _enrichIacDetectionForRender = (detection: IacDetection): IacDetection => {
   detection.detection_details.file_name = path.basename(detection.detection_details.file_name);
 
-  if (detection.detection_details.remediation_guidelines) {
-    detection.detection_details.remediation_guidelines =
-        _MARKDOWN_CONVERTER.makeHtml(detection.detection_details.remediation_guidelines);
-  }
-
-  if (detection.detection_details.custom_remediation_guidelines) {
-    detection.detection_details.custom_remediation_guidelines =
-        _MARKDOWN_CONVERTER.makeHtml(detection.detection_details.custom_remediation_guidelines);
-  }
-
   detection.detection_details.description = detection.detection_details.description || detection.message;
-  if (detection.detection_details.description) {
-    // wrap with P tag to make it consistent with other HTML sections
-    detection.detection_details.description =
-        _MARKDOWN_CONVERTER.makeHtml(detection.detection_details.description);
-  }
+  _updateFieldWithHtmlIfValid(detection.detection_details, 'description');
+
+  _updateFieldWithHtmlIfValid(detection.detection_details, 'custom_remediation_guidelines');
+  _updateFieldWithHtmlIfValid(detection.detection_details, 'remediation_guidelines');
 
   return detection;
 };
 
 const _enrichSastDetectionForRender = (detection: SastDetection): SastDetection => {
-  if (detection.detection_details.description) {
-    detection.detection_details.description =
-        _MARKDOWN_CONVERTER.makeHtml(detection.detection_details.description);
-  }
+  _updateFieldWithHtmlIfValid(detection.detection_details, 'description');
+  _updateFieldWithHtmlIfValid(detection.detection_details, 'custom_remediation_guidelines');
+  _updateFieldWithHtmlIfValid(detection.detection_details, 'remediation_guidelines');
 
   return detection;
 };

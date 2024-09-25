@@ -58,7 +58,7 @@ export const getRunnableCliCommand = (args: RunCliArgs): RunCliResult => {
       }
       stderr += data.toString();
       if (printToOutput) {
-        extensionOutput.error(data.toString());
+        extensionOutput.debug(data.toString());
       }
     };
 
@@ -67,13 +67,13 @@ export const getRunnableCliCommand = (args: RunCliArgs): RunCliResult => {
 
     childProcess.on('exit', (code: number) => {
       // exit occurs earlier than close
-      extensionOutput.info(`Command exited with code: ${code}`);
+      extensionOutput.debug(`Command exited with code: ${code}`);
       exitCode = code;
     });
 
     childProcess.on('close', (code: number) => {
       // we receive all "data" events before close
-      extensionOutput.info(`Streams of a command have been closed with code: ${code}`);
+      extensionOutput.debug(`Streams of a command have been closed with code: ${code}`);
       resolve({
         exitCode: exitCode,
         stderr: stderr,
