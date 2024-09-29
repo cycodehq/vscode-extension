@@ -1,21 +1,26 @@
 {
   "name": "cycode",
   "displayName": "Cycode",
-  "icon": "resources/cycode124.png",
+  "version": "1.9.4",
+  "publisher": "cycode",
   "description": "Boost security in your dev lifecycle via SAST, SCA, Secrets & IaC scanning.",
   "repository": {
     "type": "git",
     "url": "https://github.com/cycodehq/vscode-extension"
   },
   "homepage": "https://cycode.com/",
-  "version": "1.9.3",
-  "publisher": "cycode",
-  "engines": {
-    "vscode": "^1.63.0"
+  "license": "SEE LICENSE IN LICENSE.MD",
+  "icon": "resources/cycode124.png",
+  "galleryBanner": {
+    "theme": "dark",
+    "color": "#25253a"
   },
   "categories": [
     "Other"
   ],
+  "engines": {
+    "vscode": "^1.63.0"
+  },
   "activationEvents": [
     "onStartupFinished"
   ],
@@ -42,12 +47,12 @@
       "view/title": [
         {
           "command": "cycode.openMainMenu",
-          "when": "view == scan.treeView",
+          "when": "view == cycode.view.tree",
           "group": "navigation@1"
         },
         {
           "command": "cycode.openSettings",
-          "when": "true",
+          "when": "view =~ /^cycode./",
           "group": "navigation@2"
         }
       ],
@@ -74,27 +79,27 @@
         },
         {
           "command": "cycode.secretScanForProject",
-          "when": "view == scan.treeView && viewItem == Secrets"
+          "when": "view == cycode.view.tree && viewItem == Secrets"
         },
         {
           "command": "cycode.iacScanForProject",
-          "when": "view == scan.treeView && viewItem == IaC"
+          "when": "view == cycode.view.tree && viewItem == IaC"
         },
         {
           "command": "cycode.sastScanForProject",
-          "when": "view == scan.treeView && viewItem == SAST"
+          "when": "view == cycode.view.tree && viewItem == SAST"
         },
         {
           "command": "cycode.scaScan",
-          "when": "view == scan.treeView && viewItem == SCA"
+          "when": "view == cycode.view.tree && viewItem == SCA"
         },
         {
           "command": "cycode.openViolationInFileFromTreeItemContextMenu",
-          "when": "view == scan.treeView && viewItem =~ /-file-vulnerability$/"
+          "when": "view == cycode.view.tree && viewItem =~ /-file-vulnerability$/"
         },
         {
           "command": "cycode.openViolationPanelFromTreeItemContextMenu",
-          "when": "view == scan.treeView && viewItem =~ /-file-vulnerability$/"
+          "when": "view == cycode.view.tree && viewItem =~ /-file-vulnerability$/"
         }
       ]
     },
@@ -164,18 +169,18 @@
         "icon": "$(testing-run-icon)"
       },
       {
-        "command": "cycode.auth",
-        "title": "Cycode: Authenticate with service"
-      },
-      {
         "command": "cycode.openSettings",
-        "title": "Cycode: Open Cycode settings",
-        "icon": "$(settings-view-bar-icon)"
+        "title": "Cycode: Open settings",
+        "icon": "$(gear)"
       },
       {
         "command": "cycode.openMainMenu",
-        "title": "Cycode: Open main menu",
-        "icon": "$(home)"
+        "title": "Cycode: Return to Home Screen",
+        "icon": "$(arrow-left)"
+      },
+      {
+        "command": "cycode.auth",
+        "title": "Authenticate with service"
       },
       {
         "command": "cycode.openViolationInFileFromTreeItemContextMenu",
@@ -206,25 +211,25 @@
       "cycode": [
         {
           "type": "webview",
-          "id": "activity_bar.login",
+          "id": "cycode.view.login",
           "name": "login",
           "when": "!cycode:auth.isAuthed && !cycode:auth.isAuthenticating"
         },
         {
           "type": "webview",
-          "id": "activity_bar.authenticating",
+          "id": "cycode.view.authenticating",
           "name": "login",
           "when": "cycode:auth.isAuthenticating"
         },
         {
           "type": "webview",
-          "id": "activity_bar.scanView",
+          "id": "cycode.view.main",
           "name": "scan",
           "when": "cycode:auth.isAuthed && (!cycode:scan.hasDetections || !cycode:treeView.isShowed)"
         },
         {
           "type": "tree",
-          "id": "scan.treeView",
+          "id": "cycode.view.tree",
           "name": "Scan Results",
           "when": "cycode:scan.hasDetections && cycode:treeView.isShowed"
         }

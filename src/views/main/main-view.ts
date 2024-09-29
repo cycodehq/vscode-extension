@@ -4,8 +4,8 @@ import {VscodeCommands} from '../../utils/commands';
 import content from './content';
 
 
-export default class ScanView extends CycodeView {
-  public static readonly viewType = 'activity_bar.scanView';
+export default class MainView extends CycodeView {
+  public static readonly viewType = 'cycode.view.main';
 
   constructor() {
     const actionCommandMapping: ActionCommandMapping[] = [

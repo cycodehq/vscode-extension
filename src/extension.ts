@@ -16,7 +16,7 @@ import {IgnoreCommandConfig} from './types/commands';
 import {ignore} from './services/ignore';
 import {CycodeActions} from './providers/code-actions/CodeActions';
 import {CodelensProvider} from './providers/CodelensProvider';
-import ScanView from './views/scan/scan-view';
+import MainView from './views/main/main-view';
 import LoginView from './views/login/login-view';
 import AuthenticatingView from './views/authenticating/authenticating-view';
 import {TreeView, TreeViewDisplayedData} from './providers/tree-view/types';
@@ -99,14 +99,24 @@ export async function activate(context: vscode.ExtensionContext) {
       return;
     }
 
-    const workspaceFolderPath = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+    const projectPath = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+    if (!projectPath) {
+      return;
+    }
+
+    // verify that file in the workspace
+    // user can trigger save of a VS Code settings file
+    // which we don't want to scan
+    if (!fileFsPath.startsWith(projectPath)) {
+      return;
+    }
 
     if (isSupportedPackageFile(document.fileName)) {
       scaScan(
           {
             config,
             pathToScan: fileFsPath,
-            workspaceFolderPath,
+            workspaceFolderPath: projectPath,
             diagnosticCollection,
           },
           treeView,
@@ -118,7 +128,7 @@ export async function activate(context: vscode.ExtensionContext) {
           {
             config,
             pathToScan: fileFsPath,
-            workspaceFolderPath,
+            workspaceFolderPath: projectPath,
             diagnosticCollection,
           },
           treeView,
@@ -130,7 +140,7 @@ export async function activate(context: vscode.ExtensionContext) {
         {
           config,
           pathToScan: document.fileName,
-          workspaceFolderPath: workspaceFolderPath,
+          workspaceFolderPath: projectPath,
           diagnosticCollection,
         },
         treeView,
@@ -192,8 +202,8 @@ const _runScaScanOnProjectOpen = (
 
 function initActivityBar(context: vscode.ExtensionContext): void {
   const scanView = vscode.window.registerWebviewViewProvider(
-      ScanView.viewType,
-      new ScanView()
+      MainView.viewType,
+      new MainView()
   );
 
   const authenticatingView = vscode.window.registerWebviewViewProvider(
