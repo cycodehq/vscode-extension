@@ -2,8 +2,12 @@
 
 ## [Unreleased]
 
+## [v1.9.4]
+
 - Fix empty IaC scan results on Windows
 - Fix missed markdown blocks on violation cards
+- Fix settings icon appearing outside views of the extension
+- Fix scan on save of outside workspace files
 
 ## [v1.9.3]
 
@@ -86,6 +90,8 @@
 
 The first stable release with the support of Secrets, SCA, TreeView, Violation Card, and more.
 
+[v1.9.4]: https://github.com/cycodehq/vscode-extension/releases/tag/v1.9.4
+
 [v1.9.3]: https://github.com/cycodehq/vscode-extension/releases/tag/v1.9.3
 
 [v1.9.2]: https://github.com/cycodehq/vscode-extension/releases/tag/v1.9.2
@@ -118,4 +124,4 @@ The first stable release with the support of Secrets, SCA, TreeView, Violation C
 
 [v1.0.0]: https://github.com/cycodehq/vscode-extension/releases/tag/v1.0.0
 
-[Unreleased]: https://github.com/cycodehq/vscode-extension/compare/v1.9.3...HEAD
+[Unreleased]: https://github.com/cycodehq/vscode-extension/compare/v1.9.4...HEAD

@@ -17,7 +17,7 @@ interface TreeViewItemOptions {
 }
 
 export class TreeViewItem extends vscode.TreeItem {
-  public static readonly viewType = 'scan.treeView';
+  public static readonly viewType = 'cycode.view.tree';
 
   public scanSectionType: ScanType | undefined;
   public fullFilePath: string | undefined;

@@ -5,7 +5,7 @@ import content from './content';
 
 
 export default class LoginView extends CycodeView {
-  public static readonly viewType = 'activity_bar.login';
+  public static readonly viewType = 'cycode.view.login';
 
   constructor() {
     const actionToCommandsMapping: ActionCommandMapping[] = [
