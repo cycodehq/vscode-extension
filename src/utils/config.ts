@@ -1,6 +1,5 @@
 import * as vscode from 'vscode';
 import {
-  experimentalScaSyncFlowProperty,
   extensionId,
   publisherId,
   scanOnSaveProperty,
@@ -67,12 +66,6 @@ export const config = {
     const value = vscode.workspace
         .getConfiguration(extensionId)
         .get<boolean>(scanOnSaveProperty);
-    return value === undefined ? false : value;
-  },
-  get experimentalScaSyncFlow(): boolean {
-    const value = vscode.workspace
-        .getConfiguration(extensionId)
-        .get<boolean>(experimentalScaSyncFlowProperty);
     return value === undefined ? false : value;
   },
   get isOnPremiseInstallation(): boolean {

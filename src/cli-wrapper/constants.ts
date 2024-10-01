@@ -16,6 +16,7 @@ export enum CommandParameters {
   ByPath = '--by-path',
   UserAgent = '--user-agent',
   scanType = '--scan-type',
+  secretScanType = 'secret',
   scaScanType = 'sca',
   iacScanType = 'iac',
   sastScanType = 'sast',
