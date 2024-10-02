@@ -16,7 +16,6 @@ export interface IConfig {
   envName: string;
   envVersion: string;
   scanOnSaveEnabled: boolean;
-  experimentalScaSyncFlow: boolean;
 }
 
 export type CliConfig = {
