@@ -5,6 +5,7 @@
 ## [v1.10.0]
 
 - Add sync flow for Secrets and IaC
+- Fix scan on save for individual files
 
 ## [v1.9.4]
 
