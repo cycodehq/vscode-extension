@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import {VscodeCommands} from './commands';
+import {VscodeCommands} from '../commands';
 import {updateWorkspaceState} from './context';
 import {TrayNotificationTexts} from './texts';
 import {getScanTypeDisplayName, ScanType} from '../constants';

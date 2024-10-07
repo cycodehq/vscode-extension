@@ -6,6 +6,7 @@ export const CliServiceSymbol = Symbol('CliService');
 export const LoggerServiceSymbol = Symbol('LoggerService');
 export const ScanResultsServiceSymbol = Symbol('ScanResultsService');
 export const StateServiceSymbol = Symbol('StateServiceSymbol');
+export const ExtensionServiceSymbol = Symbol('ExtensionServiceSymbol');
 
 export const IocSymbols = {
   DownloadServiceSymbol,
@@ -16,4 +17,5 @@ export const IocSymbols = {
   LoggerServiceSymbol,
   ScanResultsServiceSymbol,
   StateServiceSymbol,
+  ExtensionServiceSymbol,
 };

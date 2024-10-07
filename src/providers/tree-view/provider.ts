@@ -8,7 +8,7 @@ import {
 import {ScanType, SEVERITY_PRIORITIES_FIRST_LETTERS} from '../../constants';
 import {TreeViewDisplayedData} from './types';
 import {mapScanResultsToSeverityStatsString} from './utils';
-import {VscodeCommands} from '../../utils/commands';
+import {VscodeCommands} from '../../commands';
 
 type TreeDataDatabase = { [key: string]: FileScanResult[]};
 

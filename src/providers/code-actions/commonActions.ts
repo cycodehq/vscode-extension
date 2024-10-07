@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import {DiagnosticCode} from '../../services/common';
-import {VscodeCommands} from '../../utils/commands';
+import {VscodeCommands} from '../../commands';
 import {AnyDetection, IacDetection, SastDetection, ScaDetection, SecretDetection} from '../../types/detection';
 import {ScanType} from '../../constants';
 import {container} from 'tsyringe';

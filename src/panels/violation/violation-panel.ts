@@ -5,7 +5,7 @@ import {ScanType, SEVERITY_PRIORITIES_FIRST_LETTERS} from '../../constants';
 import {createPanel, getPanel, removePanel, revealPanel} from './panel-manager';
 import {calculateUniqueDetectionId, IScanResultsService} from '../../services/ScanResultsService';
 import {enrichDetectionForRender} from './enrich-detection';
-import {VscodeCommands} from '../../utils/commands';
+import {VscodeCommands} from '../../commands';
 import {CommandParameters} from '../../cli-wrapper/constants';
 import {IgnoreCommandConfig} from '../../types/commands';
 import {getSecretDetectionIdeData} from '../../services/scanners/SecretScanner';

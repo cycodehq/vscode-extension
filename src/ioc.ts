@@ -8,6 +8,7 @@ import {IScanResultsService, ScanResultsService} from './services/ScanResultsSer
 import {IStateService, StateService} from './services/StateService';
 import {CliService, ICliService} from './services/CliService';
 import {DownloadService, IDownloadService} from './services/DownloadService';
+import {ExtensionService, IExtensionService} from './services/ExtensionService';
 
 container.registerSingleton<ILoggerService>(IocSymbols.LoggerServiceSymbol, LoggerService);
 container.registerSingleton<IDownloadService>(IocSymbols.DownloadServiceSymbol, DownloadService);
@@ -17,3 +18,4 @@ container.registerSingleton<ICycodeService>(IocSymbols.CycodeServiceSymbol, Cyco
 container.registerSingleton<ICliService>(IocSymbols.CliServiceSymbol, CliService);
 container.registerSingleton<IScanResultsService>(IocSymbols.ScanResultsServiceSymbol, ScanResultsService);
 container.registerSingleton<IStateService>(IocSymbols.StateServiceSymbol, StateService);
+container.registerSingleton<IExtensionService>(IocSymbols.ExtensionServiceSymbol, ExtensionService);
