@@ -1,5 +1,6 @@
-import extensionOutput from '../logging/extension-output';
-import {captureException} from '../sentry';
+import {inject, injectable} from 'tsyringe';
+import {LoggerServiceSymbol} from '../symbols';
+import {ILoggerService} from './LoggerService';
 
 export interface GitHubReleaseAsset {
   name: string;
@@ -12,7 +13,15 @@ export interface GitHubRelease {
   assets: GitHubReleaseAsset[];
 }
 
-class GithubReleaseService {
+export interface IGithubReleaseService {
+  getReleaseInfoByTag(owner: string, repo: string, tag: string): Promise<GitHubRelease | undefined>;
+  findAssetByFilename(assets: GitHubReleaseAsset[], filename: string): GitHubReleaseAsset | undefined;
+}
+
+@injectable()
+export class GithubReleaseService implements IGithubReleaseService {
+  constructor(@inject(LoggerServiceSymbol) private logger: ILoggerService) {}
+
   async getReleaseInfoByTag(
       owner: string, repo: string, tag: string
   ): Promise<GitHubRelease | undefined> {
@@ -21,8 +30,7 @@ class GithubReleaseService {
       const response = await fetch(apiUrl);
       return await response.json() as GitHubRelease;
     } catch (error) {
-      captureException(error);
-      extensionOutput.error('Error while getting GitHub release: ' + error);
+      this.logger.error('Error while getting GitHub release: ' + error);
       return undefined;
     }
   }
@@ -31,5 +39,3 @@ class GithubReleaseService {
     return assets.find((asset) => asset.name === filename);
   }
 }
-
-export const githubReleaseService = new GithubReleaseService();

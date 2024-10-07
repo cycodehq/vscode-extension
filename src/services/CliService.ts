@@ -1,17 +1,39 @@
 import * as vscode from 'vscode';
-import {VscodeStates} from '../utils/states';
-import {updateGlobalState} from '../utils/context';
 import {config} from '../utils/config';
 import cliWrapper from '../cli-wrapper/cli-wrapper';
-import extensionOutput from '../logging/extension-output';
 import statusBar from '../utils/status-bar';
 import {IConfig} from '../cli-wrapper/types';
 import {validateCliCommonErrors} from './common';
-import {onAuthFailure, updateAuthState} from '../utils/auth/auth_common';
+import {onAuthFailure} from '../utils/auth/auth_common';
 import {prettyPrintJson} from '../utils/text_formatting';
 import {captureException, setSentryUser} from '../sentry';
+import {inject, singleton} from 'tsyringe';
+import {LoggerServiceSymbol, StateServiceSymbol} from '../symbols';
+import {GlobalExtensionState, IStateService} from './StateService';
+import {ILoggerService} from './LoggerService';
 
-class CliService {
+export interface ICliService {
+  getProjectRootDirectory(): string;
+  getDefaultParams(): ({
+    config: IConfig;
+    workspaceFolderPath?: string;
+  });
+  resetPluginCLiState(): void;
+  showErrorNotification(message: string): void;
+  healthCheck(): Promise<boolean>;
+  checkAuth(): Promise<boolean>;
+}
+
+@singleton()
+export class CliService implements ICliService {
+  private state: GlobalExtensionState;
+
+  constructor(@inject(StateServiceSymbol) private stateService: IStateService,
+              @inject(LoggerServiceSymbol) private logger: ILoggerService
+  ) {
+    this.state = this.stateService.globalState;
+  }
+
   getProjectRootDirectory(): string {
     return vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || '';
   }
@@ -27,12 +49,13 @@ class CliService {
   }
 
   resetPluginCLiState() {
-    updateGlobalState(VscodeStates.CliVersion, undefined);
-    updateGlobalState(VscodeStates.CliInstalled, undefined);
+    this.state.CliInstalled = false;
+    this.state.CliVer = null;
+    this.stateService.save();
   }
 
   showErrorNotification(message: string) {
-    extensionOutput.error(message);
+    this.logger.error(message);
     vscode.window.showErrorMessage(message);
     statusBar.showCliPathError();
   }
@@ -51,8 +74,9 @@ class CliService {
       return false;
     }
 
-    updateGlobalState(VscodeStates.CliInstalled, true);
-    updateGlobalState(VscodeStates.CliVersion, getVersionResult.result.version);
+    this.state.CliInstalled = true;
+    this.state.CliVer = getVersionResult.result.version;
+    this.stateService.save();
 
     return true;
   }
@@ -92,17 +116,18 @@ class CliService {
               setSentryUser(user_id, tenant_id);
             }
 
-            updateGlobalState(VscodeStates.CliInstalled, true);
-            updateAuthState(true);
+            this.state.CliInstalled = true;
+            this.state.CliAuthed = true;
+            this.stateService.save();
 
             const output = `Auth check completed successfully with an "authenticated" status`;
-            extensionOutput.info(output);
+            this.logger.info(output);
           } catch (error) {
             captureException(error);
             this.resetPluginCLiState();
 
             const errorMessage = `Auth check failed with the following error: ${error}`;
-            extensionOutput.error(prettyPrintJson({errorMessage}));
+            this.logger.error(prettyPrintJson({errorMessage}));
             onAuthFailure();
 
             throw (error);
@@ -119,5 +144,3 @@ class CliService {
     return isAuthenticated;
   }
 }
-
-export const cliService = new CliService();

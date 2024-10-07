@@ -2,6 +2,7 @@ import * as crypto from 'crypto';
 import {getWorkspaceState, updateWorkspaceState} from '../utils/context';
 import {AnyDetection} from '../types/detection';
 import {ScanType} from '../constants';
+import {singleton} from 'tsyringe';
 
 const _STORAGE_KEY_PREFIX = 'CS:';
 
@@ -32,11 +33,22 @@ interface ScanResult {
 type LocalStorage = Record<string, ScanResult>;
 
 const _slowDeepClone = (obj: any): any => {
-  // TODO(MarshalX): move to faster approauch if the performance is critical
+  // TODO(MarshalX): move to faster approach if the performance is critical
   return JSON.parse(JSON.stringify(obj));
 };
 
-class ScanResultsService {
+export interface IScanResultsService {
+  getDetectionById(detectionId: string): ScanResult | undefined;
+  getDetections(scanType: ScanType): AnyDetection[];
+  clearDetections(scanType: ScanType): void;
+  saveDetections(scanType: ScanType, detections: AnyDetection[]): void;
+  setDetections(scanType: ScanType, detections: AnyDetection[]): void;
+  saveDetection(scanType: ScanType, detection: AnyDetection): void;
+  dropAllScanResults(): void;
+}
+
+@singleton()
+export class ScanResultsService implements IScanResultsService {
   // We are returning cloned objects to prevent mutations in the storage.
   // The mutations of detections itself happen, for example, for enriching detections for rendering violation card.
   // But not mutated detections are used to create diagnostics, tree view, etc.
@@ -93,5 +105,3 @@ class ScanResultsService {
     }
   }
 }
-
-export const scanResultsService = new ScanResultsService();

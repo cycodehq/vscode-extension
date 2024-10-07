@@ -1,5 +1,7 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
+import 'reflect-metadata';
+import './ioc';
 import * as vscode from 'vscode';
 import {extensionOutput} from './logging/extension-output';
 import {secretScan} from './services/scanners/SecretScanner';
@@ -26,21 +28,37 @@ import {isSupportedIacFile, isSupportedPackageFile, ScanType} from './constants'
 import {createAndInitPanel} from './panels/violation/violation-panel';
 import {AnyDetection} from './types/detection';
 import {VscodeStates} from './utils/states';
-import {cycodeService} from './services/CycodeService';
-import {getAuthState} from './utils/auth/auth_common';
 import {sastScan} from './services/scanners/SastScanner';
 import {captureException, initSentry} from './sentry';
 import {refreshDiagnosticCollectionData} from './services/diagnostics/common';
+import {container} from 'tsyringe';
+import {ICycodeService} from './services/CycodeService';
+import {CycodeServiceSymbol, LoggerServiceSymbol, ScanResultsServiceSymbol, StateServiceSymbol} from './symbols';
+import {IStateService} from './services/StateService';
+import {ILoggerService} from './services/LoggerService';
+import {IScanResultsService} from './services/ScanResultsService';
 
 export async function activate(context: vscode.ExtensionContext) {
   initSentry();
 
-  extensionOutput.info('Cycode extension is now active');
+  const logger = container.resolve<ILoggerService>(LoggerServiceSymbol);
+  logger.initLogger();
 
+  const stateService = container.resolve<IStateService>(StateServiceSymbol);
+  stateService.initContext(context);
+  stateService.load();
+
+  logger.info('Cycode extension is now active');
+
+  // remove after refactor
   extensionContext.initContext(context);
-  const outputChannel = vscode.window.createOutputChannel(extensionName);
-  extensionOutput.setOpts({output: outputChannel});
-  extensionOutput.info('Cycode plugin is running');
+  extensionOutput.setOpts({output: vscode.window.createOutputChannel(`${extensionName}-legacy`)});
+  // end remove after refactor
+
+  const scanResultsService = container.resolve<IScanResultsService>(ScanResultsServiceSymbol);
+  scanResultsService.dropAllScanResults();
+
+  logger.info('Cycode plugin is running');
 
   const diagnosticCollection =
       vscode.languages.createDiagnosticCollection(extensionName);
@@ -51,9 +69,7 @@ export async function activate(context: vscode.ExtensionContext) {
     }
   });
 
-  const isAuthed = extensionContext.getGlobalState(VscodeStates.IsAuthorized);
-  extensionContext.setContext(VscodeStates.IsAuthorized, !!isAuthed);
-
+  const isAuthed = stateService.globalState.CliAuthed;
   const treeView = createTreeView(context);
 
   const commands = initCommands(
@@ -537,22 +553,24 @@ const initExtension = async (
     diagnosticCollection: vscode.DiagnosticCollection,
     treeView: TreeView
 ): Promise<void> => {
-  try {
-    await cycodeService.installCliIfNeededAndCheckAuthentication();
+  const logger = container.resolve<ILoggerService>(LoggerServiceSymbol);
+  const stateService = container.resolve<IStateService>(StateServiceSymbol);
 
-    if (getAuthState()) {
+  try {
+    const cycode = container.resolve<ICycodeService>(CycodeServiceSymbol);
+    await cycode.installCliIfNeededAndCheckAuthentication();
+
+    if (stateService.globalState.CliAuthed) {
       // don't wait until the scan completes to not block the extension init
       _runScaScanOnProjectOpen(diagnosticCollection, treeView);
     }
   } catch (error) {
     captureException(error);
-    extensionOutput.error(`Cycode CLI is not installed: ${error}`,);
+    logger.error(`Cycode CLI is not installed: ${error}`,);
     vscode.window.showErrorMessage('Cycode CLI is not installed or not available');
   }
 };
 
 // This method is called when your extension is deactivated
 // eslint-disable-next-line @typescript-eslint/no-empty-function
-export function deactivate() {
-}
-
+export function deactivate() {}

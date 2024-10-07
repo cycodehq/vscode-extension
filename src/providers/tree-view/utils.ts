@@ -3,8 +3,10 @@ import {AnyDetection, IacDetection, SastDetection, ScaDetection, SecretDetection
 import {FileScanResult} from './provider';
 import {SeverityFirstLetter, TreeView, TreeViewDisplayedData} from './types';
 import {ScanType, SEVERITY_PRIORITIES} from '../../constants';
-import {cliService} from '../../services/CliService';
-import {scanResultsService} from '../../services/ScanResultsService';
+import {container} from 'tsyringe';
+import {IScanResultsService} from '../../services/ScanResultsService';
+import {CliServiceSymbol, ScanResultsServiceSymbol} from '../../symbols';
+import {ICliService} from '../../services/CliService';
 
 interface ValueItem {
   fullFilePath: string;
@@ -18,7 +20,10 @@ const VSCODE_ENTRY_LINE_NUMBER = 1;
 export const refreshTreeViewData = (
     scanType: ScanType, treeView: TreeView
 ) => {
+  const cliService = container.resolve<ICliService>(CliServiceSymbol);
   const projectRoot = cliService.getProjectRootDirectory();
+
+  const scanResultsService = container.resolve<IScanResultsService>(ScanResultsServiceSymbol);
   const detections = scanResultsService.getDetections(scanType);
 
   const affectedFiles: FileScanResult[] = [];

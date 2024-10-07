@@ -276,8 +276,10 @@
   "dependencies": {
     "@sentry/node": "^8.20.0",
     "decompress": "^4.2.1",
+    "reflect-metadata": "^0.2.2",
     "semver": "7.5.4",
     "shelljs": "0.8.5",
-    "showdown": "^2.1.0"
+    "showdown": "^2.1.0",
+    "tsyringe": "^4.8.0"
   }
 }

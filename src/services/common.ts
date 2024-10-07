@@ -6,7 +6,9 @@ import {onAuthFailure} from '../utils/auth/auth_common';
 import {getHasDetectionState, VscodeStates} from '../utils/states';
 import {ProgressBar} from '../cli-wrapper/types';
 import {DIAGNOSTIC_CODE_SEPARATOR, ScanType} from '../constants';
-import {scanResultsService} from './ScanResultsService';
+import {container} from 'tsyringe';
+import {IScanResultsService} from './ScanResultsService';
+import {ScanResultsServiceSymbol} from '../symbols';
 
 const _cliBadAuthMessageId = 'client id needed';
 const _cliBadAuthMessageSecret = 'client secret needed';
@@ -118,7 +120,9 @@ const updateHasDetectionState = (scanType: ScanType, value: boolean) => {
 };
 
 export const updateDetectionState = (scanType: ScanType) => {
+  const scanResultsService = container.resolve<IScanResultsService>(ScanResultsServiceSymbol);
   const detections = scanResultsService.getDetections(scanType);
+
   const hasDetections = detections.length > 0;
 
   updateHasDetectionState(scanType, hasDetections);

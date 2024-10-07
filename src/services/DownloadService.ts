@@ -1,24 +1,32 @@
 import {verifyFileChecksum} from '../utils/FileChecksum';
-import extensionOutput from '../logging/extension-output';
 import * as path from 'path';
 import * as os from 'os';
 import * as fs from 'fs';
-import {captureException} from '../sentry';
+import {inject, singleton} from 'tsyringe';
+import {LoggerServiceSymbol} from '../symbols';
+import {ILoggerService} from './LoggerService';
 
-class DownloadService {
+export interface IDownloadService {
+  retrieveFileTextContent(url: string): Promise<string | undefined>;
+  downloadFile(url: string, checksum: string | undefined, localPath: string): Promise<void>;
+}
+
+@singleton()
+export class DownloadService implements IDownloadService {
+  constructor(@inject(LoggerServiceSymbol) private logger: ILoggerService) {}
+
   shouldSaveFile(tempFilePath: string, checksum: string | undefined): boolean {
     return checksum == undefined || verifyFileChecksum(tempFilePath, checksum);
   }
 
   public async retrieveFileTextContent(url: string): Promise<string | undefined> {
-    extensionOutput.info(`Retrieving file content ${url}`);
+    this.logger.info(`Retrieving file content ${url}`);
 
     try {
       const response = await fetch(url);
       return await response.text();
     } catch (error) {
-      captureException(error);
-      extensionOutput.error(`Error while retrieving file content: ${error}`);
+      this.logger.error(`Error while retrieving file content: ${error}`);
     }
 
     return undefined;
@@ -38,11 +46,11 @@ class DownloadService {
   }
 
   public async downloadFile(url: string, checksum: string | undefined, localPath: string) {
-    extensionOutput.info(`Downloading file ${url} with checksum ${checksum}`);
-    extensionOutput.info(`Expecting to download to ${localPath}`);
+    this.logger.info(`Downloading file ${url} with checksum ${checksum}`);
+    this.logger.info(`Expecting to download to ${localPath}`);
 
     const tempPath = await this.createTempFilename(path.basename(localPath));
-    extensionOutput.info(`Temp file path: ${tempPath}`);
+    this.logger.info(`Temp file path: ${tempPath}`);
 
     try {
       const response = await fetch(url);
@@ -59,7 +67,7 @@ class DownloadService {
         try {
           fs.mkdirSync(localPathToCreate);
         } catch (error) {
-          extensionOutput.warn(
+          this.logger.warn(
               `Failed to create directories for ${localPathToCreate}. Probably exists already`
           );
         }
@@ -67,8 +75,7 @@ class DownloadService {
         fs.renameSync(tempPath, localPath);
       }
     } catch (error) {
-      captureException(error);
-      extensionOutput.error(`Error while downloading file: ${error}`);
+      this.logger.error(`Error while downloading file: ${error}`);
     } finally {
       if (fs.existsSync(tempPath)) {
         fs.unlinkSync(tempPath);
@@ -76,5 +83,3 @@ class DownloadService {
     }
   }
 }
-
-export const downloadService = new DownloadService();

@@ -19,12 +19,6 @@ export enum VscodeStates {
   HasDetections = 'scan.hasDetections', // any detections
 
   TreeViewIsOpen = 'treeView.isShowed',
-
-  CliHash = 'cli.hash',
-  CliDirHashes = 'cli.dirHashes',
-  CliVersion = 'cli.version',
-  CliInstalled = 'cli.installed',
-  CliLastUpdateCheckedAt = 'cli.lastUpdateCheckedAt',
 }
 
 export const getHasDetectionState = (scanType: ScanType): string => {

@@ -1,9 +1,11 @@
 import * as vscode from 'vscode';
 import {DiagnosticCode} from '../../services/common';
 import {VscodeCommands} from '../../utils/commands';
-import {scanResultsService} from '../../services/ScanResultsService';
 import {AnyDetection, IacDetection, SastDetection, ScaDetection, SecretDetection} from '../../types/detection';
 import {ScanType} from '../../constants';
+import {container} from 'tsyringe';
+import {IScanResultsService} from '../../services/ScanResultsService';
+import {ScanResultsServiceSymbol} from '../../symbols';
 
 const _getOpenViolationCardActionSastTitle = (detection: SastDetection) => {
   return detection?.detection_details.policy_display_name;
@@ -67,6 +69,7 @@ const _getOpenViolationCardActionTitle = (
 export const createOpenViolationCardAction = (
     diagnostics: vscode.Diagnostic[], diagnosticCode: DiagnosticCode
 ): vscode.CodeAction => {
+  const scanResultsService = container.resolve<IScanResultsService>(ScanResultsServiceSymbol);
   const scanResult = scanResultsService.getDetectionById(diagnosticCode.uniqueDetectionId);
   if (!scanResult) {
     throw new Error(`Detection with id ${diagnosticCode.uniqueDetectionId} not found`);

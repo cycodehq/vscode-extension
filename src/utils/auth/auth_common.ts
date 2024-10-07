@@ -1,14 +1,19 @@
 import TrayNotifications from '../TrayNotifications';
-import {getGlobalState, setContext, updateGlobalState} from '../context';
 import statusBar from '../status-bar';
-import {VscodeStates} from '../states';
+import {container} from 'tsyringe';
+import {IStateService} from '../../services/StateService';
+import {StateServiceSymbol} from '../../symbols';
 
 export function startAuthenticationProcess(): void {
-  setContext(VscodeStates.AuthenticatingInProgress, true);
+  const stateService = container.resolve<IStateService>(StateServiceSymbol);
+  stateService.localState.AuthenticatingInProgress = true;
+  stateService.save();
 }
 
 export function endAuthenticationProcess(): void {
-  setContext(VscodeStates.AuthenticatingInProgress, false);
+  const stateService = container.resolve<IStateService>(StateServiceSymbol);
+  stateService.localState.AuthenticatingInProgress = false;
+  stateService.save();
 }
 
 export function onAuthFailure(): void {
@@ -32,12 +37,7 @@ function showAuthSuccessNotification(): void {
 }
 
 export function updateAuthState(isAuthorized: boolean): void {
-  // Hide the "authenticate" button
-  setContext(VscodeStates.IsAuthorized, isAuthorized);
-  updateGlobalState(VscodeStates.IsAuthorized, isAuthorized);
-}
-
-export function getAuthState(): boolean {
-  const value = getGlobalState<boolean>(VscodeStates.IsAuthorized);
-  return value === undefined ? false : value;
+  const stateService = container.resolve<IStateService>(StateServiceSymbol);
+  stateService.globalState.CliAuthed = isAuthorized;
+  stateService.save();
 }

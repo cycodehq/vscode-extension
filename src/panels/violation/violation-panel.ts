@@ -3,12 +3,14 @@ import content from './content';
 import {AnyDetection, SecretDetection} from '../../types/detection';
 import {ScanType, SEVERITY_PRIORITIES_FIRST_LETTERS} from '../../constants';
 import {createPanel, getPanel, removePanel, revealPanel} from './panel-manager';
-import {calculateUniqueDetectionId, scanResultsService} from '../../services/ScanResultsService';
+import {calculateUniqueDetectionId, IScanResultsService} from '../../services/ScanResultsService';
 import {enrichDetectionForRender} from './enrich-detection';
 import {VscodeCommands} from '../../utils/commands';
 import {CommandParameters} from '../../cli-wrapper/constants';
 import {IgnoreCommandConfig} from '../../types/commands';
 import {getSecretDetectionIdeData} from '../../services/scanners/SecretScanner';
+import {container} from 'tsyringe';
+import {ScanResultsServiceSymbol} from '../../symbols';
 
 const _loadSeverityIcons = (context: vscode.ExtensionContext, panel: vscode.WebviewPanel): Record<string, string> => {
   const webviewUris: Record<string, string> = {};
@@ -55,6 +57,7 @@ const _onDidReceiveMessage = async (message: Record<string, string>) => {
     return;
   }
 
+  const scanResultsService = container.resolve<IScanResultsService>(ScanResultsServiceSymbol);
   const scanResult = scanResultsService.getDetectionById(message.uniqueDetectionId);
   if (!scanResult) {
     return;

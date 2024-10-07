@@ -7,8 +7,10 @@ import {refreshDiagnosticCollectionData} from '../diagnostics/common';
 import {getWorkspaceState, updateWorkspaceState} from '../../utils/context';
 import {VscodeStates} from '../../utils/states';
 import TrayNotifications from '../../utils/TrayNotifications';
-import {scanResultsService} from '../ScanResultsService';
 import {refreshTreeViewData} from '../../providers/tree-view/utils';
+import {container} from 'tsyringe';
+import {IScanResultsService} from '../ScanResultsService';
+import {ScanResultsServiceSymbol} from '../../symbols';
 
 type ScanResult = { detections?: AnyDetection[] };
 
@@ -23,6 +25,7 @@ export const handleScanResult = async (
     detections = [];
   }
 
+  const scanResultsService = container.resolve<IScanResultsService>(ScanResultsServiceSymbol);
   scanResultsService.setDetections(scanType, detections);
 
   updateDetectionState(scanType);

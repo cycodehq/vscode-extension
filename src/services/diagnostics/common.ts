@@ -5,9 +5,11 @@ import {createDiagnostics as createDiagnosticsSca} from './ScaDiagnostics';
 import {createDiagnostics as createDiagnosticsIac} from './IacDiagnostics';
 import {createDiagnostics as createDiagnosticsSast} from './SastDiagnostics';
 import {ScanType} from '../../constants';
-import {scanResultsService} from '../ScanResultsService';
 import {FileDiagnostics} from './types';
 import {validateTextRangeInOpenDoc} from '../../utils/range';
+import {container} from 'tsyringe';
+import {IScanResultsService} from '../ScanResultsService';
+import {ScanResultsServiceSymbol} from '../../symbols';
 
 const createDiagnostics = async (
     scanType: ScanType, detections: AnyDetection[]
@@ -50,6 +52,7 @@ const updateDiagnosticCollection = async (
 export const refreshDiagnosticCollectionData = async (diagnosticCollection: vscode.DiagnosticCollection) => {
   diagnosticCollection.clear();
 
+  const scanResultsService = container.resolve<IScanResultsService>(ScanResultsServiceSymbol);
   for (const scanType of Object.values(ScanType)) {
     const detections = scanResultsService.getDetections(scanType);
     await updateDiagnosticCollection(scanType, detections, diagnosticCollection);
