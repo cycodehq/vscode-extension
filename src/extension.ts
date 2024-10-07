@@ -31,6 +31,7 @@ import {getAuthState} from './utils/auth/auth_common';
 import {sastScan} from './services/scanners/SastScanner';
 import {captureException, initSentry} from './sentry';
 import {refreshDiagnosticCollectionData} from './services/diagnostics/common';
+import {getVsCodeRootPathPrefix} from './utils/GlobalConfig';
 
 export async function activate(context: vscode.ExtensionContext) {
   initSentry();
@@ -100,14 +101,10 @@ export async function activate(context: vscode.ExtensionContext) {
     }
 
     const projectPath = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
-    if (!projectPath) {
-      return;
-    }
 
-    // verify that file in the workspace
-    // user can trigger save of a VS Code settings file
-    // which we don't want to scan
-    if (!fileFsPath.startsWith(projectPath)) {
+    const vsCodeAppRootPrefix = getVsCodeRootPathPrefix();
+    if (fileFsPath.startsWith(vsCodeAppRootPrefix)) {
+      // user can trigger save of a VS Code settings files which we don't want to scan
       return;
     }
 
