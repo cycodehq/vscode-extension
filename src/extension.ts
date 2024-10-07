@@ -103,7 +103,6 @@ export async function activate(context: vscode.ExtensionContext) {
     const projectPath = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
 
     const vsCodeAppRootPrefix = getVsCodeRootPathPrefix();
-    console.log('vsCodeAppRootPrefix', vsCodeAppRootPrefix);
     if (fileFsPath.startsWith(vsCodeAppRootPrefix)) {
       // user can trigger save of a VS Code settings files which we don't want to scan
       return;
