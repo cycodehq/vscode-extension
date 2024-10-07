@@ -7,6 +7,7 @@ import {secretScan} from '../services/scanners/SecretScanner';
 import {container} from 'tsyringe';
 import {IExtensionService} from '../services/ExtensionService';
 import {ExtensionServiceSymbol} from '../symbols';
+import {getVsCodeRootPathPrefix} from '../utils/GlobalConfig';
 
 export const OnDidSaveTextDocument = (document: vscode.TextDocument) => {
   if (!config.scanOnSaveEnabled) {
@@ -23,14 +24,10 @@ export const OnDidSaveTextDocument = (document: vscode.TextDocument) => {
   }
 
   const projectPath = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
-  if (!projectPath) {
-    return;
-  }
 
-  // verify that file in the workspace
-  // user can trigger save of a VS Code settings file
-  // which we don't want to scan
-  if (!fileFsPath.startsWith(projectPath)) {
+  const vsCodeAppRootPrefix = getVsCodeRootPathPrefix();
+  if (fileFsPath.startsWith(vsCodeAppRootPrefix)) {
+    // user can trigger save of a VS Code settings files which we don't want to scan
     return;
   }
 
