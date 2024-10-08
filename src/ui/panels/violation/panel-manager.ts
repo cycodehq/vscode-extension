@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import {ScanType} from '../../constants';
+import {ScanType} from '../../../constants';
 
 const _scanTypeToPanelMap: Map<ScanType, vscode.WebviewPanel> = new Map();
 

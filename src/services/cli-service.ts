@@ -4,7 +4,7 @@ import cliWrapper from '../cli-wrapper/cli-wrapper';
 import statusBar from '../utils/status-bar';
 import {IConfig} from '../cli-wrapper/types';
 import {validateCliCommonErrors} from './common';
-import {onAuthFailure} from '../utils/auth/auth-common';
+import {onAuthFailure} from '../utils/auth';
 import {prettyPrintJson} from '../utils/text-formatting';
 import {captureException, setSentryUser} from '../sentry';
 import {inject, singleton} from 'tsyringe';

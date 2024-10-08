@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import {VscodeCommands} from '../commands';
+import {VscodeCommands} from '../../commands';
 import {ExecuteCommandMessages} from './utils';
 
 export interface ActionCommandMapping {

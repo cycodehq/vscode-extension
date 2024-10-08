@@ -1,15 +1,15 @@
-import {TreeViewItem} from './item';
-import {TreeViewDataProvider} from './provider';
+import {TreeItem} from './item';
+import {TreeDataProvider} from './provider';
 
 import * as vscode from 'vscode';
 import {AnyDetection} from '../../types/detection';
 
 export interface TreeView {
-  provider: TreeViewDataProvider;
-  view: vscode.TreeView<TreeViewItem>;
+  provider: TreeDataProvider;
+  view: vscode.TreeView<TreeItem>;
 }
 
-export interface TreeViewDisplayedData {
+export interface TreeDisplayedData {
   title: string;
   severityFirstLetter: SeverityFirstLetter;
   lineNumber: number; // converted to vscode line number

@@ -1,7 +1,7 @@
 import * as path from 'path';
 import {AnyDetection, IacDetection, SastDetection, ScaDetection, SecretDetection} from '../../types/detection';
 import {FileScanResult} from './provider';
-import {SeverityFirstLetter, TreeView, TreeViewDisplayedData} from './types';
+import {SeverityFirstLetter, TreeView, TreeDisplayedData} from './types';
 import {ScanType, SEVERITY_PRIORITIES} from '../../constants';
 import {container} from 'tsyringe';
 import {IScanResultsService} from '../../services/scan-results-service';
@@ -10,7 +10,7 @@ import {ICliService} from '../../services/cli-service';
 
 interface ValueItem {
   fullFilePath: string;
-  data: TreeViewDisplayedData;
+  data: TreeDisplayedData;
 }
 
 type SeverityCounted = { [severity: string]: number };
@@ -42,7 +42,7 @@ const _getSecretValueItem = (detection: SecretDetection): ValueItem => {
 
   const lineNumber = line + VSCODE_ENTRY_LINE_NUMBER; // CLI starts counting from 0, although vscode starts from line 1.
 
-  const valueItem: TreeViewDisplayedData = {
+  const valueItem: TreeDisplayedData = {
     title: `line ${lineNumber}: a hardcoded ${type} is used`,
     severityFirstLetter: mapSeverityToFirstLetter(severity),
     lineNumber: lineNumber,
@@ -63,7 +63,7 @@ const _getScaValueItem = (detection: ScaDetection): ValueItem => {
     description = message;
   }
 
-  const valueItem: TreeViewDisplayedData = {
+  const valueItem: TreeDisplayedData = {
     title: `line ${line_in_file}: ${package_name}@${package_version} - ${description}`,
     severityFirstLetter: mapSeverityToFirstLetter(severity),
     lineNumber: line_in_file,
@@ -78,7 +78,7 @@ const _getIacValueItem = (detection: IacDetection): ValueItem => {
   const {message, detection_details, severity} = detection;
   const {line_in_file, file_name} = detection_details;
 
-  const valueItem: TreeViewDisplayedData = {
+  const valueItem: TreeDisplayedData = {
     title: `line ${line_in_file}: ${message}`,
     severityFirstLetter: mapSeverityToFirstLetter(severity),
     lineNumber: line_in_file,
@@ -93,7 +93,7 @@ const _getSastValueItem = (detection: SastDetection): ValueItem => {
   const {detection_details, severity} = detection;
   const {line_in_file, file_path} = detection_details;
 
-  const valueItem: TreeViewDisplayedData = {
+  const valueItem: TreeDisplayedData = {
     title: `line ${line_in_file}: ${detection_details.policy_display_name}`,
     severityFirstLetter: mapSeverityToFirstLetter(severity),
     lineNumber: line_in_file,
@@ -107,8 +107,8 @@ const _getSastValueItem = (detection: SastDetection): ValueItem => {
 const mapDetectionsByFileName = (
     detections: AnyDetection[],
     scanType: ScanType,
-): Map<string, TreeViewDisplayedData[]> => {
-  const resultMap: Map<string, TreeViewDisplayedData[]> = new Map();
+): Map<string, TreeDisplayedData[]> => {
+  const resultMap: Map<string, TreeDisplayedData[]> = new Map();
 
   detections.forEach((detection) => {
     let valueItem: ValueItem | undefined;

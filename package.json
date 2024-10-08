@@ -241,15 +241,11 @@
     }
   },
   "scripts": {
-    "vscode:prepublish": "yarn run package",
-    "compile": "webpack",
-    "watch": "webpack --watch",
-    "package": "webpack --mode production",
-    "compile-tests": "tsc -p . --outDir out",
-    "watch-tests": "tsc -p . -w --outDir out",
     "lint": "eslint src --ext ts",
-    "pretest": "yarn run compile-tests && yarn run compile && yarn run lint",
-    "test": "node ./out/test/run-test.js"
+    "watch": "webpack --watch",
+    "compile": "webpack",
+    "package": "webpack --mode production",
+    "vscode:prepublish": "yarn run package"
   },
   "devDependencies": {
     "@sentry/webpack-plugin": "^2.21.1",

@@ -1,4 +1,4 @@
-import {ScanType} from '../../constants';
+import {ScanType} from '../../../constants';
 import scaRenderer from './renderer/sca';
 import secretRenderer from './renderer/secret';
 import iacRenderer from './renderer/iac';

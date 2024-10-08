@@ -68,3 +68,8 @@ export const OnDidSaveTextDocument = (document: vscode.TextDocument) => {
       extension.treeView,
   );
 };
+
+export const registerOnDidSaveTextDocument = (context: vscode.ExtensionContext) => {
+  const onDidSaveTextDocumentDisposable = vscode.workspace.onDidSaveTextDocument(OnDidSaveTextDocument);
+  context.subscriptions.push(onDidSaveTextDocumentDisposable);
+};

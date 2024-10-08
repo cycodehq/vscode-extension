@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import {singleton} from 'tsyringe';
-import {TreeView} from '../providers/tree-view/types';
+import {TreeView} from '../providers/tree-data/types';
 
 export interface IExtensionService {
   extensionContext: vscode.ExtensionContext;

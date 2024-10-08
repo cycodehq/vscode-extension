@@ -45,21 +45,10 @@ export const showIgnoreFailed = () =>
 export const showIgnoreSuccess = () =>
   vscode.window.showInformationMessage(TrayNotificationTexts.IgnoreCompleted);
 
-export const showInstallFailed = () =>
-  vscode.window.showErrorMessage(TrayNotificationTexts.InstallError);
+export const showCliInstallFailed = () =>
+  vscode.window.showErrorMessage(TrayNotificationTexts.CliInstallError);
 
-export const showInstallSuccess = () =>
-  vscode.window.showInformationMessage(TrayNotificationTexts.InstallCompleted);
-
-export const showUninstallFailed = () =>
-  vscode.window.showErrorMessage(TrayNotificationTexts.UninstallError);
-
-export const showUninstallSuccess = () =>
-  vscode.window.showInformationMessage(
-      TrayNotificationTexts.UninstallCompleted
-  );
-
-export const showProblemsDetection = (numDetections: number, scanType: ScanType) =>
+export const showProblemsDetection = (numDetections: number, scanType: ScanType) => {
   vscode.window
       .showInformationMessage(
           `Cycode has detected ${numDetections} ${getScanTypeDisplayName(scanType)} 
@@ -72,6 +61,7 @@ export const showProblemsDetection = (numDetections: number, scanType: ScanType)
         }
         updateWorkspaceState(VscodeStates.NotificationIsOpen, false);
       });
+};
 
 export default {
   showSettingsError,
@@ -80,9 +70,6 @@ export default {
   showMustBeFocusedOnFile,
   showIgnoreFailed,
   showIgnoreSuccess,
-  showInstallFailed,
-  showInstallSuccess,
+  showCliInstallFailed,
   showProblemsDetection,
-  showUninstallSuccess,
-  showUninstallFailed,
 };

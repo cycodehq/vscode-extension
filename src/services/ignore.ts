@@ -7,7 +7,7 @@ import {IConfig} from '../cli-wrapper/types';
 import {IgnoreCommandConfig} from '../types/commands';
 import {secretScan} from './scanners/secret-scanner';
 import TrayNotifications from '../utils/tray-notifications';
-import {TreeView} from '../providers/tree-view/types';
+import {TreeView} from '../providers/tree-data/types';
 import {CommandParameters} from '../cli-wrapper/constants';
 import {isSupportedIacFile} from '../constants';
 import {iacScan} from './scanners/iac-scanner';

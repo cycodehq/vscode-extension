@@ -71,3 +71,12 @@ export class CycodeActions implements vscode.CodeActionProvider {
     return codeActions;
   }
 }
+
+export const registerCodeActionsProvider = (context: vscode.ExtensionContext) => {
+  const quickActionsDisposable = vscode.languages.registerCodeActionsProvider(
+      {scheme: 'file', language: '*'},
+      new CycodeActions(),
+      {providedCodeActionKinds: [vscode.CodeActionKind.QuickFix]}
+  );
+  context.subscriptions.push(quickActionsDisposable);
+};

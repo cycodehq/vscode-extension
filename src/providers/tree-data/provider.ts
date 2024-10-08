@@ -1,12 +1,12 @@
 import * as vscode from 'vscode';
-import {TreeViewItem} from './item';
+import {TreeItem} from './item';
 import {
   getSectionItem,
   getSeverityIconPath,
   SECTIONS_ORDER,
 } from './constants';
 import {ScanType, SEVERITY_PRIORITIES_FIRST_LETTERS} from '../../constants';
-import {TreeViewDisplayedData} from './types';
+import {TreeDisplayedData} from './types';
 import {mapScanResultsToSeverityStatsString} from './utils';
 import {VscodeCommands} from '../../commands';
 
@@ -16,17 +16,16 @@ export class FileScanResult {
   constructor(
     public fileName: string,
     public fullFilePath: string,
-    public vulnerabilities: TreeViewDisplayedData[]
+    public vulnerabilities: TreeDisplayedData[]
   ) {}
 }
 
-export class TreeViewDataProvider
-implements vscode.TreeDataProvider<TreeViewItem> {
+export class TreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
   private _onDidChangeTreeData: vscode.EventEmitter<
-    TreeViewItem | undefined | void
-  > = new vscode.EventEmitter<TreeViewItem | undefined | void>();
+    TreeItem | undefined | void
+  > = new vscode.EventEmitter<TreeItem | undefined | void>();
   readonly onDidChangeTreeData: vscode.Event<
-    TreeViewItem | undefined | void
+    TreeItem | undefined | void
   > = this._onDidChangeTreeData.event;
 
   private filesScanResults: TreeDataDatabase = {
@@ -36,20 +35,20 @@ implements vscode.TreeDataProvider<TreeViewItem> {
     [ScanType.Iac]: [],
   };
 
-  getTreeItem(element: TreeViewItem): vscode.TreeItem {
+  getTreeItem(element: TreeItem): vscode.TreeItem {
     return element;
   }
 
   getChildren(
-      element?: TreeViewItem
-  ): Thenable<TreeViewItem[]> {
+      element?: TreeItem
+  ): Thenable<TreeItem[]> {
     if (!element) {
-      const treeViewTopLevelItems = [];
+      const treeTopLevelItems = [];
       for (const scanType of SECTIONS_ORDER) {
         const description = mapScanResultsToSeverityStatsString(this.filesScanResults[scanType]);
-        treeViewTopLevelItems.push(getSectionItem(scanType, description));
+        treeTopLevelItems.push(getSectionItem(scanType, description));
       }
-      return Promise.resolve(treeViewTopLevelItems);
+      return Promise.resolve(treeTopLevelItems);
     }
 
     if (element.scanSectionType) {
@@ -58,7 +57,7 @@ implements vscode.TreeDataProvider<TreeViewItem> {
       return Promise.resolve(
           scanResults.map(
               (scanResult) =>
-                new TreeViewItem({
+                new TreeItem({
                   title: scanResult.fileName,
                   collapsibleState: vscode.TreeItemCollapsibleState.Collapsed,
                   vulnerabilities: scanResult.vulnerabilities,
@@ -70,7 +69,7 @@ implements vscode.TreeDataProvider<TreeViewItem> {
     }
 
     if (element.vulnerabilities) {
-      return Promise.resolve(_createSeveritySortedTreeViewItems(element));
+      return Promise.resolve(_createSeveritySortedTreeItems(element));
     }
 
     return Promise.resolve([]);
@@ -94,9 +93,9 @@ implements vscode.TreeDataProvider<TreeViewItem> {
 }
 
 const _mapSeverityToDisplayedData =
-  (treeViewDisplayedData: TreeViewDisplayedData[]): { [key: string]: TreeViewDisplayedData[] } => {
-    const severityToDisplayData: { [key: string]: TreeViewDisplayedData[] } = {};
-    for (const displayedData of treeViewDisplayedData) {
+  (treeDisplayedData: TreeDisplayedData[]): { [key: string]: TreeDisplayedData[] } => {
+    const severityToDisplayData: { [key: string]: TreeDisplayedData[] } = {};
+    for (const displayedData of treeDisplayedData) {
       const {severityFirstLetter} = displayedData;
       if (!(severityFirstLetter in severityToDisplayData)) {
         severityToDisplayData[severityFirstLetter] = [displayedData];
@@ -109,31 +108,31 @@ const _mapSeverityToDisplayedData =
   };
 
 
-const _createSeveritySortedTreeViewItems = (treeViewItem: TreeViewItem): TreeViewItem[] => {
-  if (!treeViewItem.vulnerabilities) {
+const _createSeveritySortedTreeItems = (treeItem: TreeItem): TreeItem[] => {
+  if (!treeItem.vulnerabilities) {
     return [];
   }
 
-  const severityToDisplayData = _mapSeverityToDisplayedData(treeViewItem.vulnerabilities);
+  const severityToDisplayData = _mapSeverityToDisplayedData(treeItem.vulnerabilities);
 
-  const sortedVulnerabilities: TreeViewItem[] = [];
+  const sortedVulnerabilities: TreeItem[] = [];
   SEVERITY_PRIORITIES_FIRST_LETTERS.forEach((severityFirstLetter) => {
     const vulnerabilitiesOfSeverity = severityToDisplayData[severityFirstLetter];
     vulnerabilitiesOfSeverity && vulnerabilitiesOfSeverity.forEach((vulnerability) => {
       const openFileCommand: vscode.Command = {
         command: VscodeCommands.OnTreeItemClick,
         title: '',
-        arguments: [treeViewItem.fullFilePath, vulnerability],
+        arguments: [treeItem.fullFilePath, vulnerability],
       };
 
-      sortedVulnerabilities.push(new TreeViewItem({
+      sortedVulnerabilities.push(new TreeItem({
         title: vulnerability.title,
         vulnerability: vulnerability,
         collapsibleState: vscode.TreeItemCollapsibleState.None,
         customIconPath: getSeverityIconPath(severityFirstLetter),
-        fullFilePath: treeViewItem.fullFilePath,
+        fullFilePath: treeItem.fullFilePath,
         command: openFileCommand,
-        contextValue: `${treeViewItem.contextValue}-vulnerability`,
+        contextValue: `${treeItem.contextValue}-vulnerability`,
       }));
     });
   });

@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import {TreeViewItem} from './item';
+import {TreeItem} from './item';
 import {ScanType, ScanTypeDisplayName} from '../../constants';
 
 const _PATH_TO_RESOURCES = path.join(__filename, '..', '..', 'resources');
@@ -26,7 +26,7 @@ const _validateIconFilename = (filename: string): void => {
   }
 };
 
-const getSecretsSectionItem = (description: string): TreeViewItem => new TreeViewItem({
+const getSecretsSectionItem = (description: string): TreeItem => new TreeItem({
   title: ScanTypeDisplayName.Secrets,
   collapsibleState: vscode.TreeItemCollapsibleState.Collapsed,
   scanSectionType: ScanType.Secrets,
@@ -34,7 +34,7 @@ const getSecretsSectionItem = (description: string): TreeViewItem => new TreeVie
   description,
 });
 
-const getScaSectionItem = (description: string): TreeViewItem => new TreeViewItem({
+const getScaSectionItem = (description: string): TreeItem => new TreeItem({
   title: ScanTypeDisplayName.Sca,
   collapsibleState: vscode.TreeItemCollapsibleState.Collapsed,
   scanSectionType: ScanType.Sca,
@@ -42,7 +42,7 @@ const getScaSectionItem = (description: string): TreeViewItem => new TreeViewIte
   description,
 });
 
-const getSastSectionItem = (description: string): TreeViewItem => new TreeViewItem({
+const getSastSectionItem = (description: string): TreeItem => new TreeItem({
   title: ScanTypeDisplayName.Sast,
   collapsibleState: vscode.TreeItemCollapsibleState.Collapsed,
   scanSectionType: ScanType.Sast,
@@ -50,7 +50,7 @@ const getSastSectionItem = (description: string): TreeViewItem => new TreeViewIt
   description: description,
 });
 
-const getIacSectionItem = (description: string): TreeViewItem => new TreeViewItem({
+const getIacSectionItem = (description: string): TreeItem => new TreeItem({
   title: ScanTypeDisplayName.Iac,
   collapsibleState: vscode.TreeItemCollapsibleState.Collapsed,
   scanSectionType: ScanType.Iac,
@@ -58,7 +58,7 @@ const getIacSectionItem = (description: string): TreeViewItem => new TreeViewIte
   description,
 });
 
-const _SCAN_TYPE_TO_SECTION_ITEM_CREATOR: { [key: string]: ((description: string) => TreeViewItem)} = {
+const _SCAN_TYPE_TO_SECTION_ITEM_CREATOR: { [key: string]: ((description: string) => TreeItem)} = {
   [ScanType.Secrets]: getSecretsSectionItem,
   [ScanType.Sca]: getScaSectionItem,
   [ScanType.Sast]: getSastSectionItem,
@@ -67,7 +67,7 @@ const _SCAN_TYPE_TO_SECTION_ITEM_CREATOR: { [key: string]: ((description: string
 
 export const SECTIONS_ORDER: ReadonlyArray<ScanType> = [ScanType.Secrets, ScanType.Sca, ScanType.Iac, ScanType.Sast];
 
-export const getSectionItem = (scanType: string, description: string): TreeViewItem => {
+export const getSectionItem = (scanType: string, description: string): TreeItem => {
   if (!(scanType in _SCAN_TYPE_TO_SECTION_ITEM_CREATOR)) {
     throw Error(`Unknown scan type: ${scanType}`);
   }

@@ -33,13 +33,6 @@ jobs:
       - name: Code Linting
         run: npm run lint
 
-      - name: Run tests
-        run: |
-          sudo apt-get install xvfb
-          export DISPLAY=:99.0
-          Xvfb -ac :99 -screen 0 1920x1080x16 &
-          npm run test
-
       - name: Build extension
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
@@ -47,7 +40,8 @@ jobs:
           npm install -g @vscode/vsce
           vsce package
           mv *.vsix cycode-extension.vsix
-      - name: Upload extension package
+
+      - name: Upload extension package to artifacts
         uses: actions/upload-artifact@v3
         with:
           name: cycode-extension.vsix

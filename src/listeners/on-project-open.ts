@@ -3,10 +3,18 @@ import {config, validateConfig} from '../utils/config';
 import {scaScan} from '../services/scanners/sca-scanner';
 import {container} from 'tsyringe';
 import {IExtensionService} from '../services/extension-service';
-import {ExtensionServiceSymbol} from '../symbols';
+import {ExtensionServiceSymbol, StateServiceSymbol} from '../symbols';
+import {IStateService} from '../services/state-service';
 
 export const OnProjectOpen = () => {
+  // dead code
+  // was disabled because of slow scanning performance
   // right now it only starts sca scan on project open
+  const stateService = container.resolve<IStateService>(StateServiceSymbol);
+
+  if (!stateService.globalState.CliAuthed) {
+    return;
+  }
 
   const scaScanOnOpen = false;
   if (!scaScanOnOpen) {

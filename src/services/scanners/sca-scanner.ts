@@ -5,7 +5,7 @@ import {StatusBarTexts} from '../../utils/texts';
 import {finalizeScanState, validateCliCommonErrors, validateCliCommonScanErrors} from '../common';
 import {getWorkspaceState, updateWorkspaceState} from '../../utils/context';
 import {IConfig, ProgressBar, RunCliResult} from '../../cli-wrapper/types';
-import {TreeView} from '../../providers/tree-view/types';
+import {TreeView} from '../../providers/tree-data/types';
 import {ScanType} from '../../constants';
 import {VscodeStates} from '../../utils/states';
 import {captureException} from '../../sentry';

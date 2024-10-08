@@ -1,6 +1,6 @@
 import {ActionCommandMapping, CycodeView} from '../cycode-view';
 import {ExecuteCommandMessages} from '../utils';
-import {VscodeCommands} from '../../commands';
+import {VscodeCommands} from '../../../commands';
 import content from './content';
 
 

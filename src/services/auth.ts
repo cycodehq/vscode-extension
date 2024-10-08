@@ -6,7 +6,7 @@ import {
   onAuthFailure,
   onAuthSuccess,
   startAuthenticationProcess,
-} from '../utils/auth/auth-common';
+} from '../utils/auth';
 import {CommandParams} from '../types/commands';
 import {captureException} from '../sentry';
 import {container} from 'tsyringe';

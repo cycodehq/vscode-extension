@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import statusBar from '../utils/status-bar';
 import {TrayNotificationTexts} from '../utils/texts';
 import {getWorkspaceState, setContext, updateWorkspaceState} from '../utils/context';
-import {onAuthFailure} from '../utils/auth/auth-common';
+import {onAuthFailure} from '../utils/auth';
 import {getHasDetectionState, VscodeStates} from '../utils/states';
 import {ProgressBar} from '../cli-wrapper/types';
 import {DIAGNOSTIC_CODE_SEPARATOR, ScanType} from '../constants';

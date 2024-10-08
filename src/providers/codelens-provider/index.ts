@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
-import {extensionId} from '../utils/texts';
-import {validateTextRangeInOpenDoc} from '../utils/range';
+import {extensionId} from '../../utils/texts';
+import {validateTextRangeInOpenDoc} from '../../utils/range';
 
 export class CodelensProvider implements vscode.CodeLensProvider {
   private _onDidChangeCodeLenses: vscode.EventEmitter<void> =
@@ -75,3 +75,11 @@ export class CodelensProvider implements vscode.CodeLensProvider {
     return codeLens;
   }
 }
+
+export const registerCodeLensProvider = (context: vscode.ExtensionContext) => {
+  const codeLensDisposable = vscode.languages.registerCodeLensProvider(
+      {scheme: 'file', language: '*'},
+      new CodelensProvider()
+  );
+  context.subscriptions.push(codeLensDisposable);
+};

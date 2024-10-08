@@ -4,7 +4,7 @@ import secretCard from './card/secret';
 import iacCard from './card/iac';
 import sastCard from './card/sast';
 import js from './js';
-import {ScanType} from '../../constants';
+import {ScanType} from '../../../constants';
 
 export default (detectionType: ScanType) => `
 <!DOCTYPE html>

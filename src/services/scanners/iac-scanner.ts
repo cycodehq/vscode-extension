@@ -10,7 +10,7 @@ import {
 import {getWorkspaceState, updateWorkspaceState} from '../../utils/context';
 import {IacDetection} from '../../types/detection';
 import {IConfig, ProgressBar, RunCliResult} from '../../cli-wrapper/types';
-import {TreeView} from '../../providers/tree-view/types';
+import {TreeView} from '../../providers/tree-data/types';
 import {ScanType} from '../../constants';
 import {VscodeStates} from '../../utils/states';
 import {captureException} from '../../sentry';

@@ -1,8 +1,8 @@
 import * as vscode from 'vscode';
 import {VscodeCommands} from './index';
-import {TreeViewItem} from '../providers/tree-view/item';
+import {TreeItem} from '../providers/tree-data/item';
 
-export default (item: TreeViewItem) => {
+export default (item: TreeItem) => {
   vscode.commands.executeCommand(
       VscodeCommands.OpenViolationInFile,
       item.fullFilePath,

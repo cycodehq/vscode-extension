@@ -1,6 +1,6 @@
 import * as path from 'path';
-import {ScanType} from '../../constants';
-import {AnyDetection, IacDetection, SastDetection, ScaDetection, SecretDetection} from '../../types/detection';
+import {ScanType} from '../../../constants';
+import {AnyDetection, IacDetection, SastDetection, ScaDetection, SecretDetection} from '../../../types/detection';
 import {Converter} from 'showdown';
 
 const _MARKDOWN_CONVERTER = new Converter();
