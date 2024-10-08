@@ -1,7 +1,9 @@
 import {spawn} from 'child_process';
 import * as os from 'os';
-import {extensionOutput} from '../logging/extension-output';
 import {CommandResult, RunCliArgs, RunCliResult} from './types';
+import {container} from 'tsyringe';
+import {ILoggerService} from '../services/LoggerService';
+import {LoggerServiceSymbol} from '../symbols';
 
 const parseResult = (out: string): object => {
   let result = {};
@@ -17,6 +19,7 @@ const parseResult = (out: string): object => {
 };
 
 export const getRunnableCliCommand = (args: RunCliArgs): RunCliResult => {
+  const logger = container.resolve<ILoggerService>(LoggerServiceSymbol);
   const {
     cliPath,
     cliEnv,
@@ -25,7 +28,7 @@ export const getRunnableCliCommand = (args: RunCliArgs): RunCliResult => {
     printToOutput,
   } = args;
 
-  extensionOutput.info(
+  logger.debug(
       `Running command: "${cliPath} ${commandParams.join(' ')}"`
   );
 
@@ -39,7 +42,7 @@ export const getRunnableCliCommand = (args: RunCliArgs): RunCliResult => {
   });
 
   const getCancelPromise = () => new Promise<void>((resolve) => {
-    extensionOutput.info(
+    logger.debug(
         `Killing child process: "${cliPath} ${commandParams.join(' ')}"`
     );
 
@@ -58,7 +61,7 @@ export const getRunnableCliCommand = (args: RunCliArgs): RunCliResult => {
       }
       stderr += data.toString();
       if (printToOutput) {
-        extensionOutput.debug(data.toString());
+        logger.debug(data.toString());
       }
     };
 
@@ -67,13 +70,13 @@ export const getRunnableCliCommand = (args: RunCliArgs): RunCliResult => {
 
     childProcess.on('exit', (code: number) => {
       // exit occurs earlier than close
-      extensionOutput.debug(`Command exited with code: ${code}`);
+      logger.debug(`Command exited with code: ${code}`);
       exitCode = code;
     });
 
     childProcess.on('close', (code: number) => {
       // we receive all "data" events before close
-      extensionOutput.debug(`Streams of a command have been closed with code: ${code}`);
+      logger.debug(`Streams of a command have been closed with code: ${code}`);
       resolve({
         exitCode: exitCode,
         stderr: stderr,
@@ -92,7 +95,7 @@ export const getRunnableCliCommand = (args: RunCliArgs): RunCliResult => {
 
     childProcess.stdout?.on('data', (data) => {
       if (printToOutput) {
-        extensionOutput.info(`Command stdout: ${data.toString()}`);
+        logger.debug(`Command stdout: ${data.toString()}`);
       }
 
       if (!data) {

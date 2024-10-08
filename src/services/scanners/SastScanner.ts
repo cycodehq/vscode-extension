@@ -1,5 +1,4 @@
 import * as vscode from 'vscode';
-import {extensionOutput} from '../../logging/extension-output';
 import {cliWrapper} from '../../cli-wrapper/cli-wrapper';
 import statusBar from '../../utils/status-bar';
 import {StatusBarTexts, TrayNotificationTexts} from '../../utils/texts';
@@ -16,6 +15,9 @@ import {ScanType} from '../../constants';
 import {VscodeStates} from '../../utils/states';
 import {captureException} from '../../sentry';
 import {handleScanResult} from './common';
+import {container} from 'tsyringe';
+import {ILoggerService} from '../LoggerService';
+import {LoggerServiceSymbol} from '../../symbols';
 
 interface SastScanParams {
   pathToScan: string;
@@ -56,8 +58,9 @@ const _getRunnableCliSastScan = (params: SastScanParams): RunCliResult => {
 };
 
 const _initScanState = (params: SastScanParams, progress?: ProgressBar) => {
-  extensionOutput.info(StatusBarTexts.ScanWait);
-  extensionOutput.info('Initiating SAST scan for file: ' + params.pathToScan);
+  const logger = container.resolve<ILoggerService>(LoggerServiceSymbol);
+  logger.info(StatusBarTexts.ScanWait);
+  logger.info('Initiating SAST scan for file: ' + params.pathToScan);
 
   statusBar.showScanningInProgress();
   updateWorkspaceState(VscodeStates.SastScanInProgress, true);
@@ -89,6 +92,8 @@ export async function _sastScan(
     progress?: ProgressBar,
     cancellationToken?: vscode.CancellationToken,
 ) {
+  const logger = container.resolve<ILoggerService>(LoggerServiceSymbol);
+
   try {
     if (getWorkspaceState(VscodeStates.SastScanInProgress)) {
       return;
@@ -136,6 +141,6 @@ export async function _sastScan(
     }
     vscode.window.showErrorMessage(notificationText);
 
-    extensionOutput.error('Error while creating SAST scan: ' + error);
+    logger.error('Error while creating SAST scan: ' + error);
   }
 }

@@ -3,7 +3,6 @@
 import 'reflect-metadata';
 import './ioc';
 import * as vscode from 'vscode';
-import {extensionOutput} from './logging/extension-output';
 import {extensionName} from './utils/texts';
 import statusBar from './utils/status-bar';
 import extensionContext from './utils/context';
@@ -39,17 +38,13 @@ export async function activate(context: vscode.ExtensionContext) {
 
   const logger = container.resolve<ILoggerService>(LoggerServiceSymbol);
   logger.initLogger();
+  logger.info('Cycode extension is now active');
 
   const stateService = container.resolve<IStateService>(StateServiceSymbol);
   stateService.initContext(context);
   stateService.load();
 
-  logger.info('Cycode extension is now active');
-
-  // remove after refactor
-  extensionContext.initContext(context);
-  extensionOutput.setOpts({output: vscode.window.createOutputChannel(`${extensionName}-legacy`)});
-  // end remove after refactor
+  extensionContext.initContext(context); // remove after refactor
 
   const scanResultsService = container.resolve<IScanResultsService>(ScanResultsServiceSymbol);
   scanResultsService.dropAllScanResults();

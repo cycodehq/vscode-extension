@@ -1,8 +1,10 @@
 import * as fs from 'fs';
 import * as crypto from 'crypto';
 import * as path from 'path';
-import extensionOutput from '../logging/extension-output';
 import {captureException} from '../sentry';
+import {container} from 'tsyringe';
+import {ILoggerService} from '../services/LoggerService';
+import {LoggerServiceSymbol} from '../symbols';
 
 const getFileShaHash = (filePath: string): string => {
   const fileBuffer = fs.readFileSync(filePath);
@@ -13,6 +15,8 @@ const getFileShaHash = (filePath: string): string => {
 };
 
 export const verifyFileChecksum = (filePath: string, checksum: string): boolean => {
+  const logger = container.resolve<ILoggerService>(LoggerServiceSymbol);
+
   if (!fs.existsSync(filePath)) {
     return false;
   }
@@ -21,7 +25,7 @@ export const verifyFileChecksum = (filePath: string, checksum: string): boolean 
     return getFileShaHash(filePath).toLowerCase() === checksum.toLowerCase();
   } catch (error) {
     captureException(error);
-    extensionOutput.error(`Failed to verify file checksum ${error}`);
+    logger.error(`Failed to verify file checksum ${error}`);
   }
 
   return false;

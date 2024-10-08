@@ -1,6 +1,5 @@
 import * as vscode from 'vscode';
 
-import {extensionOutput} from '../logging/extension-output';
 import {cliWrapper} from '../cli-wrapper/cli-wrapper';
 import statusBar from '../utils/status-bar';
 import {validateCliCommonErrors} from './common';
@@ -13,6 +12,9 @@ import {CommandParameters} from '../cli-wrapper/constants';
 import {isSupportedIacFile} from '../constants';
 import {iacScan} from './scanners/IacScanner';
 import {captureException} from '../sentry';
+import {container} from 'tsyringe';
+import {ILoggerService} from './LoggerService';
+import {LoggerServiceSymbol} from '../symbols';
 
 export async function ignore(
     params: {
@@ -23,6 +25,8 @@ export async function ignore(
       treeView: TreeView;
     }
 ) {
+  const logger = container.resolve<ILoggerService>(LoggerServiceSymbol);
+
   try {
     const {stderr, exitCode} = await cliWrapper.getRunnableIgnoreCommand(params).getResultPromise();
 
@@ -68,7 +72,7 @@ export async function ignore(
     }
   } catch (error) {
     captureException(error);
-    extensionOutput.error('Error while ignoring: ' + error);
+    logger.error('Error while ignoring: ' + error);
     onIgnoreFailed();
   }
 }

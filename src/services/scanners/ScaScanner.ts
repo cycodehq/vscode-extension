@@ -1,5 +1,4 @@
 import * as vscode from 'vscode';
-import {extensionOutput} from '../../logging/extension-output';
 import {cliWrapper} from '../../cli-wrapper/cli-wrapper';
 import statusBar from '../../utils/status-bar';
 import {StatusBarTexts} from '../../utils/texts';
@@ -11,6 +10,9 @@ import {ScanType} from '../../constants';
 import {VscodeStates} from '../../utils/states';
 import {captureException} from '../../sentry';
 import {handleScanResult} from './common';
+import {container} from 'tsyringe';
+import {ILoggerService} from '../LoggerService';
+import {LoggerServiceSymbol} from '../../symbols';
 
 interface ScaScanParams {
   pathToScan: string;
@@ -42,12 +44,13 @@ export function scaScan(params: ScaScanParams, treeView: TreeView) {
 }
 
 const _initScanState = (params: ScaScanParams, progress?: ProgressBar) => {
-  extensionOutput.info(StatusBarTexts.ScanWait);
+  const logger = container.resolve<ILoggerService>(LoggerServiceSymbol);
+
+  logger.info(StatusBarTexts.ScanWait);
+  logger.info('Initiating SCA scan for path: ' + params.workspaceFolderPath);
+
   statusBar.showScanningInProgress();
 
-  extensionOutput.info(
-      'Initiating SCA scan for path: ' + params.workspaceFolderPath
-  );
   updateWorkspaceState(VscodeStates.ScaScanInProgress, true);
 
   progress?.report({
@@ -71,6 +74,8 @@ const _scaScan = async (
     progress?: ProgressBar,
     cancellationToken?: vscode.CancellationToken,
 ) => {
+  const logger = container.resolve<ILoggerService>(LoggerServiceSymbol);
+
   try {
     _initScanState(params, progress);
 
@@ -96,6 +101,6 @@ const _scaScan = async (
 
     finalizeScanState(VscodeStates.ScaScanInProgress, false, progress);
 
-    extensionOutput.error('Error while creating SCA scan: ' + error);
+    logger.error('Error while creating SCA scan: ' + error);
   }
 };
