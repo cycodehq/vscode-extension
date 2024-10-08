@@ -2,12 +2,12 @@ import * as vscode from 'vscode';
 import statusBar from '../utils/status-bar';
 import {TrayNotificationTexts} from '../utils/texts';
 import {getWorkspaceState, setContext, updateWorkspaceState} from '../utils/context';
-import {onAuthFailure} from '../utils/auth/auth_common';
+import {onAuthFailure} from '../utils/auth/auth-common';
 import {getHasDetectionState, VscodeStates} from '../utils/states';
 import {ProgressBar} from '../cli-wrapper/types';
 import {DIAGNOSTIC_CODE_SEPARATOR, ScanType} from '../constants';
 import {container} from 'tsyringe';
-import {IScanResultsService} from './ScanResultsService';
+import {IScanResultsService} from './scan-results-service';
 import {ScanResultsServiceSymbol} from '../symbols';
 
 const _cliBadAuthMessageId = 'client id needed';

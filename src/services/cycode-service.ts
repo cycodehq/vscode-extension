@@ -1,7 +1,7 @@
-import {ICliDownloadService} from './CliDownloadService';
+import {ICliDownloadService} from './cli-download-service';
 import {inject, injectable} from 'tsyringe';
 import {CliDownloadServiceSymbol, CliServiceSymbol} from '../symbols';
-import {ICliService} from './CliService';
+import {ICliService} from './cli-service';
 
 export interface ICycodeService {
   installCliIfNeededAndCheckAuthentication(): Promise<void>;

@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import {inject, singleton} from 'tsyringe';
 import {LoggerServiceSymbol} from '../symbols';
-import {ILoggerService} from './LoggerService';
+import {ILoggerService} from './logger-service';
 import {VscodeStates} from '../utils/states';
 
 export class GlobalExtensionState {

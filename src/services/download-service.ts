@@ -1,10 +1,10 @@
-import {verifyFileChecksum} from '../utils/FileChecksum';
+import {verifyFileChecksum} from '../utils/file-checksum';
 import * as path from 'path';
 import * as os from 'os';
 import * as fs from 'fs';
 import {inject, singleton} from 'tsyringe';
 import {LoggerServiceSymbol} from '../symbols';
-import {ILoggerService} from './LoggerService';
+import {ILoggerService} from './logger-service';
 
 export interface IDownloadService {
   retrieveFileTextContent(url: string): Promise<string | undefined>;

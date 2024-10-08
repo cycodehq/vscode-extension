@@ -4,7 +4,7 @@ import {VscodeCommands} from '../../commands';
 import {AnyDetection, IacDetection, SastDetection, ScaDetection, SecretDetection} from '../../types/detection';
 import {ScanType} from '../../constants';
 import {container} from 'tsyringe';
-import {IScanResultsService} from '../../services/ScanResultsService';
+import {IScanResultsService} from '../../services/scan-results-service';
 import {ScanResultsServiceSymbol} from '../../symbols';
 
 const _getOpenViolationCardActionSastTitle = (detection: SastDetection) => {

@@ -3,8 +3,8 @@ import {SecretDetection} from '../../types/detection';
 import {extensionId} from '../../utils/texts';
 import {DiagnosticCode} from '../common';
 import {ScanType} from '../../constants';
-import {calculateUniqueDetectionId} from '../ScanResultsService';
-import {getSecretDetectionIdeData} from '../scanners/SecretScanner';
+import {calculateUniqueDetectionId} from '../scan-results-service';
+import {getSecretDetectionIdeData} from '../scanners/secret-scanner';
 import {FileDiagnostics} from './types';
 
 export const createDiagnostics = async (

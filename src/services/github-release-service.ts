@@ -1,6 +1,6 @@
 import {inject, injectable} from 'tsyringe';
 import {LoggerServiceSymbol} from '../symbols';
-import {ILoggerService} from './LoggerService';
+import {ILoggerService} from './logger-service';
 
 export interface GitHubReleaseAsset {
   name: string;

@@ -4,7 +4,7 @@ import {ScaDetection} from '../../types/detection';
 import {getPackageFileForLockFile, isSupportedLockFile, ScanType} from '../../constants';
 import {extensionId} from '../../utils/texts';
 import {DiagnosticCode} from '../common';
-import {calculateUniqueDetectionId} from '../ScanResultsService';
+import {calculateUniqueDetectionId} from '../scan-results-service';
 import {FileDiagnostics} from './types';
 
 export const createDiagnostics = async (

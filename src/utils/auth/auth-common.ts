@@ -1,7 +1,7 @@
-import TrayNotifications from '../TrayNotifications';
+import TrayNotifications from '../tray-notifications';
 import statusBar from '../status-bar';
 import {container} from 'tsyringe';
-import {IStateService} from '../../services/StateService';
+import {IStateService} from '../../services/state-service';
 import {StateServiceSymbol} from '../../symbols';
 
 export function startAuthenticationProcess(): void {

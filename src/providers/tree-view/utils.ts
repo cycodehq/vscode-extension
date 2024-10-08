@@ -4,9 +4,9 @@ import {FileScanResult} from './provider';
 import {SeverityFirstLetter, TreeView, TreeViewDisplayedData} from './types';
 import {ScanType, SEVERITY_PRIORITIES} from '../../constants';
 import {container} from 'tsyringe';
-import {IScanResultsService} from '../../services/ScanResultsService';
+import {IScanResultsService} from '../../services/scan-results-service';
 import {CliServiceSymbol, ScanResultsServiceSymbol} from '../../symbols';
-import {ICliService} from '../../services/CliService';
+import {ICliService} from '../../services/cli-service';
 
 interface ValueItem {
   fullFilePath: string;

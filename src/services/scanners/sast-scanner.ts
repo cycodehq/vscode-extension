@@ -8,19 +8,18 @@ import {
   validateCliCommonScanErrors,
 } from '../common';
 import {getWorkspaceState, updateWorkspaceState} from '../../utils/context';
-import {IacDetection} from '../../types/detection';
+import {SastDetection} from '../../types/detection';
 import {IConfig, ProgressBar, RunCliResult} from '../../cli-wrapper/types';
 import {TreeView} from '../../providers/tree-view/types';
 import {ScanType} from '../../constants';
 import {VscodeStates} from '../../utils/states';
 import {captureException} from '../../sentry';
 import {handleScanResult} from './common';
-import * as fs from 'node:fs';
 import {container} from 'tsyringe';
-import {ILoggerService} from '../LoggerService';
+import {ILoggerService} from '../logger-service';
 import {LoggerServiceSymbol} from '../../symbols';
 
-interface IacScanParams {
+interface SastScanParams {
   pathToScan: string;
   workspaceFolderPath?: string;
   diagnosticCollection: vscode.DiagnosticCollection;
@@ -28,12 +27,12 @@ interface IacScanParams {
   onDemand?: boolean;
 }
 
-type IacScanResult = { detections?: IacDetection[] };
+type SastScanResult = { detections?: SastDetection[] };
 
-export const iacScan = (params: IacScanParams, treeView: TreeView) => {
+export const sastScan = (params: SastScanParams, treeView: TreeView) => {
   // we are showing progress bar only for on-demand scans
   if (!params.onDemand) {
-    _iacScan(params, treeView, undefined, undefined);
+    _sastScan(params, treeView, undefined, undefined);
     return;
   }
 
@@ -43,51 +42,52 @@ export const iacScan = (params: IacScanParams, treeView: TreeView) => {
         cancellable: true,
       },
       async (progress, token) => {
-        await _iacScan(params, treeView, progress, token);
+        await _sastScan(params, treeView, progress, token);
       },
   );
 };
 
-const _getRunnableCliIacScan = (params: IacScanParams): RunCliResult => {
+const _getRunnableCliSastScan = (params: SastScanParams): RunCliResult => {
   const cliParams = {
     path: params.pathToScan,
     workspaceFolderPath: params.workspaceFolderPath,
     config: params.config,
   };
 
-  return cliWrapper.getRunnableIacScanCommand(cliParams);
+  return cliWrapper.getRunnableSastScanCommand(cliParams);
 };
 
-const _initScanState = (params: IacScanParams, progress?: ProgressBar) => {
+const _initScanState = (params: SastScanParams, progress?: ProgressBar) => {
   const logger = container.resolve<ILoggerService>(LoggerServiceSymbol);
   logger.info(StatusBarTexts.ScanWait);
-  logger.info('Initiating IaC scan for file: ' + params.pathToScan);
+  logger.info('Initiating SAST scan for file: ' + params.pathToScan);
 
   statusBar.showScanningInProgress();
-  updateWorkspaceState(VscodeStates.IacScanInProgress, true);
+  updateWorkspaceState(VscodeStates.SastScanInProgress, true);
 
   progress?.report({
-    message: `IaC scanning ${params.pathToScan}...`,
+    message: `SAST scanning ${params.pathToScan}...`,
   });
 };
 
-const filterUnsupportedIacDetections = (result: IacScanResult): IacScanResult => {
+const normalizeSastDetections = (result: SastScanResult): SastScanResult => {
   if (!result || !result.detections) {
     return result;
   }
 
-  result.detections = result.detections.filter((detection) => {
-    // TF plans are virtual files what is not exist in the file system
-    // "file_name": "1711298252-/Users/ilyasiamionau/projects/cycode/ilya-siamionau-payloads/tfplan.tf",
-    // skip such detections
-    return fs.existsSync(detection.detection_details.file_name);
-  });
+  for (const detection of result.detections) {
+    const {detection_details} = detection;
+
+    if (!detection_details.file_path.startsWith('/')) {
+      detection_details.file_path = '/' + detection_details.file_path;
+    }
+  }
 
   return result;
 };
 
-export async function _iacScan(
-    params: IacScanParams,
+export async function _sastScan(
+    params: SastScanParams,
     treeView: TreeView,
     progress?: ProgressBar,
     cancellationToken?: vscode.CancellationToken,
@@ -95,7 +95,7 @@ export async function _iacScan(
   const logger = container.resolve<ILoggerService>(LoggerServiceSymbol);
 
   try {
-    if (getWorkspaceState(VscodeStates.IacScanInProgress)) {
+    if (getWorkspaceState(VscodeStates.SastScanInProgress)) {
       return;
     }
 
@@ -105,17 +105,17 @@ export async function _iacScan(
 
     _initScanState(params, progress);
 
-    const runnableIacScan = _getRunnableCliIacScan(params);
+    const runnableSastScan = _getRunnableCliSastScan(params);
 
     cancellationToken?.onCancellationRequested(async () => {
-      await runnableIacScan.getCancelPromise();
-      finalizeScanState(VscodeStates.IacScanInProgress, true, progress);
+      await runnableSastScan.getCancelPromise();
+      finalizeScanState(VscodeStates.SastScanInProgress, true, progress);
     });
 
-    const scanResult = await runnableIacScan.getResultPromise();
+    const scanResult = await runnableSastScan.getResultPromise();
     const {result, stderr} = scanResult;
 
-    updateWorkspaceState(VscodeStates.IacScanInProgress, false);
+    updateWorkspaceState(VscodeStates.SastScanInProgress, false);
 
     if (validateCliCommonErrors(stderr)) {
       return;
@@ -123,17 +123,17 @@ export async function _iacScan(
     validateCliCommonScanErrors(result);
 
     await handleScanResult(
-        ScanType.Iac,
-        filterUnsupportedIacDetections(result),
+        ScanType.Sast,
+        normalizeSastDetections(result),
         params.diagnosticCollection,
         treeView
     );
 
-    finalizeScanState(VscodeStates.IacScanInProgress, true, progress);
+    finalizeScanState(VscodeStates.SastScanInProgress, true, progress);
   } catch (error: any) {
     captureException(error);
 
-    finalizeScanState(VscodeStates.IacScanInProgress, false, progress);
+    finalizeScanState(VscodeStates.SastScanInProgress, false, progress);
 
     let notificationText: string = TrayNotificationTexts.ScanError;
     if (error.message !== undefined) {
@@ -141,6 +141,6 @@ export async function _iacScan(
     }
     vscode.window.showErrorMessage(notificationText);
 
-    logger.error('Error while creating IaC scan: ' + error);
+    logger.error('Error while creating SAST scan: ' + error);
   }
 }

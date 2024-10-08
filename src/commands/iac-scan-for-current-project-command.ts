@@ -1,8 +1,8 @@
 import * as vscode from 'vscode';
 import {config, validateConfig} from '../utils/config';
-import {iacScan} from '../services/scanners/IacScanner';
+import {iacScan} from '../services/scanners/iac-scanner';
 import {container} from 'tsyringe';
-import {IExtensionService} from '../services/ExtensionService';
+import {IExtensionService} from '../services/extension-service';
 import {ExtensionServiceSymbol} from '../symbols';
 
 export default () => {

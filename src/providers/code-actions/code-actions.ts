@@ -1,11 +1,11 @@
 import * as vscode from 'vscode';
 import {DiagnosticCode} from '../../services/common';
 import {ScanType} from '../../constants';
-import {createCommandCodeActions as createSecretCommandCodeActions} from './secretsCodeActions';
-import {createCommandCodeActions as createScaCommandCodeActions} from './scaCodeActions';
-import {createCommandCodeActions as createIacCommandCodeActions} from './iacCodeActions';
-import {createCommandCodeActions as createSastCommandCodeActions} from './sastCodeActions';
-import {aggregateDiagnosticsByCode} from './uniqueDiagnostics';
+import {createCommandCodeActions as createSecretCommandCodeActions} from './secrets-code-actions';
+import {createCommandCodeActions as createScaCommandCodeActions} from './sca-code-actions';
+import {createCommandCodeActions as createIacCommandCodeActions} from './iac-code-actions';
+import {createCommandCodeActions as createSastCommandCodeActions} from './sast-code-actions';
+import {aggregateDiagnosticsByCode} from './unique-diagnostics';
 
 export class CycodeActions implements vscode.CodeActionProvider {
   public static readonly providedCodeActionKinds = [

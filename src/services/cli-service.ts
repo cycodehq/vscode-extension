@@ -4,13 +4,13 @@ import cliWrapper from '../cli-wrapper/cli-wrapper';
 import statusBar from '../utils/status-bar';
 import {IConfig} from '../cli-wrapper/types';
 import {validateCliCommonErrors} from './common';
-import {onAuthFailure} from '../utils/auth/auth_common';
-import {prettyPrintJson} from '../utils/text_formatting';
+import {onAuthFailure} from '../utils/auth/auth-common';
+import {prettyPrintJson} from '../utils/text-formatting';
 import {captureException, setSentryUser} from '../sentry';
 import {inject, singleton} from 'tsyringe';
 import {LoggerServiceSymbol, StateServiceSymbol} from '../symbols';
-import {GlobalExtensionState, IStateService} from './StateService';
-import {ILoggerService} from './LoggerService';
+import {GlobalExtensionState, IStateService} from './state-service';
+import {ILoggerService} from './logger-service';
 
 export interface ICliService {
   getProjectRootDirectory(): string;

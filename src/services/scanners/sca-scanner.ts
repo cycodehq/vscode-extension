@@ -11,7 +11,7 @@ import {VscodeStates} from '../../utils/states';
 import {captureException} from '../../sentry';
 import {handleScanResult} from './common';
 import {container} from 'tsyringe';
-import {ILoggerService} from '../LoggerService';
+import {ILoggerService} from '../logger-service';
 import {LoggerServiceSymbol} from '../../symbols';
 
 interface ScaScanParams {

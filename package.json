@@ -247,9 +247,9 @@
     "package": "webpack --mode production",
     "compile-tests": "tsc -p . --outDir out",
     "watch-tests": "tsc -p . -w --outDir out",
-    "pretest": "yarn run compile-tests && yarn run compile && yarn run lint",
     "lint": "eslint src --ext ts",
-    "test": "node ./out/test/runTest.js"
+    "pretest": "yarn run compile-tests && yarn run compile && yarn run lint",
+    "test": "node ./out/test/run-test.js"
   },
   "devDependencies": {
     "@sentry/webpack-plugin": "^2.21.1",

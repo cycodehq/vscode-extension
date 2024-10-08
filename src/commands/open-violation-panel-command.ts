@@ -2,7 +2,7 @@ import {ScanType} from '../constants';
 import {AnyDetection} from '../types/detection';
 import {createAndInitPanel} from '../panels/violation/violation-panel';
 import {container} from 'tsyringe';
-import {IExtensionService} from '../services/ExtensionService';
+import {IExtensionService} from '../services/extension-service';
 import {ExtensionServiceSymbol} from '../symbols';
 
 export default (detectionType: ScanType, detection: AnyDetection) => {

@@ -6,11 +6,11 @@ import {
   onAuthFailure,
   onAuthSuccess,
   startAuthenticationProcess,
-} from '../utils/auth/auth_common';
+} from '../utils/auth/auth-common';
 import {CommandParams} from '../types/commands';
 import {captureException} from '../sentry';
 import {container} from 'tsyringe';
-import {ILoggerService} from './LoggerService';
+import {ILoggerService} from './logger-service';
 import {LoggerServiceSymbol} from '../symbols';
 
 export function auth(params: CommandParams) {

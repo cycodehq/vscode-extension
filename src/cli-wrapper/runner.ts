@@ -2,7 +2,7 @@ import {spawn} from 'child_process';
 import * as os from 'os';
 import {CommandResult, RunCliArgs, RunCliResult} from './types';
 import {container} from 'tsyringe';
-import {ILoggerService} from '../services/LoggerService';
+import {ILoggerService} from '../services/logger-service';
 import {LoggerServiceSymbol} from '../symbols';
 
 const parseResult = (out: string): object => {

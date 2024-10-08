@@ -5,15 +5,15 @@ import statusBar from '../utils/status-bar';
 import {validateCliCommonErrors} from './common';
 import {IConfig} from '../cli-wrapper/types';
 import {IgnoreCommandConfig} from '../types/commands';
-import {secretScan} from './scanners/SecretScanner';
-import TrayNotifications from '../utils/TrayNotifications';
+import {secretScan} from './scanners/secret-scanner';
+import TrayNotifications from '../utils/tray-notifications';
 import {TreeView} from '../providers/tree-view/types';
 import {CommandParameters} from '../cli-wrapper/constants';
 import {isSupportedIacFile} from '../constants';
-import {iacScan} from './scanners/IacScanner';
+import {iacScan} from './scanners/iac-scanner';
 import {captureException} from '../sentry';
 import {container} from 'tsyringe';
-import {ILoggerService} from './LoggerService';
+import {ILoggerService} from './logger-service';
 import {LoggerServiceSymbol} from '../symbols';
 
 export async function ignore(

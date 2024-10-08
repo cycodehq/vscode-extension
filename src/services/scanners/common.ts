@@ -6,10 +6,10 @@ import {ScanType} from '../../constants';
 import {refreshDiagnosticCollectionData} from '../diagnostics/common';
 import {getWorkspaceState, updateWorkspaceState} from '../../utils/context';
 import {VscodeStates} from '../../utils/states';
-import TrayNotifications from '../../utils/TrayNotifications';
+import TrayNotifications from '../../utils/tray-notifications';
 import {refreshTreeViewData} from '../../providers/tree-view/utils';
 import {container} from 'tsyringe';
-import {IScanResultsService} from '../ScanResultsService';
+import {IScanResultsService} from '../scan-results-service';
 import {ScanResultsServiceSymbol} from '../../symbols';
 
 type ScanResult = { detections?: AnyDetection[] };

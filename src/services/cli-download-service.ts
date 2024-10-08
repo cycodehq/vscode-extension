@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as decompress from 'decompress';
 import {config} from '../utils/config';
-import {GitHubRelease, GitHubReleaseAsset, IGithubReleaseService} from './GithubReleaseService';
+import {GitHubRelease, GitHubReleaseAsset, IGithubReleaseService} from './github-release-service';
 import {
   CLI_CHECK_NEW_VERSION_EVERY_SEC,
   CLI_GITHUB,
@@ -10,7 +10,7 @@ import {
   getPluginPath,
   REQUIRED_CLI_VERSION,
 } from '../constants';
-import {parseOnedirChecksumDb, verifyDirContentChecksums, verifyFileChecksum} from '../utils/FileChecksum';
+import {parseOnedirChecksumDb, verifyDirContentChecksums, verifyFileChecksum} from '../utils/file-checksum';
 import {inject, injectable} from 'tsyringe';
 import {
   DownloadServiceSymbol,
@@ -18,9 +18,9 @@ import {
   LoggerServiceSymbol,
   StateServiceSymbol,
 } from '../symbols';
-import {GlobalExtensionState, IStateService} from './StateService';
-import {ILoggerService} from './LoggerService';
-import {IDownloadService} from './DownloadService';
+import {GlobalExtensionState, IStateService} from './state-service';
+import {ILoggerService} from './logger-service';
+import {IDownloadService} from './download-service';
 
 export interface ICliDownloadService {
   initCli(): Promise<void>;

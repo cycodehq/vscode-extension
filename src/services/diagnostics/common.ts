@@ -1,14 +1,14 @@
 import * as vscode from 'vscode';
 import {AnyDetection, IacDetection, SastDetection, ScaDetection, SecretDetection} from '../../types/detection';
-import {createDiagnostics as createDiagnosticsSecret} from './SecretDiagnostics';
-import {createDiagnostics as createDiagnosticsSca} from './ScaDiagnostics';
-import {createDiagnostics as createDiagnosticsIac} from './IacDiagnostics';
-import {createDiagnostics as createDiagnosticsSast} from './SastDiagnostics';
+import {createDiagnostics as createDiagnosticsSecret} from './secret-diagnostics';
+import {createDiagnostics as createDiagnosticsSca} from './sca-diagnostics';
+import {createDiagnostics as createDiagnosticsIac} from './iac-diagnostics';
+import {createDiagnostics as createDiagnosticsSast} from './sast-diagnostics';
 import {ScanType} from '../../constants';
 import {FileDiagnostics} from './types';
 import {validateTextRangeInOpenDoc} from '../../utils/range';
 import {container} from 'tsyringe';
-import {IScanResultsService} from '../ScanResultsService';
+import {IScanResultsService} from '../scan-results-service';
 import {ScanResultsServiceSymbol} from '../../symbols';
 
 const createDiagnostics = async (

@@ -1,14 +1,14 @@
 import {container} from 'tsyringe';
 import {IocSymbols} from './symbols';
-import {GithubReleaseService, IGithubReleaseService} from './services/GithubReleaseService';
-import {CliDownloadService, ICliDownloadService} from './services/CliDownloadService';
-import {CycodeService, ICycodeService} from './services/CycodeService';
-import {ILoggerService, LoggerService} from './services/LoggerService';
-import {IScanResultsService, ScanResultsService} from './services/ScanResultsService';
-import {IStateService, StateService} from './services/StateService';
-import {CliService, ICliService} from './services/CliService';
-import {DownloadService, IDownloadService} from './services/DownloadService';
-import {ExtensionService, IExtensionService} from './services/ExtensionService';
+import {GithubReleaseService, IGithubReleaseService} from './services/github-release-service';
+import {CliDownloadService, ICliDownloadService} from './services/cli-download-service';
+import {CycodeService, ICycodeService} from './services/cycode-service';
+import {ILoggerService, LoggerService} from './services/logger-service';
+import {IScanResultsService, ScanResultsService} from './services/scan-results-service';
+import {IStateService, StateService} from './services/state-service';
+import {CliService, ICliService} from './services/cli-service';
+import {DownloadService, IDownloadService} from './services/download-service';
+import {ExtensionService, IExtensionService} from './services/extension-service';
 
 container.registerSingleton<ILoggerService>(IocSymbols.LoggerServiceSymbol, LoggerService);
 container.registerSingleton<IDownloadService>(IocSymbols.DownloadServiceSymbol, DownloadService);

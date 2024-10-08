@@ -1,13 +1,13 @@
 import * as vscode from 'vscode';
 import {config, validateConfig} from '../utils/config';
 import {isSupportedIacFile, isSupportedPackageFile} from '../constants';
-import {scaScan} from '../services/scanners/ScaScanner';
-import {iacScan} from '../services/scanners/IacScanner';
-import {secretScan} from '../services/scanners/SecretScanner';
+import {scaScan} from '../services/scanners/sca-scanner';
+import {iacScan} from '../services/scanners/iac-scanner';
+import {secretScan} from '../services/scanners/secret-scanner';
 import {container} from 'tsyringe';
-import {IExtensionService} from '../services/ExtensionService';
+import {IExtensionService} from '../services/extension-service';
 import {ExtensionServiceSymbol} from '../symbols';
-import {getVsCodeRootPathPrefix} from '../utils/GlobalConfig';
+import {getVsCodeRootPathPrefix} from '../utils/global-config';
 
 export const OnDidSaveTextDocument = (document: vscode.TextDocument) => {
   if (!config.scanOnSaveEnabled) {

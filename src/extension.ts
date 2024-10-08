@@ -6,15 +6,15 @@ import * as vscode from 'vscode';
 import {extensionName} from './utils/texts';
 import statusBar from './utils/status-bar';
 import extensionContext from './utils/context';
-import {CycodeActions} from './providers/code-actions/CodeActions';
-import {CodelensProvider} from './providers/CodelensProvider';
+import {CycodeActions} from './providers/code-actions/code-actions';
+import {CodelensProvider} from './providers/codelens-provider';
 import MainView from './views/main/main-view';
 import LoginView from './views/login/login-view';
 import AuthenticatingView from './views/authenticating/authenticating-view';
 import {captureException, initSentry} from './sentry';
 import {refreshDiagnosticCollectionData} from './services/diagnostics/common';
 import {container} from 'tsyringe';
-import {ICycodeService} from './services/CycodeService';
+import {ICycodeService} from './services/cycode-service';
 import {
   CycodeServiceSymbol,
   ExtensionServiceSymbol,
@@ -22,12 +22,12 @@ import {
   ScanResultsServiceSymbol,
   StateServiceSymbol,
 } from './symbols';
-import {IStateService} from './services/StateService';
-import {ILoggerService} from './services/LoggerService';
-import {IScanResultsService} from './services/ScanResultsService';
-import {OnDidSaveTextDocument} from './listeners/OnDidSaveTextDocument';
-import {IExtensionService} from './services/ExtensionService';
-import {OnProjectOpen} from './listeners/OnProjectOpen';
+import {IStateService} from './services/state-service';
+import {ILoggerService} from './services/logger-service';
+import {IScanResultsService} from './services/scan-results-service';
+import {OnDidSaveTextDocument} from './listeners/on-did-save-text-document';
+import {IExtensionService} from './services/extension-service';
+import {OnProjectOpen} from './listeners/on-project-open';
 import {createTreeView} from './providers/tree-view';
 import {registerCommands} from './commands';
 

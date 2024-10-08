@@ -1,8 +1,8 @@
 import * as vscode from 'vscode';
 import {config, validateConfig} from '../utils/config';
-import {scaScan} from '../services/scanners/ScaScanner';
+import {scaScan} from '../services/scanners/sca-scanner';
 import {container} from 'tsyringe';
-import {IExtensionService} from '../services/ExtensionService';
+import {IExtensionService} from '../services/extension-service';
 import {ExtensionServiceSymbol} from '../symbols';
 
 export default () => {
