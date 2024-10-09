@@ -3,13 +3,11 @@ import * as vscode from 'vscode';
 import {cliWrapper} from '../../cli-wrapper/cli-wrapper';
 import statusBar from '../../utils/status-bar';
 import {StatusBarTexts, TrayNotificationTexts} from '../../utils/texts';
-import {finalizeScanState, validateCliCommonErrors, validateCliCommonScanErrors} from '../common';
-import {getWorkspaceState, updateWorkspaceState} from '../../utils/context';
+import {finalizeScan, validateCliCommonErrors, validateCliCommonScanErrors} from '../common';
 import {SecretDetection} from '../../types/detection';
 import {IConfig, ProgressBar, RunCliResult} from '../../cli-wrapper/types';
 import {TreeView} from '../../providers/tree-data/types';
 import {ScanType} from '../../constants';
-import {VscodeStates} from '../../utils/states';
 import {captureException} from '../../sentry';
 import {handleScanResult} from './common';
 import {container} from 'tsyringe';
@@ -54,11 +52,11 @@ const _getRunnableCliSecretScan = (params: SecretScanParams): RunCliResult => {
 
 const _initScanState = (params: SecretScanParams, progress?: ProgressBar) => {
   const logger = container.resolve<ILoggerService>(LoggerServiceSymbol);
+
   logger.info(StatusBarTexts.ScanWait);
   logger.info('Initiating scan for file: ' + params.pathToScan);
 
   statusBar.showScanningInProgress();
-  updateWorkspaceState(VscodeStates.SecretsScanInProgress, true);
 
   progress?.report({
     message: `Secrets scanning ${params.pathToScan}...`,
@@ -74,10 +72,6 @@ export async function _secretScan(
   const logger = container.resolve<ILoggerService>(LoggerServiceSymbol);
 
   try {
-    if (getWorkspaceState(VscodeStates.SecretsScanInProgress)) {
-      return;
-    }
-
     if (!params.pathToScan) {
       return;
     }
@@ -88,13 +82,11 @@ export async function _secretScan(
 
     cancellationToken?.onCancellationRequested(async () => {
       await runnableSecretScan.getCancelPromise();
-      finalizeScanState(VscodeStates.SecretsScanInProgress, true, progress);
+      finalizeScan(true, progress);
     });
 
     const scanResult = await runnableSecretScan.getResultPromise();
     const {result, stderr} = scanResult;
-
-    updateWorkspaceState(VscodeStates.SecretsScanInProgress, false);
 
     if (validateCliCommonErrors(stderr)) {
       return;
@@ -108,11 +100,11 @@ export async function _secretScan(
         treeView
     );
 
-    finalizeScanState(VscodeStates.SecretsScanInProgress, true, progress);
+    finalizeScan(true, progress);
   } catch (error: any) {
     captureException(error);
 
-    finalizeScanState(VscodeStates.SecretsScanInProgress, false, progress);
+    finalizeScan(false, progress);
 
     let notificationText: string = TrayNotificationTexts.ScanError;
     if (error.message !== undefined) {

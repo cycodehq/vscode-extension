@@ -4,8 +4,6 @@ import {TreeView} from '../../providers/tree-data/types';
 import {updateDetectionState} from '../common';
 import {ScanType} from '../../constants';
 import {refreshDiagnosticCollectionData} from '../diagnostics/common';
-import {getWorkspaceState, updateWorkspaceState} from '../../utils/context';
-import {VscodeStates} from '../../utils/states';
 import TrayNotifications from '../../utils/tray-notifications';
 import {refreshTreeViewData} from '../../providers/tree-data/utils';
 import {container} from 'tsyringe';
@@ -32,8 +30,7 @@ export const handleScanResult = async (
   await refreshDiagnosticCollectionData(diagnosticCollection);
   refreshTreeViewData(scanType, treeView);
 
-  if (detections.length && !getWorkspaceState(VscodeStates.NotificationIsOpen)) {
-    updateWorkspaceState(VscodeStates.NotificationIsOpen, true);
+  if (detections.length) {
     TrayNotifications.showProblemsDetection(detections.length, scanType);
   }
 };

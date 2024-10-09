@@ -3,16 +3,14 @@ import {cliWrapper} from '../../cli-wrapper/cli-wrapper';
 import statusBar from '../../utils/status-bar';
 import {StatusBarTexts, TrayNotificationTexts} from '../../utils/texts';
 import {
-  finalizeScanState,
+  finalizeScan,
   validateCliCommonErrors,
   validateCliCommonScanErrors,
 } from '../common';
-import {getWorkspaceState, updateWorkspaceState} from '../../utils/context';
 import {SastDetection} from '../../types/detection';
 import {IConfig, ProgressBar, RunCliResult} from '../../cli-wrapper/types';
 import {TreeView} from '../../providers/tree-data/types';
 import {ScanType} from '../../constants';
-import {VscodeStates} from '../../utils/states';
 import {captureException} from '../../sentry';
 import {handleScanResult} from './common';
 import {container} from 'tsyringe';
@@ -63,7 +61,6 @@ const _initScanState = (params: SastScanParams, progress?: ProgressBar) => {
   logger.info('Initiating SAST scan for file: ' + params.pathToScan);
 
   statusBar.showScanningInProgress();
-  updateWorkspaceState(VscodeStates.SastScanInProgress, true);
 
   progress?.report({
     message: `SAST scanning ${params.pathToScan}...`,
@@ -95,10 +92,6 @@ export async function _sastScan(
   const logger = container.resolve<ILoggerService>(LoggerServiceSymbol);
 
   try {
-    if (getWorkspaceState(VscodeStates.SastScanInProgress)) {
-      return;
-    }
-
     if (!params.pathToScan) {
       return;
     }
@@ -109,13 +102,11 @@ export async function _sastScan(
 
     cancellationToken?.onCancellationRequested(async () => {
       await runnableSastScan.getCancelPromise();
-      finalizeScanState(VscodeStates.SastScanInProgress, true, progress);
+      finalizeScan(true, progress);
     });
 
     const scanResult = await runnableSastScan.getResultPromise();
     const {result, stderr} = scanResult;
-
-    updateWorkspaceState(VscodeStates.SastScanInProgress, false);
 
     if (validateCliCommonErrors(stderr)) {
       return;
@@ -129,11 +120,11 @@ export async function _sastScan(
         treeView
     );
 
-    finalizeScanState(VscodeStates.SastScanInProgress, true, progress);
+    finalizeScan(true, progress);
   } catch (error: any) {
     captureException(error);
 
-    finalizeScanState(VscodeStates.SastScanInProgress, false, progress);
+    finalizeScan(false, progress);
 
     let notificationText: string = TrayNotificationTexts.ScanError;
     if (error.message !== undefined) {

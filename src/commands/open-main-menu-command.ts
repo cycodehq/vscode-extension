@@ -1,7 +1,9 @@
-import {setContext} from '../utils/context';
-import {VscodeStates} from '../utils/states';
+import {container} from 'tsyringe';
+import {IStateService} from '../services/state-service';
+import {StateServiceSymbol} from '../symbols';
 
 export default () => {
-  setContext(VscodeStates.TreeViewIsOpen, false);
+  const stateService = container.resolve<IStateService>(StateServiceSymbol);
+  stateService.localState.TreeViewIsOpen = false;
+  stateService.save();
 };
-

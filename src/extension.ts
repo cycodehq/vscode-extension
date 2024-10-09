@@ -5,7 +5,6 @@ import './ioc';
 import * as vscode from 'vscode';
 import {extensionName} from './utils/texts';
 import statusBar from './utils/status-bar';
-import extensionContext from './utils/context';
 import {captureException, initSentry} from './sentry';
 import {container} from 'tsyringe';
 import {ICycodeService} from './services/cycode-service';
@@ -41,9 +40,8 @@ export async function activate(context: vscode.ExtensionContext) {
   stateService.initContext(context);
   stateService.load();
 
-  extensionContext.initContext(context); // remove after refactor
-
   const scanResultsService = container.resolve<IScanResultsService>(ScanResultsServiceSymbol);
+  scanResultsService.initContext(context);
   scanResultsService.dropAllScanResults();
 
   logger.info('Cycode plugin is running');

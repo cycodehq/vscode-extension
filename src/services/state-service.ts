@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import {inject, singleton} from 'tsyringe';
 import {LoggerServiceSymbol} from '../symbols';
 import {ILoggerService} from './logger-service';
-import {VscodeStates} from '../utils/states';
+import {GlobalKeyValueStorage, LocalKeyValueStorage} from './key-value-storage-service';
 
 export class GlobalExtensionState {
   public CliInstalled: boolean = false;
@@ -16,23 +16,20 @@ export type GlobalExtensionStateKey = keyof GlobalExtensionState;
 
 export class LocalExtensionState {
   public AuthenticatingInProgress: boolean = false;
-
-  public SecretsScanInProgress: boolean = false;
-  public ScaScanInProgress: boolean = false;
-  public IacScanInProgress: boolean = false;
-  public SastScanInProgress: boolean = false;
-
-  public NotificationIsOpen: boolean = false;
-  public NotificationWasShown: boolean = false;
-
-  public HasDetections: boolean = false;
-
+  public HasAnyDetections: boolean = false;
   public TreeViewIsOpen: boolean = false;
 }
 export type LocalExtensionStateKey = keyof LocalExtensionState;
 
 const _GLOBAL_STATE_KEY = 'cycode:globalState';
 const _LOCAL_STATE_KEY = 'cycode:localState';
+
+enum VscodeStates {
+  AuthenticatingInProgress = 'auth.isAuthenticating',
+  IsAuthorized = 'auth.isAuthed',
+  HasAnyDetections = 'scan.hasAnyDetections',
+  TreeViewIsOpen = 'treeView.isShowed',
+}
 
 const _CONTEXT_EXPORTED_GLOBAL_STATE_KEYS: Record<string, string> = {
   // map global state keys to vscode context keys
@@ -42,13 +39,7 @@ const _CONTEXT_EXPORTED_GLOBAL_STATE_KEYS: Record<string, string> = {
 const _CONTEXT_EXPORTED_LOCAL_STATE_KEYS: Record<string, string> = {
   // map local state keys to vscode context keys
   'AuthenticatingInProgress': VscodeStates.AuthenticatingInProgress,
-  'SecretsScanInProgress': VscodeStates.SecretsScanInProgress,
-  'ScaScanInProgress': VscodeStates.ScaScanInProgress,
-  'IacScanInProgress': VscodeStates.IacScanInProgress,
-  'SastScanInProgress': VscodeStates.SastScanInProgress,
-  'NotificationIsOpen': VscodeStates.NotificationIsOpen,
-  'NotificationWasShown': VscodeStates.NotificationWasShown,
-  'HasDetections': VscodeStates.HasDetections,
+  'HasAnyDetections': VscodeStates.HasAnyDetections,
   'TreeViewIsOpen': VscodeStates.TreeViewIsOpen,
 };
 
@@ -66,7 +57,8 @@ export interface IStateService {
 export class StateService implements IStateService {
   private readonly _globalState: GlobalExtensionState;
   private readonly _localState: LocalExtensionState;
-  private _extensionContext?: vscode.ExtensionContext;
+  private localStorage = new LocalKeyValueStorage();
+  private globalStorage = new GlobalKeyValueStorage();
 
   constructor(@inject(LoggerServiceSymbol) private logger?: ILoggerService) {
     this._globalState = new GlobalExtensionState();
@@ -82,7 +74,8 @@ export class StateService implements IStateService {
   }
 
   initContext(context: vscode.ExtensionContext): void {
-    this._extensionContext = context;
+    this.localStorage.initContext(context);
+    this.globalStorage.initContext(context);
 
     // reset the state to the default values on every extension initialization
     this.saveLocalState();
@@ -93,24 +86,8 @@ export class StateService implements IStateService {
     vscode.commands.executeCommand('setContext', `cycode:${key}`, value);
   }
 
-  private getGlobalState<T>(key: string): T | undefined {
-    return this._extensionContext?.globalState.get(key);
-  }
-
-  private updateGlobalState(key: string, value: unknown): void {
-    this._extensionContext?.globalState.update(key, value);
-  }
-
-  private getLocalState<T>(key: string): T | undefined {
-    return this._extensionContext?.workspaceState.get(key);
-  }
-
-  private updateLocalState(key: string, value: unknown): void {
-    this._extensionContext?.workspaceState.update(key, value);
-  }
-
   private loadGlobalState(): GlobalExtensionState {
-    const globalStateJson = this.getGlobalState<string>(_GLOBAL_STATE_KEY);
+    const globalStateJson = this.globalStorage.get<string>(_GLOBAL_STATE_KEY);
     const globalState = globalStateJson ? JSON.parse(globalStateJson) : undefined;
     if (globalState === undefined) {
       this.logger?.debug('Global state does not exist, creating new state');
@@ -120,12 +97,12 @@ export class StateService implements IStateService {
       this.exportGlobalStateToContext();
     }
 
-    this.logger?.debug(`Loaded global state: ${globalStateJson}`);
+    this.logger?.debug('Load global state');
     return this._globalState;
   }
 
   private loadLocalState(): LocalExtensionState {
-    const localStateJson = this.getLocalState<string>(_LOCAL_STATE_KEY);
+    const localStateJson = this.localStorage.get<string>(_LOCAL_STATE_KEY);
     const localState = localStateJson ? JSON.parse(localStateJson) : undefined;
     if (localState === undefined) {
       this.logger?.debug('Local state does not exist, creating new state');
@@ -135,7 +112,7 @@ export class StateService implements IStateService {
       this.exportLocalStateToContext();
     }
 
-    this.logger?.debug(`Loaded local state: ${localStateJson}`);
+    this.logger?.debug('Load local state');
     return this._localState;
   }
 
@@ -146,16 +123,16 @@ export class StateService implements IStateService {
 
   private saveGlobalState(): void {
     const globalStateJson = JSON.stringify(this._globalState);
-    this.updateGlobalState(_GLOBAL_STATE_KEY, globalStateJson);
+    this.globalStorage.set(_GLOBAL_STATE_KEY, globalStateJson);
     this.exportGlobalStateToContext();
-    this.logger?.debug(`Saved global state: ${globalStateJson}`);
+    this.logger?.debug('Save global state');
   }
 
   private saveLocalState(): void {
     const localStateJson = JSON.stringify(this._localState);
-    this.updateLocalState(_LOCAL_STATE_KEY, localStateJson);
+    this.localStorage.set(_LOCAL_STATE_KEY, localStateJson);
     this.exportLocalStateToContext();
-    this.logger?.debug(`Saved local state: ${localStateJson}`);
+    this.logger?.debug('Save local state');
   }
 
   save(): void {
@@ -190,26 +167,8 @@ export class StateService implements IStateService {
     extensionState.AuthenticatingInProgress !== undefined && (
       this._localState.AuthenticatingInProgress = extensionState.AuthenticatingInProgress
     );
-    extensionState.SecretsScanInProgress !== undefined && (
-      this._localState.SecretsScanInProgress = extensionState.SecretsScanInProgress
-    );
-    extensionState.ScaScanInProgress !== undefined && (
-      this._localState.ScaScanInProgress = extensionState.ScaScanInProgress
-    );
-    extensionState.IacScanInProgress !== undefined && (
-      this._localState.IacScanInProgress = extensionState.IacScanInProgress
-    );
-    extensionState.SastScanInProgress !== undefined && (
-      this._localState.SastScanInProgress = extensionState.SastScanInProgress
-    );
-    extensionState.NotificationIsOpen !== undefined && (
-      this._localState.NotificationIsOpen = extensionState.NotificationIsOpen
-    );
-    extensionState.NotificationWasShown !== undefined && (
-      this._localState.NotificationWasShown = extensionState.NotificationWasShown
-    );
-    extensionState.HasDetections !== undefined && (
-      this._localState.HasDetections = extensionState.HasDetections
+    extensionState.HasAnyDetections !== undefined && (
+      this._localState.HasAnyDetections = extensionState.HasAnyDetections
     );
     extensionState.TreeViewIsOpen !== undefined && (
       this._localState.TreeViewIsOpen = extensionState.TreeViewIsOpen

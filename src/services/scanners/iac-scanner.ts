@@ -3,16 +3,14 @@ import {cliWrapper} from '../../cli-wrapper/cli-wrapper';
 import statusBar from '../../utils/status-bar';
 import {StatusBarTexts, TrayNotificationTexts} from '../../utils/texts';
 import {
-  finalizeScanState,
+  finalizeScan,
   validateCliCommonErrors,
   validateCliCommonScanErrors,
 } from '../common';
-import {getWorkspaceState, updateWorkspaceState} from '../../utils/context';
 import {IacDetection} from '../../types/detection';
 import {IConfig, ProgressBar, RunCliResult} from '../../cli-wrapper/types';
 import {TreeView} from '../../providers/tree-data/types';
 import {ScanType} from '../../constants';
-import {VscodeStates} from '../../utils/states';
 import {captureException} from '../../sentry';
 import {handleScanResult} from './common';
 import * as fs from 'node:fs';
@@ -64,7 +62,6 @@ const _initScanState = (params: IacScanParams, progress?: ProgressBar) => {
   logger.info('Initiating IaC scan for file: ' + params.pathToScan);
 
   statusBar.showScanningInProgress();
-  updateWorkspaceState(VscodeStates.IacScanInProgress, true);
 
   progress?.report({
     message: `IaC scanning ${params.pathToScan}...`,
@@ -95,10 +92,6 @@ export async function _iacScan(
   const logger = container.resolve<ILoggerService>(LoggerServiceSymbol);
 
   try {
-    if (getWorkspaceState(VscodeStates.IacScanInProgress)) {
-      return;
-    }
-
     if (!params.pathToScan) {
       return;
     }
@@ -109,13 +102,11 @@ export async function _iacScan(
 
     cancellationToken?.onCancellationRequested(async () => {
       await runnableIacScan.getCancelPromise();
-      finalizeScanState(VscodeStates.IacScanInProgress, true, progress);
+      finalizeScan(true, progress);
     });
 
     const scanResult = await runnableIacScan.getResultPromise();
     const {result, stderr} = scanResult;
-
-    updateWorkspaceState(VscodeStates.IacScanInProgress, false);
 
     if (validateCliCommonErrors(stderr)) {
       return;
@@ -129,11 +120,11 @@ export async function _iacScan(
         treeView
     );
 
-    finalizeScanState(VscodeStates.IacScanInProgress, true, progress);
+    finalizeScan(true, progress);
   } catch (error: any) {
     captureException(error);
 
-    finalizeScanState(VscodeStates.IacScanInProgress, false, progress);
+    finalizeScan(false, progress);
 
     let notificationText: string = TrayNotificationTexts.ScanError;
     if (error.message !== undefined) {

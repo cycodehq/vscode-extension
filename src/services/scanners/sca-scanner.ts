@@ -2,12 +2,10 @@ import * as vscode from 'vscode';
 import {cliWrapper} from '../../cli-wrapper/cli-wrapper';
 import statusBar from '../../utils/status-bar';
 import {StatusBarTexts} from '../../utils/texts';
-import {finalizeScanState, validateCliCommonErrors, validateCliCommonScanErrors} from '../common';
-import {getWorkspaceState, updateWorkspaceState} from '../../utils/context';
+import {finalizeScan, validateCliCommonErrors, validateCliCommonScanErrors} from '../common';
 import {IConfig, ProgressBar, RunCliResult} from '../../cli-wrapper/types';
 import {TreeView} from '../../providers/tree-data/types';
 import {ScanType} from '../../constants';
-import {VscodeStates} from '../../utils/states';
 import {captureException} from '../../sentry';
 import {handleScanResult} from './common';
 import {container} from 'tsyringe';
@@ -23,10 +21,6 @@ interface ScaScanParams {
 }
 
 export function scaScan(params: ScaScanParams, treeView: TreeView) {
-  if (getWorkspaceState(VscodeStates.ScaScanInProgress)) {
-    return;
-  }
-
   if (!params.onDemand) {
     _scaScan(params, treeView, undefined, undefined);
     return;
@@ -50,8 +44,6 @@ const _initScanState = (params: ScaScanParams, progress?: ProgressBar) => {
   logger.info('Initiating SCA scan for path: ' + params.workspaceFolderPath);
 
   statusBar.showScanningInProgress();
-
-  updateWorkspaceState(VscodeStates.ScaScanInProgress, true);
 
   progress?.report({
     message: `SCA scanning ${params.workspaceFolderPath}...`,
@@ -83,7 +75,7 @@ const _scaScan = async (
 
     cancellationToken?.onCancellationRequested(async () => {
       await runnableScaScan.getCancelPromise();
-      finalizeScanState(VscodeStates.ScaScanInProgress, true, progress);
+      finalizeScan(true, progress);
     });
 
     const scanResult = await runnableScaScan.getResultPromise();
@@ -95,11 +87,11 @@ const _scaScan = async (
 
     await handleScanResult(ScanType.Sca, result, params.diagnosticCollection, treeView);
 
-    finalizeScanState(VscodeStates.ScaScanInProgress, true, progress);
+    finalizeScan(true, progress);
   } catch (error) {
     captureException(error);
 
-    finalizeScanState(VscodeStates.ScaScanInProgress, false, progress);
+    finalizeScan(false, progress);
 
     logger.error('Error while creating SCA scan: ' + error);
   }

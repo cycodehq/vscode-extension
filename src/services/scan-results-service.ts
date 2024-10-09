@@ -1,8 +1,9 @@
+import * as vscode from 'vscode';
 import * as crypto from 'crypto';
-import {getWorkspaceState, updateWorkspaceState} from '../utils/context';
 import {AnyDetection} from '../types/detection';
 import {ScanType} from '../constants';
 import {singleton} from 'tsyringe';
+import {LocalKeyValueStorage} from './key-value-storage-service';
 
 const _STORAGE_KEY_PREFIX = 'CS:';
 
@@ -30,7 +31,7 @@ interface ScanResult {
   detection: AnyDetection;
 }
 
-type LocalStorage = Record<string, ScanResult>;
+type StoredData = Record<string, ScanResult>;
 
 const _slowDeepClone = (obj: any): any => {
   // TODO(MarshalX): move to faster approach if the performance is critical
@@ -38,6 +39,7 @@ const _slowDeepClone = (obj: any): any => {
 };
 
 export interface IScanResultsService {
+  initContext(context: vscode.ExtensionContext): void;
   getDetectionById(detectionId: string): ScanResult | undefined;
   getDetections(scanType: ScanType): AnyDetection[];
   clearDetections(scanType: ScanType): void;
@@ -53,19 +55,25 @@ export class ScanResultsService implements IScanResultsService {
   // The mutations of detections itself happen, for example, for enriching detections for rendering violation card.
   // But not mutated detections are used to create diagnostics, tree view, etc.
 
+  private storage = new LocalKeyValueStorage();
+
+  public initContext(context: vscode.ExtensionContext): void {
+    this.storage.initContext(context);
+  }
+
   public getDetectionById(detectionId: string): ScanResult | undefined {
-    const detections = getWorkspaceState(getDetectionsKey()) as LocalStorage;
+    const detections = this.storage.get(getDetectionsKey()) as StoredData;
     return _slowDeepClone(detections[detectionId]) as ScanResult | undefined;
   }
 
   public getDetections(scanType: ScanType): AnyDetection[] {
     const scanTypeKey = getScanTypeKey(scanType);
-    const detections = getWorkspaceState(scanTypeKey) as AnyDetection[] || [];
+    const detections = this.storage.get(scanTypeKey) as AnyDetection[] || [];
     return _slowDeepClone(detections);
   }
 
   public clearDetections(scanType: ScanType): void {
-    updateWorkspaceState(getScanTypeKey(scanType), []);
+    this.storage.set(getScanTypeKey(scanType), []);
   }
 
   public saveDetections(scanType: ScanType, detections: AnyDetection[]): void {
@@ -83,22 +91,22 @@ export class ScanResultsService implements IScanResultsService {
   public saveDetection(scanType: ScanType, detection: AnyDetection): void {
     const scanTypeDetections = this.getDetections(scanType);
     scanTypeDetections.push(detection);
-    updateWorkspaceState(getScanTypeKey(scanType), scanTypeDetections);
+    this.storage.set(getScanTypeKey(scanType), scanTypeDetections);
 
     const detectionsKey = getDetectionsKey();
-    const detections = getWorkspaceState(detectionsKey) as LocalStorage;
+    const detections = this.storage.get(detectionsKey) as StoredData;
 
     const uniqueDetectionKey = calculateUniqueDetectionId(detection);
     detections[uniqueDetectionKey] = {scanType, detection};
 
-    updateWorkspaceState(detectionsKey, detections);
+    this.storage.set(detectionsKey, detections);
   }
 
   public dropAllScanResults(): void {
     // free memory, clean state
     // typically called on launch to drop all previous scan results
     const detectionsKey = getDetectionsKey();
-    updateWorkspaceState(detectionsKey, {});
+    this.storage.set(detectionsKey, {});
 
     for (const scanType of Object.values(ScanType)) {
       this.clearDetections(scanType);

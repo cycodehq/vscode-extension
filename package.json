@@ -220,13 +220,13 @@
           "type": "webview",
           "id": "cycode.view.main",
           "name": "scan",
-          "when": "cycode:auth.isAuthed && (!cycode:scan.hasDetections || !cycode:treeView.isShowed)"
+          "when": "cycode:auth.isAuthed && (!cycode:scan.hasAnyDetections || !cycode:treeView.isShowed)"
         },
         {
           "type": "tree",
           "id": "cycode.view.tree",
           "name": "Scan Results",
-          "when": "cycode:scan.hasDetections && cycode:treeView.isShowed"
+          "when": "cycode:scan.hasAnyDetections && cycode:treeView.isShowed"
         }
       ]
     },

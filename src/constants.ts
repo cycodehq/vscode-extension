@@ -1,5 +1,7 @@
 import * as path from 'path';
-import {getContext} from './utils/context';
+import {container} from 'tsyringe';
+import {IExtensionService} from './services/extension-service';
+import {ExtensionServiceSymbol} from './symbols';
 
 // keep in lowercase.
 // eslint-disable-next-line max-len
@@ -143,7 +145,8 @@ export const CLI_GITHUB = {
 export const CLI_CHECK_NEW_VERSION_EVERY_SEC = 24 * 60 * 60; // 24 hours
 
 export const getPluginPath = (): string => {
-  return path.join(getContext().extensionPath, 'cycode-vscode-extension');
+  const extension = container.resolve<IExtensionService>(ExtensionServiceSymbol);
+  return path.join(extension.extensionContext.extensionPath, 'cycode-vscode-extension');
 };
 
 export const getDefaultCliPath = (): string => {
