@@ -30,7 +30,7 @@ export class GithubReleaseService implements IGithubReleaseService {
       const response = await fetch(apiUrl);
       return await response.json() as GitHubRelease;
     } catch (error) {
-      this.logger.error('Error while getting GitHub release: ' + error);
+      this.logger.error(`Error while getting GitHub release: ${error}`);
       return undefined;
     }
   }

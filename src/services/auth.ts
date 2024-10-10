@@ -40,7 +40,7 @@ export function auth(params: CommandParams) {
           handleAuthStatus(exitCode, result, stderr);
         } catch (error) {
           captureException(error);
-          logger.error('Error while authing: ' + error);
+          logger.error(`Error while authing: ${error}`);
           onAuthFailure();
         }
       }

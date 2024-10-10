@@ -93,6 +93,6 @@ const _scaScan = async (
 
     finalizeScan(false, progress);
 
-    logger.error('Error while creating SCA scan: ' + error);
+    logger.error(`Error while creating SCA scan: ${error}`);
   }
 };

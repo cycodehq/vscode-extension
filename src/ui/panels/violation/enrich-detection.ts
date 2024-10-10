@@ -6,7 +6,7 @@ import {Converter} from 'showdown';
 const _MARKDOWN_CONVERTER = new Converter();
 // BE not always return markdown/html links, so we need to parse it by ourselves
 _MARKDOWN_CONVERTER.setOption('simplifiedAutoLink', true);
-_MARKDOWN_CONVERTER.setOption('openLinksInNewWindow', true); // make sure that it will open with noreferrer etc.
+_MARKDOWN_CONVERTER.setOption('openLinksInNewWindow', true); // make sure that it will open with noreferrer, etc.
 _MARKDOWN_CONVERTER.setOption('headerLevelStart', 2); // disable h1 to not make UI ugly
 
 

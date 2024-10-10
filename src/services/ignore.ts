@@ -72,7 +72,7 @@ export async function ignore(
     }
   } catch (error) {
     captureException(error);
-    logger.error('Error while ignoring: ' + error);
+    logger.error(`Error while ignoring: ${error}`);
     onIgnoreFailed();
   }
 }
