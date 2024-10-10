@@ -1,0 +1,91 @@
+import {ScanType} from '../../../constants';
+import scaRenderer from './renderer/sca';
+import secretRenderer from './renderer/secret';
+import iacRenderer from './renderer/iac';
+import sastRenderer from './renderer/sast';
+
+export default (detectionType: ScanType) => `
+<script>
+    const vscode = acquireVsCodeApi();
+    const prevState = vscode.getState();
+
+    let severityIcons = (prevState && prevState.severityIcons) || {};
+    let detection = (prevState && prevState.detection) || undefined; 
+    let uniqueDetectionId = (prevState && prevState.uniqueDetectionId) || undefined; 
+
+    const ge = className => document.getElementsByClassName(className)[0];
+
+    const hideElement = className => {
+      const element = ge(className);
+      if (element && !element.className.includes('hidden')) {
+          element.className += ' hidden';
+      }
+    };
+
+    const showElement = className => {
+      const element = ge(className);
+      if (element) {
+          element.className = element.className.replace(' hidden', '');
+      }
+    };
+
+    const getCweCveLink = cweCve => {
+      if (!cweCve || typeof cweCve !== 'string') {
+          return undefined;
+      }
+
+      if (cweCve.startsWith('GHSA')) {
+          return 'https://github.com/advisories/' + cweCve;
+      } else if (cweCve.startsWith('CWE')) {
+          const cweNumber = parseInt(cweCve.split('-')[1]);
+          return 'https://cwe.mitre.org/data/definitions/' + cweNumber;
+      } else if (cweCve.startsWith('CVE')) {
+          return 'https://cve.mitre.org/cgi-bin/cvename.cgi?name=' + cweCve;
+      } else {
+          return undefined;
+      }
+    };
+
+    const renderCweCveLink = cweCve => {
+      const link = getCweCveLink(cweCve);
+      if (link) {
+          return \`<a href="\${link}" target="_blank" rel="noopener noreferrer">\${cweCve}</a>\`;
+      } else {
+          return cweCve;
+      }
+    };
+</script>
+    ${detectionType === ScanType.Sca ? scaRenderer : ''}
+    ${detectionType === ScanType.Secrets ? secretRenderer : ''}
+    ${detectionType === ScanType.Iac ? iacRenderer : ''}
+    ${detectionType === ScanType.Sast ? sastRenderer : ''}
+<script>
+    if (detection) {
+        renderDetection(detection);
+    }
+
+    const updateState = () => {
+        vscode.setState({ severityIcons: severityIcons, detection: detection });
+    };
+
+    const messageHandler = event => {
+        const message = event.data;
+
+        if (message.uniqueDetectionId) {
+            uniqueDetectionId = message.uniqueDetectionId;
+        }
+
+        if (message.severityIcons) {
+            severityIcons = message.severityIcons;
+            updateState();
+        } else if (message.detection) {
+            detection = message.detection;
+            updateState();
+
+            renderDetection(message.detection);
+        }
+    };
+
+    window.addEventListener('message', messageHandler);
+</script>
+`;

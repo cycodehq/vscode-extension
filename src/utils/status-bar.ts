@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import {VscodeCommands} from './commands';
+import {VscodeCommands} from '../commands';
 import {StatusBarTexts} from './texts';
 
 let statusBar: vscode.StatusBarItem | null = null;

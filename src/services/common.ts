@@ -1,36 +1,26 @@
 import * as vscode from 'vscode';
 import statusBar from '../utils/status-bar';
 import {TrayNotificationTexts} from '../utils/texts';
-import {getWorkspaceState, setContext, updateWorkspaceState} from '../utils/context';
-import {onAuthFailure} from '../utils/auth/auth_common';
-import {getHasDetectionState, VscodeStates} from '../utils/states';
+import {onAuthFailure} from '../utils/auth';
 import {ProgressBar} from '../cli-wrapper/types';
 import {DIAGNOSTIC_CODE_SEPARATOR, ScanType} from '../constants';
-import {scanResultsService} from './ScanResultsService';
+import {container} from 'tsyringe';
+import {IScanResultsService} from './scan-results-service';
+import {ScanResultsServiceSymbol, StateServiceSymbol} from '../symbols';
+import {IStateService} from './state-service';
 
 const _cliBadAuthMessageId = 'client id needed';
 const _cliBadAuthMessageSecret = 'client secret needed';
 
 const _showMessage = (text: TrayNotificationTexts, isError: boolean) => {
-  // TODO(MarshalX): investigate why prev team add limit to only one opened notification at a time
-  //  to bypass duplicates?
-  //  state key should be hashed by text?
-  if (!getWorkspaceState(VscodeStates.NotificationWasShown)) {
-    const showMessageFunc = isError ? vscode.window.showErrorMessage : vscode.window.showInformationMessage;
-    const thenable = showMessageFunc(text);
-    updateWorkspaceState(VscodeStates.NotificationWasShown, true);
-
-    const resetState = () => {
-      updateWorkspaceState(VscodeStates.NotificationWasShown, false);
-    };
-    thenable.then(resetState, resetState);
-  }
+  const showMessageFunc = isError ? vscode.window.showErrorMessage : vscode.window.showInformationMessage;
+  showMessageFunc(text);
 };
 
 export const validateCliCommonErrors = (
     error: string,
 ): boolean | string => {
-  // Handle non-command specific problems: check for missing CLI, bad auth, etc
+  // Handle non-command specific problems: check for missing CLI, bad auth, etc.
   if (!error) {
     return false;
   }
@@ -71,9 +61,8 @@ export const validateCliCommonScanErrors = (result: any) => {
   }
 };
 
-export const finalizeScanState = (state: VscodeStates, success: boolean, progress?: ProgressBar) => {
-  updateWorkspaceState(state, false);
 
+export const finalizeScan = (success: boolean, progress?: ProgressBar) => {
   if (success) {
     statusBar.showScanComplete();
   } else {
@@ -105,25 +94,21 @@ export class DiagnosticCode {
   }
 }
 
-const updateHasDetectionState = (scanType: ScanType, value: boolean) => {
-  setContext(getHasDetectionState(scanType), value);
-
-  const hasAnyDetections =
-      VscodeStates.HasSecretDetections ||
-      VscodeStates.HasScaDetections ||
-      VscodeStates.HasIacDetections ||
-      VscodeStates.HasSastDetections;
-
-  setContext(VscodeStates.HasDetections, hasAnyDetections);
-};
-
 export const updateDetectionState = (scanType: ScanType) => {
+  const stateService = container.resolve<IStateService>(StateServiceSymbol);
+  const scanResultsService = container.resolve<IScanResultsService>(ScanResultsServiceSymbol);
   const detections = scanResultsService.getDetections(scanType);
+
   const hasDetections = detections.length > 0;
-
-  updateHasDetectionState(scanType, hasDetections);
-
   if (hasDetections) {
-    setContext(VscodeStates.TreeViewIsOpen, true);
+    stateService.localState.TreeViewIsOpen = true;
   }
+
+  stateService.localState.HasAnyDetections =
+      scanResultsService.getDetections(ScanType.Secrets).length > 0 ||
+      scanResultsService.getDetections(ScanType.Sca).length > 0 ||
+      scanResultsService.getDetections(ScanType.Iac).length > 0 ||
+      scanResultsService.getDetections(ScanType.Sast).length > 0;
+
+  stateService.save();
 };

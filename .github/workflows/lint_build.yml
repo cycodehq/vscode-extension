@@ -1,0 +1,49 @@
+name: Lint and build
+
+on: [ push ]
+
+permissions:
+  contents: read
+
+jobs:
+  lint_test_build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run Cimon (eBPF)
+        uses: cycodelabs/cimon-action@v0
+        with:
+          client-id: ${{ secrets.CIMON_CLIENT_ID }}
+          secret: ${{ secrets.CIMON_SECRET }}
+          allowed-hosts: >
+            registry.yarnpkg.com
+            marketplace.visualstudio.com
+            update.code.visualstudio.com
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Code Linting
+        run: npm run lint
+
+      - name: Build extension
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+        run: |
+          npm install -g @vscode/vsce
+          vsce package
+          mv *.vsix cycode-extension.vsix
+
+      - name: Upload extension package to artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: cycode-extension.vsix
+          path: cycode-extension.vsix
+          retention-days: 14

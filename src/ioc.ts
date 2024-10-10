@@ -1,0 +1,21 @@
+import {container} from 'tsyringe';
+import {IocSymbols} from './symbols';
+import {GithubReleaseService, IGithubReleaseService} from './services/github-release-service';
+import {CliDownloadService, ICliDownloadService} from './services/cli-download-service';
+import {CycodeService, ICycodeService} from './services/cycode-service';
+import {ILoggerService, LoggerService} from './services/logger-service';
+import {IScanResultsService, ScanResultsService} from './services/scan-results-service';
+import {IStateService, StateService} from './services/state-service';
+import {CliService, ICliService} from './services/cli-service';
+import {DownloadService, IDownloadService} from './services/download-service';
+import {ExtensionService, IExtensionService} from './services/extension-service';
+
+container.registerSingleton<ILoggerService>(IocSymbols.LoggerServiceSymbol, LoggerService);
+container.registerSingleton<IDownloadService>(IocSymbols.DownloadServiceSymbol, DownloadService);
+container.registerSingleton<IGithubReleaseService>(IocSymbols.GithubReleaseServiceSymbol, GithubReleaseService);
+container.registerSingleton<ICliDownloadService>(IocSymbols.CliDownloadServiceSymbol, CliDownloadService);
+container.registerSingleton<ICycodeService>(IocSymbols.CycodeServiceSymbol, CycodeService);
+container.registerSingleton<ICliService>(IocSymbols.CliServiceSymbol, CliService);
+container.registerSingleton<IScanResultsService>(IocSymbols.ScanResultsServiceSymbol, ScanResultsService);
+container.registerSingleton<IStateService>(IocSymbols.StateServiceSymbol, StateService);
+container.registerSingleton<IExtensionService>(IocSymbols.ExtensionServiceSymbol, ExtensionService);

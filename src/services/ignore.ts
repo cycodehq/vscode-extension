@@ -1,18 +1,20 @@
 import * as vscode from 'vscode';
 
-import {extensionOutput} from '../logging/extension-output';
 import {cliWrapper} from '../cli-wrapper/cli-wrapper';
 import statusBar from '../utils/status-bar';
 import {validateCliCommonErrors} from './common';
 import {IConfig} from '../cli-wrapper/types';
 import {IgnoreCommandConfig} from '../types/commands';
-import {secretScan} from './scanners/SecretScanner';
-import TrayNotifications from '../utils/TrayNotifications';
-import {TreeView} from '../providers/tree-view/types';
+import {secretScan} from './scanners/secret-scanner';
+import TrayNotifications from '../utils/tray-notifications';
+import {TreeView} from '../providers/tree-data/types';
 import {CommandParameters} from '../cli-wrapper/constants';
 import {isSupportedIacFile} from '../constants';
-import {iacScan} from './scanners/IacScanner';
+import {iacScan} from './scanners/iac-scanner';
 import {captureException} from '../sentry';
+import {container} from 'tsyringe';
+import {ILoggerService} from './logger-service';
+import {LoggerServiceSymbol} from '../symbols';
 
 export async function ignore(
     params: {
@@ -23,6 +25,8 @@ export async function ignore(
       treeView: TreeView;
     }
 ) {
+  const logger = container.resolve<ILoggerService>(LoggerServiceSymbol);
+
   try {
     const {stderr, exitCode} = await cliWrapper.getRunnableIgnoreCommand(params).getResultPromise();
 
@@ -68,7 +72,7 @@ export async function ignore(
     }
   } catch (error) {
     captureException(error);
-    extensionOutput.error('Error while ignoring: ' + error);
+    logger.error(`Error while ignoring: ${error}`);
     onIgnoreFailed();
   }
 }

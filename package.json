@@ -220,13 +220,13 @@
           "type": "webview",
           "id": "cycode.view.main",
           "name": "scan",
-          "when": "cycode:auth.isAuthed && (!cycode:scan.hasDetections || !cycode:treeView.isShowed)"
+          "when": "cycode:auth.isAuthed && (!cycode:scan.hasAnyDetections || !cycode:treeView.isShowed)"
         },
         {
           "type": "tree",
           "id": "cycode.view.tree",
           "name": "Scan Results",
-          "when": "cycode:scan.hasDetections && cycode:treeView.isShowed"
+          "when": "cycode:scan.hasAnyDetections && cycode:treeView.isShowed"
         }
       ]
     },
@@ -241,15 +241,11 @@
     }
   },
   "scripts": {
-    "vscode:prepublish": "yarn run package",
-    "compile": "webpack",
-    "watch": "webpack --watch",
-    "package": "webpack --mode production",
-    "compile-tests": "tsc -p . --outDir out",
-    "watch-tests": "tsc -p . -w --outDir out",
-    "pretest": "yarn run compile-tests && yarn run compile && yarn run lint",
     "lint": "eslint src --ext ts",
-    "test": "node ./out/test/runTest.js"
+    "watch": "webpack --watch",
+    "compile": "webpack",
+    "package": "webpack --mode production",
+    "vscode:prepublish": "yarn run package"
   },
   "devDependencies": {
     "@sentry/webpack-plugin": "^2.21.1",
@@ -276,8 +272,10 @@
   "dependencies": {
     "@sentry/node": "^8.20.0",
     "decompress": "^4.2.1",
+    "reflect-metadata": "^0.2.2",
     "semver": "7.5.4",
     "shelljs": "0.8.5",
-    "showdown": "^2.1.0"
+    "showdown": "^2.1.0",
+    "tsyringe": "^4.8.0"
   }
 }

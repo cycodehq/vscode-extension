@@ -4,7 +4,7 @@ import {
   publisherId,
   scanOnSaveProperty,
 } from './texts';
-import {showSettingsError} from './TrayNotifications';
+import {showSettingsError} from './tray-notifications';
 import {CYCODE_DOMAIN, DEFAULT_CYCODE_API_URL, DEFAULT_CYCODE_APP_URL, getDefaultCliPath} from '../constants';
 import * as fs from 'fs';
 

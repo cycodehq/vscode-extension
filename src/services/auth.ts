@@ -1,5 +1,4 @@
 import * as vscode from 'vscode';
-import {extensionOutput} from '../logging/extension-output';
 import {cliWrapper} from '../cli-wrapper/cli-wrapper';
 import {validateCliCommonErrors} from './common';
 import {
@@ -7,11 +6,16 @@ import {
   onAuthFailure,
   onAuthSuccess,
   startAuthenticationProcess,
-} from '../utils/auth/auth_common';
+} from '../utils/auth';
 import {CommandParams} from '../types/commands';
 import {captureException} from '../sentry';
+import {container} from 'tsyringe';
+import {ILoggerService} from './logger-service';
+import {LoggerServiceSymbol} from '../symbols';
 
 export function auth(params: CommandParams) {
+  const logger = container.resolve<ILoggerService>(LoggerServiceSymbol);
+
   vscode.window.withProgress(
       {
         location: vscode.ProgressLocation.Window,
@@ -36,7 +40,7 @@ export function auth(params: CommandParams) {
           handleAuthStatus(exitCode, result, stderr);
         } catch (error) {
           captureException(error);
-          extensionOutput.error('Error while authing: ' + error);
+          logger.error(`Error while authing: ${error}`);
           onAuthFailure();
         }
       }
@@ -49,7 +53,8 @@ function handleAuthStatus(exitCode: number, result: any, error: string) {
     onAuthFailure();
   } else {
     onAuthSuccess();
-    extensionOutput.info(
+    const logger = container.resolve<ILoggerService>(LoggerServiceSymbol);
+    logger.info(
         'Auth completed: ' + JSON.stringify({result, error}, null, 3)
     );
   }

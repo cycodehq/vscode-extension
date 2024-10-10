@@ -1,13 +1,15 @@
 import * as vscode from 'vscode';
 import {AnyDetection, IacDetection, SastDetection, ScaDetection, SecretDetection} from '../../types/detection';
-import {createDiagnostics as createDiagnosticsSecret} from './SecretDiagnostics';
-import {createDiagnostics as createDiagnosticsSca} from './ScaDiagnostics';
-import {createDiagnostics as createDiagnosticsIac} from './IacDiagnostics';
-import {createDiagnostics as createDiagnosticsSast} from './SastDiagnostics';
+import {createDiagnostics as createDiagnosticsSecret} from './secret-diagnostics';
+import {createDiagnostics as createDiagnosticsSca} from './sca-diagnostics';
+import {createDiagnostics as createDiagnosticsIac} from './iac-diagnostics';
+import {createDiagnostics as createDiagnosticsSast} from './sast-diagnostics';
 import {ScanType} from '../../constants';
-import {scanResultsService} from '../ScanResultsService';
 import {FileDiagnostics} from './types';
 import {validateTextRangeInOpenDoc} from '../../utils/range';
+import {container} from 'tsyringe';
+import {IScanResultsService} from '../scan-results-service';
+import {ScanResultsServiceSymbol} from '../../symbols';
 
 const createDiagnostics = async (
     scanType: ScanType, detections: AnyDetection[]
@@ -50,6 +52,7 @@ const updateDiagnosticCollection = async (
 export const refreshDiagnosticCollectionData = async (diagnosticCollection: vscode.DiagnosticCollection) => {
   diagnosticCollection.clear();
 
+  const scanResultsService = container.resolve<IScanResultsService>(ScanResultsServiceSymbol);
   for (const scanType of Object.values(ScanType)) {
     const detections = scanResultsService.getDetections(scanType);
     await updateDiagnosticCollection(scanType, detections, diagnosticCollection);

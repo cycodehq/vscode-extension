@@ -40,6 +40,7 @@ module.exports = {
         'format': ['camelCase', 'UPPER_CASE', 'PascalCase'],
       },
     ],
+    '@typescript-eslint/restrict-plus-operands': 'error',
     // FIXME(MarshalX): refactor code and enable these rules:
     'no-unused-vars': 0,
     'camelcase': 0,
@@ -49,7 +50,6 @@ module.exports = {
     '@typescript-eslint/no-unsafe-return': 0,
     '@typescript-eslint/no-unsafe-argument': 0,
     '@typescript-eslint/no-explicit-any': 0,
-    '@typescript-eslint/restrict-plus-operands': 0,
     '@typescript-eslint/restrict-template-expressions': 0,
     '@typescript-eslint/no-unsafe-call': 0,
   },
