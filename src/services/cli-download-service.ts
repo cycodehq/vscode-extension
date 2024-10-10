@@ -103,7 +103,7 @@ export class CliDownloadService implements ICliDownloadService {
         verifyFileChecksum(localPath, remoteChecksum);
 
     if (!isValidChecksum) {
-      this.logger.info('Should download CLI because checksum doesn\'t mach remote checksum');
+      this.logger.info('Should download CLI because checksum doesn\'t match remote checksum');
       return true;
     }
 

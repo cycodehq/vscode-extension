@@ -17,7 +17,7 @@ const body = `
   <a
     class="styled-link"
     href="https://github.com/cycodehq/vscode-extension/blob/main/README.md"
-    >read our docs.</a>
+    >read our docs</a>.
 </p>
 </div>
 
