@@ -1,7 +1,6 @@
 import * as vscode from 'vscode';
-import {ScanType} from '../../constants';
-import {TreeDisplayedData} from './types';
-
+import { ScanType } from '../../constants';
+import { TreeDisplayedData } from './types';
 
 interface TreeItemOptions {
   title: string;

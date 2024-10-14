@@ -12,16 +12,18 @@ import {
   SENTRY_SAMPLE_RATE,
   SENTRY_SEND_DEFAULT_PII,
 } from './constants';
-import {config} from './utils/config';
+import { config } from './utils/config';
 
-// filter integrations that use the global variable
-// it will prevent conflicts with other extensions that use Sentry
+/*
+ * filter integrations that use the global variable
+ * it will prevent conflicts with other extensions that use Sentry
+ */
 const integrations = getDefaultIntegrations({}).filter(
-    (defaultIntegration) => {
-      return !['OnUncaughtException', 'OnUnhandledRejection', 'Modules', 'LocalVariablesAsync'].includes(
-          defaultIntegration.name,
-      );
-    },
+  (defaultIntegration) => {
+    return !['OnUncaughtException', 'OnUnhandledRejection', 'Modules', 'LocalVariablesAsync'].includes(
+      defaultIntegration.name,
+    );
+  },
 );
 
 const _isSentryDisabled = (): boolean => {
@@ -35,8 +37,10 @@ const _getSentryRelease = (): string => {
 const scope = new Scope();
 
 export const initSentry = () => {
-  // we are creating our own client instead of calling Sentry.init() because we are in the shared environment
-  // other VS Code extensions might call Sentry.init() with their own configuration which will conflict with ours
+  /*
+   * we are creating our own client instead of calling Sentry.init() because we are in the shared environment
+   * other VS Code extensions might call Sentry.init() with their own configuration which will conflict with ours
+   */
   const client = new NodeClient({
     dsn: SENTRY_DSN,
     debug: SENTRY_DEBUG,
@@ -66,7 +70,7 @@ export const initSentry = () => {
 
 export const setSentryUser = (userId: string, tenantId: string) => {
   scope.setTag('tenant_id', tenantId);
-  scope.setUser({id: userId, tenant_id: tenantId});
+  scope.setUser({ id: userId, tenant_id: tenantId });
 };
 
 export const captureException = (error: unknown) => {

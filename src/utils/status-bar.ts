@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
-import {VscodeCommands} from '../commands';
-import {StatusBarTexts} from './texts';
+import { VscodeCommands } from '../commands';
+import { StatusBarTexts } from './texts';
 
 let statusBar: vscode.StatusBarItem | null = null;
 
@@ -13,8 +13,8 @@ export enum StatusBarColor {
 const getStatusBar = () => {
   if (!statusBar) {
     statusBar = vscode.window.createStatusBarItem(
-        vscode.StatusBarAlignment.Right,
-        0
+      vscode.StatusBarAlignment.Right,
+      0,
     );
     statusBar.command = VscodeCommands.SecretScanCommandId;
     statusBar.text = StatusBarTexts.ScanButton;
@@ -39,7 +39,12 @@ export const update = ({
   bar.text = text;
   bar.backgroundColor = new vscode.ThemeColor(color);
 
-  hide ? bar.hide() : bar.show();
+  if (hide) {
+    bar.hide();
+  } else {
+    bar.show();
+  }
+
   if (command) {
     bar.command = command;
   }
@@ -53,11 +58,11 @@ export const showDefault = () => {
 };
 
 export const showScanningInProgress = () => {
-  update({text: StatusBarTexts.ScanWait, command: ''});
+  update({ text: StatusBarTexts.ScanWait, command: '' });
 };
 
 export const showScanComplete = () => {
-  update({text: StatusBarTexts.ScanComplete});
+  update({ text: StatusBarTexts.ScanComplete });
 };
 
 export const showScanError = () => {

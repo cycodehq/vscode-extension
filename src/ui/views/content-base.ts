@@ -36,7 +36,6 @@ const _CONTENT_TEMPLATE = `
 </html>
 `;
 
-
 export const getContent = (title: string, body: string): string => {
   return _CONTENT_TEMPLATE.replace('{title}', title).replace('{body}', body);
 };

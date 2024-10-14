@@ -4,7 +4,7 @@ import secretCard from './card/secret';
 import iacCard from './card/iac';
 import sastCard from './card/sast';
 import js from './js';
-import {ScanType} from '../../../constants';
+import { ScanType } from '../../../constants';
 
 export default (detectionType: ScanType) => `
 <!DOCTYPE html>
@@ -18,7 +18,7 @@ export default (detectionType: ScanType) => `
     ${style}
 
     ${detectionType == ScanType.Sca ? scaCard : ''}
-    ${detectionType == ScanType.Secrets ? secretCard : ''}
+    ${detectionType == ScanType.Secret ? secretCard : ''}
     ${detectionType == ScanType.Iac ? iacCard : ''}
     ${detectionType == ScanType.Sast ? sastCard : ''}
 

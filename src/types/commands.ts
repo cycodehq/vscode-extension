@@ -1,6 +1,6 @@
-import {CommandParameters} from '../cli-wrapper/constants';
-import {IConfig} from '../cli-wrapper/types';
-import {ScanType} from '../constants';
+import { CommandParameters } from '../cli/constants';
+import { IConfig } from '../cli/types';
+import { ScanType } from '../constants';
 
 export interface IgnoreCommandConfig {
   scanType: ScanType;

@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
-import {TreeView} from './types';
-import {TreeDataProvider} from './provider';
-import {TreeItem} from './item';
+import { TreeView } from './types';
+import { TreeDataProvider } from './provider';
+import { TreeItem } from './item';
 
 export const createTreeView = (context: vscode.ExtensionContext): TreeView => {
   const provider = new TreeDataProvider();
@@ -11,10 +11,10 @@ export const createTreeView = (context: vscode.ExtensionContext): TreeView => {
   });
 
   context.subscriptions.push(
-      vscode.window.registerTreeDataProvider(
-          TreeItem.viewType,
-          provider
-      )
+    vscode.window.registerTreeDataProvider(
+      TreeItem.viewType,
+      provider,
+    ),
   );
-  return {view, provider};
+  return { view, provider };
 };

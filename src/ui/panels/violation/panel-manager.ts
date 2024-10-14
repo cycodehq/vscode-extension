@@ -1,11 +1,11 @@
 import * as vscode from 'vscode';
-import {ScanType} from '../../../constants';
+import { ScanType } from '../../../constants';
 
-const _scanTypeToPanelMap: Map<ScanType, vscode.WebviewPanel> = new Map();
+const _scanTypeToPanelMap = new Map<ScanType, vscode.WebviewPanel>();
 
 const _scanTypeToPanelTitleMap = new Map([
   [ScanType.Sca, 'Cycode: Open Source Threat Detection Details'],
-  [ScanType.Secrets, 'Cycode: Hardcoded Secret Detection Details'],
+  [ScanType.Secret, 'Cycode: Hardcoded Secret Detection Details'],
   [ScanType.Iac, 'Cycode: Infrastructure as Code Detection Details'],
   [ScanType.Sast, 'Cycode: Code Security Detection Details'],
 ]);
@@ -16,12 +16,12 @@ export const getPanel = (scanType: ScanType) => {
 
 export const createPanel = (scanType: ScanType): vscode.WebviewPanel => {
   const panel = vscode.window.createWebviewPanel(
-      'detectionDetails',
-      _scanTypeToPanelTitleMap.get(scanType) || 'Cycode: Detection Details',
-      vscode.ViewColumn.Two,
-      {
-        enableScripts: true,
-      }
+    'detectionDetails',
+    _scanTypeToPanelTitleMap.get(scanType) ?? 'Cycode: Detection Details',
+    vscode.ViewColumn.Two,
+    {
+      enableScripts: true,
+    },
   );
 
   _scanTypeToPanelMap.set(scanType, panel);

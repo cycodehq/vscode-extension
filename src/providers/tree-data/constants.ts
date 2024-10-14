@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import {TreeItem} from './item';
-import {ScanType, ScanTypeDisplayName} from '../../constants';
+import { TreeItem } from './item';
+import { ScanType, ScanTypeDisplayName } from '../../constants';
 
 const _PATH_TO_RESOURCES = path.join(__filename, '..', '..', 'resources');
 const PATH_TO_SCAN_TYPE_ICONS = path.join(_PATH_TO_RESOURCES, 'scan-type');
@@ -12,16 +12,14 @@ const getScanTypeIconPath = (scanType: string) => {
   return path.join(PATH_TO_SCAN_TYPE_ICONS, `${scanType}.png`);
 };
 
-
 export const getSeverityIconPath = (severityFirstLetter: string) => {
   _validateIconFilename(severityFirstLetter);
   return path.join(PATH_TO_SEVERITY_ICONS, `${severityFirstLetter}.png`);
 };
 
-
 const _validateIconFilename = (filename: string): void => {
   const letters = /^[A-Za-z]+$/;
-  if (filename.match(letters) === null) {
+  if ((letters.exec(filename)) === null) {
     throw Error('Malformed filename string');
   }
 };
@@ -29,8 +27,8 @@ const _validateIconFilename = (filename: string): void => {
 const getSecretsSectionItem = (description: string): TreeItem => new TreeItem({
   title: ScanTypeDisplayName.Secrets,
   collapsibleState: vscode.TreeItemCollapsibleState.Collapsed,
-  scanSectionType: ScanType.Secrets,
-  customIconPath: getScanTypeIconPath(ScanType.Secrets),
+  scanSectionType: ScanType.Secret,
+  customIconPath: getScanTypeIconPath(ScanType.Secret),
   description,
 });
 
@@ -58,14 +56,14 @@ const getIacSectionItem = (description: string): TreeItem => new TreeItem({
   description,
 });
 
-const _SCAN_TYPE_TO_SECTION_ITEM_CREATOR: { [key: string]: ((description: string) => TreeItem)} = {
-  [ScanType.Secrets]: getSecretsSectionItem,
+const _SCAN_TYPE_TO_SECTION_ITEM_CREATOR: Record<string, (description: string) => TreeItem> = {
+  [ScanType.Secret]: getSecretsSectionItem,
   [ScanType.Sca]: getScaSectionItem,
   [ScanType.Sast]: getSastSectionItem,
   [ScanType.Iac]: getIacSectionItem,
 };
 
-export const SECTIONS_ORDER: ReadonlyArray<ScanType> = [ScanType.Secrets, ScanType.Sca, ScanType.Iac, ScanType.Sast];
+export const SECTIONS_ORDER: readonly ScanType[] = [ScanType.Secret, ScanType.Sca, ScanType.Iac, ScanType.Sast];
 
 export const getSectionItem = (scanType: string, description: string): TreeItem => {
   if (!(scanType in _SCAN_TYPE_TO_SECTION_ITEM_CREATOR)) {
