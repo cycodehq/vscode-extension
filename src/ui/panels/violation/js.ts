@@ -1,4 +1,4 @@
-import {ScanType} from '../../../constants';
+import { ScanType } from '../../../constants';
 import scaRenderer from './renderer/sca';
 import secretRenderer from './renderer/secret';
 import iacRenderer from './renderer/iac';
@@ -56,7 +56,7 @@ export default (detectionType: ScanType) => `
     };
 </script>
     ${detectionType === ScanType.Sca ? scaRenderer : ''}
-    ${detectionType === ScanType.Secrets ? secretRenderer : ''}
+    ${detectionType === ScanType.Secret ? secretRenderer : ''}
     ${detectionType === ScanType.Iac ? iacRenderer : ''}
     ${detectionType === ScanType.Sast ? sastRenderer : ''}
 <script>

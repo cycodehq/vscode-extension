@@ -1,4 +1,4 @@
-import {getContent} from '../content-base';
+import { getContent } from '../content-base';
 
 const title = 'Authenticating';
 

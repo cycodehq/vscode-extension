@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
-import {singleton} from 'tsyringe';
-import {extensionName} from '../utils/texts';
+import { singleton } from 'tsyringe';
+import { extensionName } from '../utils/texts';
 
 export interface LoggerOptions {
   output?: vscode.OutputChannel;

@@ -1,8 +1,8 @@
-import {TreeItem} from './item';
-import {TreeDataProvider} from './provider';
+import { TreeItem } from './item';
+import { TreeDataProvider } from './provider';
 
 import * as vscode from 'vscode';
-import {AnyDetection} from '../../types/detection';
+import { DetectionBase } from '../../cli/models/scan-result/detection-base';
 
 export interface TreeView {
   provider: TreeDataProvider;
@@ -13,7 +13,7 @@ export interface TreeDisplayedData {
   title: string;
   severityFirstLetter: SeverityFirstLetter;
   lineNumber: number; // converted to vscode line number
-  detection: AnyDetection; // plain detection data from CLI
+  detection: DetectionBase;
   detectionType: string;
 }
 

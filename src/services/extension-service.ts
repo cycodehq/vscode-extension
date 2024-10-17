@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
-import {singleton} from 'tsyringe';
-import {TreeView} from '../providers/tree-data/types';
+import { singleton } from 'tsyringe';
+import { TreeView } from '../providers/tree-data/types';
 
 export interface IExtensionService {
   extensionContext: vscode.ExtensionContext;
@@ -11,10 +11,10 @@ export interface IExtensionService {
 @singleton()
 export class ExtensionService implements IExtensionService {
   /*
-  The purpose of this class is to store global things of the extension.
-  It is a singleton, so it is shared across the extension.
-  It was developed for migration during huge refactoring.
-  I hope it will be removed in the future.
+   *The purpose of this class is to store global things of the extension.
+   *It is a singleton, so it is shared across the extension.
+   *It was developed for migration during huge refactoring.
+   *I hope it will be removed in the future.
    */
   private _extensionContext?: vscode.ExtensionContext;
   private _diagnosticCollection?: vscode.DiagnosticCollection;

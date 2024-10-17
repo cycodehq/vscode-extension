@@ -1,26 +1,20 @@
-import * as vscode from 'vscode';
-
-export type CommandResult = {
+export interface CommandResult {
   exitCode: number;
   result: any;
   stderr: string;
-};
+}
 
 export interface IConfig {
   cliPath: string;
   cliAutoManaged: boolean;
   additionalParams: string[];
-  cliEnv: { [key: string]: string };
+  cliEnv: Record<string, string>;
   agentName: string;
   agentVersion: string;
   envName: string;
   envVersion: string;
   scanOnSaveEnabled: boolean;
 }
-
-export type CliConfig = {
-  cliPath: string;
-};
 
 export interface UserAgent {
   app_name: string;
@@ -31,7 +25,7 @@ export interface UserAgent {
 
 export interface RunCliArgs {
   cliPath: string;
-  cliEnv: { [key: string]: string };
+  cliEnv: Record<string, string>;
   commandParams: string[];
   workspaceFolderPath?: string;
   printToOutput?: boolean;
@@ -41,5 +35,3 @@ export interface RunCliResult {
   getCancelPromise: () => Promise<void>;
   getResultPromise: () => Promise<CommandResult>;
 }
-
-export type ProgressBar = vscode.Progress<{ message?: string; increment?: number }>;

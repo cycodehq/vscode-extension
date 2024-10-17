@@ -1,12 +1,12 @@
 import * as path from 'path';
-import {container} from 'tsyringe';
-import {IExtensionService} from './services/extension-service';
-import {ExtensionServiceSymbol} from './symbols';
+import { container } from 'tsyringe';
+import { IExtensionService } from './services/extension-service';
+import { ExtensionServiceSymbol } from './symbols';
 
 // keep in lowercase.
 // eslint-disable-next-line max-len
 // source: https://github.com/cycodehq/cycode-cli/blob/ec8333707ab2590518fd0f36454c8636ccbf1061/cycode/cli/consts.py#L50-L82
-const _SCA_CONFIGURATION_SCAN_SUPPORTED_FILES: ReadonlyArray<string> = [
+const _SCA_CONFIGURATION_SCAN_SUPPORTED_FILES: readonly string[] = [
   'cargo.lock',
   'cargo.toml',
   'composer.json',
@@ -44,7 +44,7 @@ const _SCA_CONFIGURATION_SCAN_SUPPORTED_FILES: ReadonlyArray<string> = [
 ];
 
 // keep in lowercase. based on _SCA_CONFIGURATION_SCAN_SUPPORTED_FILES
-const _SCA_CONFIGURATION_SCAN_LOCK_FILE_TO_PACKAGE_FILE: { [key: string]: string } = {
+const _SCA_CONFIGURATION_SCAN_LOCK_FILE_TO_PACKAGE_FILE: Record<string, string> = {
   'cargo.lock': 'cargo.toml',
   'composer.lock': 'composer.json',
   'go.sum': 'go.mod',
@@ -60,12 +60,14 @@ const _SCA_CONFIGURATION_SCAN_LOCK_FILE_TO_PACKAGE_FILE: { [key: string]: string
   'mix.lock': 'mix.exs',
 };
 
-const _SCA_CONFIGURATION_SCAN_SUPPORTED_LOCK_FILES: ReadonlyArray<string> =
-    Object.keys(_SCA_CONFIGURATION_SCAN_LOCK_FILE_TO_PACKAGE_FILE);
+const _SCA_CONFIGURATION_SCAN_SUPPORTED_LOCK_FILES: readonly string[]
+    = Object.keys(_SCA_CONFIGURATION_SCAN_LOCK_FILE_TO_PACKAGE_FILE);
 
-// keep in lowercase.
-// source: https://github.com/cycodehq/cycode-cli/blob/ec8333707ab2590518fd0f36454c8636ccbf1061/cycode/cli/consts.py#L16
-const _INFRA_CONFIGURATION_SCAN_SUPPORTED_FILE_SUFFIXES: ReadonlyArray<string> = [
+/*
+ * keep in lowercase.
+ * source: https://github.com/cycodehq/cycode-cli/blob/ec8333707ab2590518fd0f36454c8636ccbf1061/cycode/cli/consts.py#L16
+ */
+const _INFRA_CONFIGURATION_SCAN_SUPPORTED_FILE_SUFFIXES: readonly string[] = [
   '.tf',
   '.tf.json',
   '.json',
@@ -77,7 +79,7 @@ const _INFRA_CONFIGURATION_SCAN_SUPPORTED_FILE_SUFFIXES: ReadonlyArray<string> =
 export const isSupportedIacFile = (fileName: string): boolean => {
   const lowerCaseFileName = fileName.toLowerCase();
   return _INFRA_CONFIGURATION_SCAN_SUPPORTED_FILE_SUFFIXES.some(
-      (fileSuffix) => lowerCaseFileName.endsWith(fileSuffix)
+    (fileSuffix) => lowerCaseFileName.endsWith(fileSuffix),
   );
 };
 
@@ -101,7 +103,7 @@ export const getPackageFileForLockFile = (lockFile: string): string => {
 };
 
 export enum ScanType {
-  Secrets = 'Secrets',
+  Secret = 'Secret',
   Sca = 'SCA',
   Sast = 'SAST',
   Iac = 'IaC',
@@ -114,11 +116,11 @@ export enum ScanTypeDisplayName {
   Iac = 'Infrastructure As Code',
 }
 
-export const SEVERITY_PRIORITIES_FIRST_LETTERS: ReadonlyArray<string> = ['C', 'H', 'M', 'L', 'I'];
-export const SEVERITY_PRIORITIES: ReadonlyArray<string> = ['Critical', 'High', 'Medium', 'Low', 'Info'];
+export const SEVERITY_PRIORITIES_FIRST_LETTERS: readonly string[] = ['C', 'H', 'M', 'L', 'I'];
+export const SEVERITY_PRIORITIES: readonly string[] = ['Critical', 'High', 'Medium', 'Low', 'Info'];
 
-const _SCAN_TYPE_TO_DISPLAY_NAME: { [key: string]: string } = {
-  [ScanType.Secrets]: ScanTypeDisplayName.Secrets,
+const _SCAN_TYPE_TO_DISPLAY_NAME: Record<string, string> = {
+  [ScanType.Secret]: ScanTypeDisplayName.Secrets,
   [ScanType.Sca]: ScanTypeDisplayName.Sca,
   [ScanType.Sast]: ScanTypeDisplayName.Sast,
   [ScanType.Iac]: ScanTypeDisplayName.Iac,

@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 
 export const aggregateDiagnosticsByCode = (
-    diagnostics: readonly vscode.Diagnostic[]
+  diagnostics: readonly vscode.Diagnostic[],
 ): Map<string, vscode.Diagnostic[]> => {
   const aggregatedDiagnostics = new Map<string, vscode.Diagnostic[]>();
 

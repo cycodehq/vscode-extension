@@ -1,8 +1,8 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as decompress from 'decompress';
-import {config} from '../utils/config';
-import {GitHubRelease, GitHubReleaseAsset, IGithubReleaseService} from './github-release-service';
+import { config } from '../utils/config';
+import { GitHubRelease, GitHubReleaseAsset, IGithubReleaseService } from './github-release-service';
 import {
   CLI_CHECK_NEW_VERSION_EVERY_SEC,
   CLI_GITHUB,
@@ -10,17 +10,17 @@ import {
   getPluginPath,
   REQUIRED_CLI_VERSION,
 } from '../constants';
-import {parseOnedirChecksumDb, verifyDirContentChecksums, verifyFileChecksum} from '../utils/file-checksum';
-import {inject, injectable} from 'tsyringe';
+import { parseOnedirChecksumDb, verifyDirContentChecksums, verifyFileChecksum } from '../utils/file-checksum';
+import { inject, injectable } from 'tsyringe';
 import {
   DownloadServiceSymbol,
   GithubReleaseServiceSymbol,
   LoggerServiceSymbol,
   StateServiceSymbol,
 } from '../symbols';
-import {GlobalExtensionState, IStateService} from './state-service';
-import {ILoggerService} from './logger-service';
-import {IDownloadService} from './download-service';
+import { GlobalExtensionState, IStateService } from './state-service';
+import { ILoggerService } from './logger-service';
+import { IDownloadService } from './download-service';
 
 export interface ICliDownloadService {
   initCli(): Promise<void>;
@@ -43,19 +43,19 @@ export class CliDownloadService implements ICliDownloadService {
   private state: GlobalExtensionState;
 
   constructor(
-      @inject(DownloadServiceSymbol) private downloadService: IDownloadService,
-      @inject(GithubReleaseServiceSymbol) private githubReleaseService: IGithubReleaseService,
-      @inject(StateServiceSymbol) private stateService: IStateService,
-      @inject(LoggerServiceSymbol) private logger: ILoggerService,
+    @inject(DownloadServiceSymbol) private downloadService: IDownloadService,
+    @inject(GithubReleaseServiceSymbol) private githubReleaseService: IGithubReleaseService,
+    @inject(StateServiceSymbol) private stateService: IStateService,
+    @inject(LoggerServiceSymbol) private logger: ILoggerService,
   ) {
     this.state = this.stateService.globalState;
   }
 
   async initCli(): Promise<void> {
     // if the CLI path is not overridden and executable is auto managed, and need to download - download it.
-    if (config.cliPath == getDefaultCliPath() &&
-        config.cliAutoManaged &&
-        await this.shouldDownloadCli()
+    if (config.cliPath == getDefaultCliPath()
+      && config.cliAutoManaged
+      && await this.shouldDownloadCli()
     ) {
       await this.downloadCli();
       this.logger.info('CLI downloaded/updated successfully');
@@ -81,10 +81,10 @@ export class CliDownloadService implements ICliDownloadService {
     const diffInSec = timeNow - lastUpdateCheckedAt;
     if (diffInSec < CLI_CHECK_NEW_VERSION_EVERY_SEC) {
       this.logger.info(
-          [
-            `Should not check remote CLI version because diffInSec is ${Math.round(diffInSec)}`,
-            `and less than ${CLI_CHECK_NEW_VERSION_EVERY_SEC}`,
-          ].join(' '),
+        [
+          `Should not check remote CLI version because diffInSec is ${Math.round(diffInSec)}`,
+          `and less than ${CLI_CHECK_NEW_VERSION_EVERY_SEC}`,
+        ].join(' '),
       );
       return false;
     } else {
@@ -98,9 +98,9 @@ export class CliDownloadService implements ICliDownloadService {
       return false;
     }
 
-    const isValidChecksum = isDir ?
-        verifyDirContentChecksums(localPath, parseOnedirChecksumDb(remoteChecksum)) :
-        verifyFileChecksum(localPath, remoteChecksum);
+    const isValidChecksum = isDir
+      ? verifyDirContentChecksums(localPath, parseOnedirChecksumDb(remoteChecksum))
+      : verifyFileChecksum(localPath, remoteChecksum);
 
     if (!isValidChecksum) {
       this.logger.info('Should download CLI because checksum doesn\'t match remote checksum');
@@ -161,10 +161,11 @@ export class CliDownloadService implements ICliDownloadService {
 
   async downloadCli(): Promise<void> {
     if (process.platform === 'darwin') {
-      return await this.downloadOnedirCli();
+      await this.downloadOnedirCli();
+      return;
     }
 
-    return await this.downloadSingleCliExecutable();
+    await this.downloadSingleCliExecutable();
   }
 
   async downloadOnedirCli(): Promise<void> {
@@ -175,8 +176,11 @@ export class CliDownloadService implements ICliDownloadService {
     }
 
     const pathToZip = path.join(getPluginPath(), 'cycode-cli.zip');
-    // we don't verify the checksum of the directory because it's not a single file
-    // we will verify the checksum of the files inside the directory later
+
+    /*
+     * we don't verify the checksum of the directory because it's not a single file
+     * we will verify the checksum of the files inside the directory later
+     */
     await this.downloadService.downloadFile(assetAndFileChecksum.asset.browser_download_url, undefined, pathToZip);
 
     const cliExecutableFile = getDefaultCliPath();
@@ -203,9 +207,9 @@ export class CliDownloadService implements ICliDownloadService {
     }
 
     await this.downloadService.downloadFile(
-        assetAndFileChecksum.asset.browser_download_url,
-        assetAndFileChecksum.expectedChecksum,
-        getDefaultCliPath(),
+      assetAndFileChecksum.asset.browser_download_url,
+      assetAndFileChecksum.expectedChecksum,
+      getDefaultCliPath(),
     );
 
     // set executable permissions
@@ -228,7 +232,7 @@ export class CliDownloadService implements ICliDownloadService {
       return undefined;
     }
 
-    return {asset: executableAsset, expectedChecksum: expectedFileChecksum};
+    return { asset: executableAsset, expectedChecksum: expectedFileChecksum };
   }
 
   async getExecutableAsset(): Promise<GitHubReleaseAsset | undefined> {
@@ -244,7 +248,7 @@ export class CliDownloadService implements ICliDownloadService {
       return undefined;
     }
 
-    const executableAsset = this.githubReleaseService?.findAssetByFilename(releaseInfo.assets, executableAssetName);
+    const executableAsset = this.githubReleaseService.findAssetByFilename(releaseInfo.assets, executableAssetName);
     if (executableAsset == undefined) {
       this.logger.warn('Failed to find executableAsset');
       return undefined;
@@ -253,15 +257,15 @@ export class CliDownloadService implements ICliDownloadService {
     return executableAsset;
   }
 
-  async getGitHubLatestRelease(forceRefresh: boolean = false): Promise<GitHubRelease | undefined> {
+  async getGitHubLatestRelease(forceRefresh = false): Promise<GitHubRelease | undefined> {
     if (this.githubReleaseInfo != undefined && !forceRefresh) {
       return this.githubReleaseInfo;
     }
 
-    this.githubReleaseInfo = await this.githubReleaseService?.getReleaseInfoByTag(
-        CLI_GITHUB.OWNER,
-        CLI_GITHUB.REPO,
-        CLI_GITHUB.TAG,
+    this.githubReleaseInfo = await this.githubReleaseService.getReleaseInfoByTag(
+      CLI_GITHUB.OWNER,
+      CLI_GITHUB.REPO,
+      CLI_GITHUB.TAG,
     );
     return this.githubReleaseInfo;
   }
@@ -287,8 +291,10 @@ export class CliDownloadService implements ICliDownloadService {
       return undefined;
     }
 
-    // TODO(MarshalX): mb we should rename GitHub asset to remove this hack
-    //   but there is question about .sha256 of zip and zip content
+    /*
+     * TODO(MarshalX): mb we should rename GitHub asset to remove this hack
+     *   but there is question about .sha256 of zip and zip content
+     */
     if (filename.endsWith('.zip')) {
       return filename.slice(0, -4) + '.sha256';
     }
@@ -296,7 +302,7 @@ export class CliDownloadService implements ICliDownloadService {
     return `${filename}.sha256`;
   }
 
-  async getRemoteChecksumFile(forceRefresh: boolean = false): Promise<string | undefined> {
+  async getRemoteChecksumFile(forceRefresh = false): Promise<string | undefined> {
     const releaseInfo = await this.getGitHubLatestRelease(forceRefresh);
     if (releaseInfo == undefined) {
       this.logger.warn('Failed to get latest release info');
@@ -309,8 +315,8 @@ export class CliDownloadService implements ICliDownloadService {
       return undefined;
     }
 
-    const executableHashAsset = this.githubReleaseService?.findAssetByFilename(
-        releaseInfo.assets, executableAssetHashName
+    const executableHashAsset = this.githubReleaseService.findAssetByFilename(
+      releaseInfo.assets, executableAssetHashName,
     );
     if (executableHashAsset == undefined) {
       this.logger.warn('Failed to find executableHashAsset');

@@ -1,10 +1,10 @@
 import * as vscode from 'vscode';
-import {IgnoreCommandConfig} from '../types/commands';
-import {config, validateConfig} from '../utils/config';
-import {ignore} from '../services/ignore';
-import {container} from 'tsyringe';
-import {IExtensionService} from '../services/extension-service';
-import {ExtensionServiceSymbol} from '../symbols';
+import { IgnoreCommandConfig } from '../types/commands';
+import { config, validateConfig } from '../utils/config';
+import { ignore } from '../services/ignore';
+import { container } from 'tsyringe';
+import { IExtensionService } from '../services/extension-service';
+import { ExtensionServiceSymbol } from '../symbols';
 
 export default async (ignoreConfig: IgnoreCommandConfig) => {
   if (validateConfig()) {
@@ -21,4 +21,3 @@ export default async (ignoreConfig: IgnoreCommandConfig) => {
     treeView: extension.treeView,
   });
 };
-

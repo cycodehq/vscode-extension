@@ -1,10 +1,10 @@
-import {verifyFileChecksum} from '../utils/file-checksum';
+import { verifyFileChecksum } from '../utils/file-checksum';
 import * as path from 'path';
 import * as os from 'os';
 import * as fs from 'fs';
-import {inject, singleton} from 'tsyringe';
-import {LoggerServiceSymbol} from '../symbols';
-import {ILoggerService} from './logger-service';
+import { inject, singleton } from 'tsyringe';
+import { LoggerServiceSymbol } from '../symbols';
+import { ILoggerService } from './logger-service';
 
 export interface IDownloadService {
   retrieveFileTextContent(url: string): Promise<string | undefined>;
@@ -37,7 +37,8 @@ export class DownloadService implements IDownloadService {
       const tempPath = path.join(os.tmpdir(), prefix);
       fs.mkdtemp(tempPath, (err, folder) => {
         if (err) {
-          return reject(err);
+          reject(err);
+          return;
         }
 
         resolve(path.join(folder, name));
@@ -66,9 +67,9 @@ export class DownloadService implements IDownloadService {
         const localPathToCreate = path.dirname(localPath);
         try {
           fs.mkdirSync(localPathToCreate);
-        } catch (error) {
+        } catch {
           this.logger.warn(
-              `Failed to create directories for ${localPathToCreate}. Probably exists already`
+            `Failed to create directories for ${localPathToCreate}. Probably exists already`,
           );
         }
 

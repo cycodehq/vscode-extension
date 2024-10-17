@@ -1,4 +1,4 @@
-import {ScanType} from '../constants';
+import { ScanType } from '../constants';
 
 export enum CliCommands {
   Path = 'path',
@@ -16,16 +16,10 @@ export enum CommandParameters {
   ByPath = '--by-path',
   UserAgent = '--user-agent',
   scanType = '--scan-type',
-  secretScanType = 'secret',
-  scaScanType = 'sca',
-  iacScanType = 'iac',
-  sastScanType = 'sast',
-  Sync = '--sync',
-  NoRestore = '--no-restore',
 }
 
 const SCAN_TYPE_TO_SCAN_TYPE_CLI_FLAG_VALUE = {
-  [ScanType.Secrets]: 'secret',
+  [ScanType.Secret]: 'secret',
   [ScanType.Sca]: 'sca',
   [ScanType.Sast]: 'sast',
   [ScanType.Iac]: 'iac',

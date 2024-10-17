@@ -1,12 +1,12 @@
 import * as vscode from 'vscode';
-import {inject, singleton} from 'tsyringe';
-import {LoggerServiceSymbol} from '../symbols';
-import {ILoggerService} from './logger-service';
-import {GlobalKeyValueStorage, LocalKeyValueStorage} from './key-value-storage-service';
+import { inject, singleton } from 'tsyringe';
+import { LoggerServiceSymbol } from '../symbols';
+import { ILoggerService } from './logger-service';
+import { GlobalKeyValueStorage, LocalKeyValueStorage } from './key-value-storage-service';
 
 export class GlobalExtensionState {
-  public CliInstalled: boolean = false;
-  public CliAuthed: boolean = false;
+  public CliInstalled = false;
+  public CliAuthed = false;
   public CliVer: string | null = null;
   public CliHash: string | null = null;
   public CliDirHashes: Record<string, string> | null = null;
@@ -15,9 +15,9 @@ export class GlobalExtensionState {
 export type GlobalExtensionStateKey = keyof GlobalExtensionState;
 
 export class LocalExtensionState {
-  public AuthenticatingInProgress: boolean = false;
-  public HasAnyDetections: boolean = false;
-  public TreeViewIsOpen: boolean = false;
+  public AuthenticatingInProgress = false;
+  public HasAnyDetections = false;
+  public TreeViewIsOpen = false;
 }
 export type LocalExtensionStateKey = keyof LocalExtensionState;
 
@@ -33,14 +33,14 @@ enum VscodeStates {
 
 const _CONTEXT_EXPORTED_GLOBAL_STATE_KEYS: Record<string, string> = {
   // map global state keys to vscode context keys
-  'CliAuthed': VscodeStates.IsAuthorized,
+  CliAuthed: VscodeStates.IsAuthorized,
 };
 
 const _CONTEXT_EXPORTED_LOCAL_STATE_KEYS: Record<string, string> = {
   // map local state keys to vscode context keys
-  'AuthenticatingInProgress': VscodeStates.AuthenticatingInProgress,
-  'HasAnyDetections': VscodeStates.HasAnyDetections,
-  'TreeViewIsOpen': VscodeStates.TreeViewIsOpen,
+  AuthenticatingInProgress: VscodeStates.AuthenticatingInProgress,
+  HasAnyDetections: VscodeStates.HasAnyDetections,
+  TreeViewIsOpen: VscodeStates.TreeViewIsOpen,
 };
 
 export interface IStateService {
@@ -153,24 +153,24 @@ export class StateService implements IStateService {
   }
 
   private mergeGlobalState(extensionState: GlobalExtensionState): void {
-    extensionState.CliInstalled !== undefined && (this._globalState.CliInstalled = extensionState.CliInstalled);
-    extensionState.CliAuthed !== undefined && (this._globalState.CliAuthed = extensionState.CliAuthed);
-    extensionState.CliVer !== undefined && (this._globalState.CliVer = extensionState.CliVer);
-    extensionState.CliHash !== undefined && (this._globalState.CliHash = extensionState.CliHash);
-    extensionState.CliDirHashes !== undefined && (this._globalState.CliDirHashes = extensionState.CliDirHashes);
-    extensionState.CliLastUpdateCheckedAt !== undefined && (
+    if (extensionState.CliInstalled !== undefined) (this._globalState.CliInstalled = extensionState.CliInstalled);
+    if (extensionState.CliAuthed !== undefined) (this._globalState.CliAuthed = extensionState.CliAuthed);
+    if (extensionState.CliVer !== undefined) (this._globalState.CliVer = extensionState.CliVer);
+    if (extensionState.CliHash !== undefined) (this._globalState.CliHash = extensionState.CliHash);
+    if (extensionState.CliDirHashes !== undefined) (this._globalState.CliDirHashes = extensionState.CliDirHashes);
+    if (extensionState.CliLastUpdateCheckedAt !== undefined) (
       this._globalState.CliLastUpdateCheckedAt = extensionState.CliLastUpdateCheckedAt
     );
   }
 
   private mergeLocalState(extensionState: LocalExtensionState): void {
-    extensionState.AuthenticatingInProgress !== undefined && (
+    if (extensionState.AuthenticatingInProgress !== undefined) (
       this._localState.AuthenticatingInProgress = extensionState.AuthenticatingInProgress
     );
-    extensionState.HasAnyDetections !== undefined && (
+    if (extensionState.HasAnyDetections !== undefined) (
       this._localState.HasAnyDetections = extensionState.HasAnyDetections
     );
-    extensionState.TreeViewIsOpen !== undefined && (
+    if (extensionState.TreeViewIsOpen !== undefined) (
       this._localState.TreeViewIsOpen = extensionState.TreeViewIsOpen
     );
   }

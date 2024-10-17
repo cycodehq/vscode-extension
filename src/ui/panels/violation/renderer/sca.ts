@@ -22,41 +22,41 @@ const renderDetection = detection => {
 
   const severityFirstLetter = detection.severity[0].toUpperCase();
   ge('severity-icon').src = severityIcons[severityFirstLetter];
-  ge('package').innerText = detection.detection_details.package_name;
-  ge('version').innerText = detection.detection_details.package_version;
-  ge('dependency-path-value').innerText = detection.detection_details.dependency_paths;
+  ge('package').innerText = detection.detectionDetails.packageName;
+  ge('version').innerText = detection.detectionDetails.packageVersion;
+  ge('dependency-path-value').innerText = detection.detectionDetails.dependencyPaths;
 
-  if (detection.detection_details.alert) {
+  if (detection.detectionDetails.alert) {
     // if package vulnerability
-    ge('title').innerText = detection.detection_details.alert.summary;
+    ge('title').innerText = detection.detectionDetails.alert.summary;
     
-    const cwe = renderCweCveLink(detection.detection_details.vulnerability_id);
+    const cwe = renderCweCveLink(detection.detectionDetails.vulnerabilityId);
     const severity = detection.severity;
     ge('short-details').innerHTML = severity + ' | ' + cwe;
 
     showElement('first-patched-version');
-    ge('first-patched-version-value').innerText = detection.detection_details.alert.first_patched_version;
+    ge('first-patched-version-value').innerText = detection.detectionDetails.alert.firstPatchedVersion;
   } else {
     // if non-permissive license
     ge('title').innerText = detection.message;
 
     showElement('licence');
-    ge('licence-value').innerText = detection.detection_details.license;
+    ge('licence-value').innerText = detection.detectionDetails.license;
   }
 
-  if (detection.detection_details.description) {
+  if (detection.detectionDetails.description) {
     showElement('summary');
-    ge('summary-text').innerHTML = detection.detection_details.description;
+    ge('summary-text').innerHTML = detection.detectionDetails.description;
   }
 
-  if (detection.detection_details.custom_remediation_guidelines) {
+  if (detection.detectionDetails.customRemediationGuidelines) {
     showElement('company-guidelines');
-    ge('company-guidelines-text').innerHTML = detection.detection_details.custom_remediation_guidelines;    
+    ge('company-guidelines-text').innerHTML = detection.detectionDetails.customRemediationGuidelines;    
   }
 
-  if (detection.detection_details.remediation_guidelines) {
+  if (detection.detectionDetails.remediationGuidelines) {
     showElement('cycode-guidelines');
-    ge('cycode-guidelines-text').innerHTML = detection.detection_details.remediation_guidelines;    
+    ge('cycode-guidelines-text').innerHTML = detection.detectionDetails.remediationGuidelines;    
   }
 };
 </script>

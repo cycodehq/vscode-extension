@@ -11,7 +11,6 @@ src/**
 webpack.config.js
 *.md
 **/tsconfig.json
-**/.eslintrc.json
 **/*.map
 **/*.ts
 CODEOWNERS

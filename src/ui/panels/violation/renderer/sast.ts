@@ -14,9 +14,9 @@ const renderDetection = detection => {
   const severityFirstLetter = detection.severity[0].toUpperCase();
   ge('severity-icon').src = severityIcons[severityFirstLetter];
 
-  ge('title').innerText = detection.detection_details.policy_display_name;
+  ge('title').innerText = detection.detectionDetails.policyDisplayName;
 
-  const renderedCwes = detection.detection_details.cwe.map(cwe => renderCweCveLink(cwe));
+  const renderedCwes = detection.detectionDetails.cwe.map(cwe => renderCweCveLink(cwe));
   const cwes = renderedCwes.join(', ');
   if (cwes) {
     ge('short-details').innerHTML = [detection.severity, cwes].join(' | ');    
@@ -24,28 +24,28 @@ const renderDetection = detection => {
     ge('short-details').innerText = detection.severity;
   }
 
-  ge('rule').innerText = detection.detection_rule_id;
-  ge('file').innerText = detection.detection_details.file_name;
-  ge('subcategory').innerText = detection.detection_details.category;
-  ge('language').innerText = detection.detection_details.languages.join(', ');
+  ge('rule').innerText = detection.detectionRuleId;
+  ge('file').innerText = detection.detectionDetails.fileName;
+  ge('subcategory').innerText = detection.detectionDetails.category;
+  ge('language').innerText = detection.detectionDetails.languages.join(', ');
 
   const engineIdToDisplayName = {
     '5db84696-88dc-11ec-a8a3-0242ac120002': 'Semgrep OSS (Orchestrated by Cycode)',
     '560a0abd-d7da-4e6d-a3f1-0ed74895295c': 'Bearer (Powered by Cycode)',
   }
-  const engineId = detection.detection_details.external_scanner_id;
+  const engineId = detection.detectionDetails.externalScannerId;
   ge('engine').innerText = engineIdToDisplayName[engineId] || 'None';
 
-  ge('summary-text').innerHTML = detection.detection_details.description;
+  ge('summary-text').innerHTML = detection.detectionDetails.description;
 
-  if (detection.detection_details.custom_remediation_guidelines) {
+  if (detection.detectionDetails.customRemediationGuidelines) {
     showElement('company-guidelines');
-    ge('company-guidelines-text').innerHTML = detection.detection_details.custom_remediation_guidelines;    
+    ge('company-guidelines-text').innerHTML = detection.detectionDetails.customRemediationGuidelines;    
   }
 
-  if (detection.detection_details.remediation_guidelines) {
+  if (detection.detectionDetails.remediationGuidelines) {
     showElement('cycode-guidelines');
-    ge('cycode-guidelines-text').innerHTML = detection.detection_details.remediation_guidelines;    
+    ge('cycode-guidelines-text').innerHTML = detection.detectionDetails.remediationGuidelines;    
   }
 };
 </script>

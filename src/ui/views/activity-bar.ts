@@ -5,18 +5,18 @@ import LoginView from './login/login-view';
 
 export const registerActivityBar = (context: vscode.ExtensionContext): void => {
   const scanView = vscode.window.registerWebviewViewProvider(
-      MainView.viewType,
-      new MainView()
+    MainView.viewType,
+    new MainView(),
   );
 
   const authenticatingView = vscode.window.registerWebviewViewProvider(
-      AuthenticatingView.viewType,
-      new AuthenticatingView()
+    AuthenticatingView.viewType,
+    new AuthenticatingView(),
   );
 
   const loginView = vscode.window.registerWebviewViewProvider(
-      LoginView.viewType,
-      new LoginView()
+    LoginView.viewType,
+    new LoginView(),
   );
 
   context.subscriptions.push(scanView, authenticatingView, loginView);

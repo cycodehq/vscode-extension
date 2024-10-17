@@ -1,13 +1,15 @@
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
+/*
+ * The module 'vscode' contains the VS Code extensibility API
+ * Import the module and reference it with the alias vscode in your code below
+ */
 import 'reflect-metadata';
 import './ioc';
 import * as vscode from 'vscode';
-import {extensionName} from './utils/texts';
+import { extensionName } from './utils/texts';
 import statusBar from './utils/status-bar';
-import {captureException, initSentry} from './sentry';
-import {container} from 'tsyringe';
-import {ICycodeService} from './services/cycode-service';
+import { captureException, initSentry } from './sentry';
+import { container } from 'tsyringe';
+import { ICycodeService } from './services/cycode-service';
 import {
   CycodeServiceSymbol,
   ExtensionServiceSymbol,
@@ -15,19 +17,19 @@ import {
   ScanResultsServiceSymbol,
   StateServiceSymbol,
 } from './symbols';
-import {IStateService} from './services/state-service';
-import {ILoggerService} from './services/logger-service';
-import {IScanResultsService} from './services/scan-results-service';
-import {IExtensionService} from './services/extension-service';
-import {OnProjectOpen} from './listeners/on-project-open';
-import {createTreeView} from './providers/tree-data';
-import {registerCommands} from './commands';
-import {registerOnDidSaveTextDocument} from './listeners/on-did-save-text-document';
-import {registerActivityBar} from './ui/views/activity-bar';
-import {registerCodeLensProvider} from './providers/codelens-provider';
-import {registerCodeActionsProvider} from './providers/code-action';
-import {registerOnDidChangeActiveTextEditor} from './listeners/on-did-change-active-text-editor';
-import {showCliInstallFailed} from './utils/tray-notifications';
+import { IStateService } from './services/state-service';
+import { ILoggerService } from './services/logger-service';
+import { IScanResultsService } from './services/scan-results-service';
+import { IExtensionService } from './services/extension-service';
+import { onProjectOpen } from './listeners/on-project-open';
+import { createTreeView } from './providers/tree-data';
+import { registerCommands } from './commands';
+import { registerOnDidSaveTextDocument } from './listeners/on-did-save-text-document';
+import { registerActivityBar } from './ui/views/activity-bar';
+import { registerCodeLensProvider } from './providers/codelens-provider';
+import { registerCodeActionsProvider } from './providers/code-action';
+import { registerOnDidChangeActiveTextEditor } from './listeners/on-did-change-active-text-editor';
+import { showCliInstallFailed } from './utils/tray-notifications';
 
 export async function activate(context: vscode.ExtensionContext) {
   initSentry();
@@ -79,7 +81,7 @@ export async function activate(context: vscode.ExtensionContext) {
     showCliInstallFailed();
   }
 
-  OnProjectOpen();
+  onProjectOpen();
 }
 
 // This method is called when your extension is deactivated

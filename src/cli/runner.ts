@@ -1,9 +1,9 @@
-import {spawn} from 'child_process';
+import { spawn } from 'child_process';
 import * as os from 'os';
-import {CommandResult, RunCliArgs, RunCliResult} from './types';
-import {container} from 'tsyringe';
-import {ILoggerService} from '../services/logger-service';
-import {LoggerServiceSymbol} from '../symbols';
+import { CommandResult, RunCliArgs, RunCliResult } from './types';
+import { container } from 'tsyringe';
+import { ILoggerService } from '../services/logger-service';
+import { LoggerServiceSymbol } from '../symbols';
 
 const parseResult = (out: string): object => {
   let result = {};
@@ -11,8 +11,8 @@ const parseResult = (out: string): object => {
     if (out) {
       result = JSON.parse(out);
     }
-  } catch (error) {
-    result = {data: out};
+  } catch {
+    result = { data: out };
   }
 
   return result;
@@ -29,7 +29,7 @@ export const getRunnableCliCommand = (args: RunCliArgs): RunCliResult => {
   } = args;
 
   logger.debug(
-      `Running command: "${cliPath} ${commandParams.join(' ')}"`
+    `Running command: "${cliPath} ${commandParams.join(' ')}"`,
   );
 
   const childProcess = spawn(cliPath, commandParams, {
@@ -43,7 +43,7 @@ export const getRunnableCliCommand = (args: RunCliArgs): RunCliResult => {
 
   const getCancelPromise = () => new Promise<void>((resolve) => {
     logger.debug(
-        `Killing child process: "${cliPath} ${commandParams.join(' ')}"`
+      `Killing child process: "${cliPath} ${commandParams.join(' ')}"`,
     );
 
     childProcess.kill('SIGINT');
@@ -65,8 +65,10 @@ export const getRunnableCliCommand = (args: RunCliArgs): RunCliResult => {
       }
     };
 
-    // see the difference between close and exit event here:
-    // https://nodejs.org/api/child_process.html#event-close
+    /*
+     * see the difference between close and exit event here:
+     * https://nodejs.org/api/child_process.html#event-close
+     */
 
     childProcess.on('exit', (code: number) => {
       // exit occurs earlier than close
@@ -93,7 +95,7 @@ export const getRunnableCliCommand = (args: RunCliArgs): RunCliResult => {
       });
     });
 
-    childProcess.stdout?.on('data', (data) => {
+    childProcess.stdout.on('data', (data) => {
       if (printToOutput) {
         logger.debug(`Command stdout: ${data.toString()}`);
       }
@@ -105,8 +107,8 @@ export const getRunnableCliCommand = (args: RunCliArgs): RunCliResult => {
       stdout += data.toString();
     });
 
-    childProcess.stderr?.on('data', handleErrorOutput);
+    childProcess.stderr.on('data', handleErrorOutput);
   });
 
-  return {getCancelPromise: getCancelPromise, getResultPromise: getResultPromise};
+  return { getCancelPromise: getCancelPromise, getResultPromise: getResultPromise };
 };

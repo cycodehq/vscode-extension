@@ -4,39 +4,39 @@ import {
   publisherId,
   scanOnSaveProperty,
 } from './texts';
-import {showSettingsError} from './tray-notifications';
-import {CYCODE_DOMAIN, DEFAULT_CYCODE_API_URL, DEFAULT_CYCODE_APP_URL, getDefaultCliPath} from '../constants';
+import { showSettingsError } from './tray-notifications';
+import { CYCODE_DOMAIN, DEFAULT_CYCODE_API_URL, DEFAULT_CYCODE_APP_URL, getDefaultCliPath } from '../constants';
 import * as fs from 'fs';
 
 export const config = {
   get cliPath(): string {
     const value = vscode.workspace
-        .getConfiguration(extensionId)
-        .get<string>('cliPath');
+      .getConfiguration(extensionId)
+      .get<string>('cliPath');
     return value || getDefaultCliPath();
   },
   get cliAutoManaged(): boolean {
     const value = vscode.workspace
-        .getConfiguration(extensionId)
-        .get<boolean>('cliAutoManaged');
-    return value === undefined ? true : value; // enabled by default
+      .getConfiguration(extensionId)
+      .get<boolean>('cliAutoManaged');
+    return value || true; // enabled by default
   },
-  get cliEnv(): { [key: string]: string } {
+  get cliEnv(): Record<string, string> {
     let CYCODE_API_URL = vscode.workspace
-        .getConfiguration(extensionId)
-        .get('apiUrl') as string | null;
+      .getConfiguration(extensionId)
+      .get<string>('apiUrl');
     if (!CYCODE_API_URL) {
       CYCODE_API_URL = DEFAULT_CYCODE_API_URL;
     }
 
     let CYCODE_APP_URL = vscode.workspace
-        .getConfiguration(extensionId)
-        .get('appUrl') as string | null;
+      .getConfiguration(extensionId)
+      .get<string>('appUrl');
     if (!CYCODE_APP_URL) {
       CYCODE_APP_URL = DEFAULT_CYCODE_APP_URL;
     }
 
-    const env = {CYCODE_API_URL, CYCODE_APP_URL};
+    const env = { CYCODE_API_URL, CYCODE_APP_URL };
 
     // Remove entries with empty values
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -44,8 +44,8 @@ export const config = {
   },
   get additionalParams(): string[] {
     const additionalParams = vscode.workspace
-        .getConfiguration(extensionId)
-        .get('additionalParameters') as string;
+      .getConfiguration(extensionId)
+      .get<string>('additionalParameters');
 
     return additionalParams ? additionalParams.split(' ') : [];
   },
@@ -54,7 +54,7 @@ export const config = {
   },
   get agentVersion(): string {
     return vscode.extensions.getExtension(`${publisherId}.${extensionId}`)
-        ?.packageJSON.version;
+      ?.packageJSON.version;
   },
   get envName(): string {
     return 'vscode';
@@ -64,9 +64,9 @@ export const config = {
   },
   get scanOnSaveEnabled(): boolean {
     const value = vscode.workspace
-        .getConfiguration(extensionId)
-        .get<boolean>(scanOnSaveProperty);
-    return value === undefined ? false : value;
+      .getConfiguration(extensionId)
+      .get<boolean>(scanOnSaveProperty);
+    return value || false;
   },
   get isOnPremiseInstallation(): boolean {
     return !config.cliEnv.CYCODE_API_URL.endsWith(CYCODE_DOMAIN);
@@ -95,7 +95,7 @@ export const validateConfig = () => {
 
     try {
       new URL(url);
-    } catch (e) {
+    } catch {
       const message = `Invalid URL in settings: ${url}`;
       showSettingsError(message);
       return message;
@@ -124,9 +124,9 @@ export const validateConfig = () => {
   const cliEnv = config.cliEnv;
 
   if (
-    validateURL(cliEnv.CYCODE_API_URL) ||
-    validateURL(cliEnv.CYCODE_APP_URL) ||
-    validateCliPath(config.cliPath)
+    validateURL(cliEnv.CYCODE_API_URL)
+    || validateURL(cliEnv.CYCODE_APP_URL)
+    || validateCliPath(config.cliPath)
   ) {
     return true;
   }

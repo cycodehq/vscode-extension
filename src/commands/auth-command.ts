@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
-import {config, validateConfig} from '../utils/config';
-import {auth} from '../services/auth';
+import { config, validateConfig } from '../utils/config';
+import { auth } from '../services/auth';
 
 export default () => {
   if (validateConfig()) {
