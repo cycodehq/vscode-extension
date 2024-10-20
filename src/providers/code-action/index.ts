@@ -1,11 +1,11 @@
 import * as vscode from 'vscode';
-import { DiagnosticCode } from '../../services/common';
-import { ScanType } from '../../constants';
+import { DiagnosticCode } from '../../utils/diagnostic-code';
 import { createCommandCodeActions as createSecretCommandCodeActions } from './secrets-code-actions';
 import { createCommandCodeActions as createScaCommandCodeActions } from './sca-code-actions';
 import { createCommandCodeActions as createIacCommandCodeActions } from './iac-code-actions';
 import { createCommandCodeActions as createSastCommandCodeActions } from './sast-code-actions';
 import { aggregateDiagnosticsByCode } from './unique-diagnostics';
+import { CliScanType } from '../../cli/models/cli-scan-type';
 
 export class CycodeActions implements vscode.CodeActionProvider {
   public static readonly providedCodeActionKinds = [vscode.CodeActionKind.QuickFix];
@@ -31,13 +31,13 @@ export class CycodeActions implements vscode.CodeActionProvider {
   ) {
     const diagnosticCode = DiagnosticCode.fromString(rawDiagnosticCode);
     switch (diagnosticCode.scanType) {
-      case ScanType.Secret:
+      case CliScanType.Secret:
         return createSecretCommandCodeActions(diagnostics, diagnosticCode);
-      case ScanType.Sca:
+      case CliScanType.Sca:
         return createScaCommandCodeActions(diagnostics, diagnosticCode);
-      case ScanType.Iac:
+      case CliScanType.Iac:
         return createIacCommandCodeActions(diagnostics, diagnosticCode);
-      case ScanType.Sast:
+      case CliScanType.Sast:
         return createSastCommandCodeActions(diagnostics, diagnosticCode);
       default:
         return [];

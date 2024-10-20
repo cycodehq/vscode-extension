@@ -5,21 +5,18 @@ import { inject, singleton } from 'tsyringe';
 import { ExtensionServiceSymbol, LoggerServiceSymbol, ScanResultsServiceSymbol, StateServiceSymbol } from '../symbols';
 import { GlobalExtensionState, IStateService } from './state-service';
 import { ILoggerService } from './logger-service';
-import { CliWrapper } from '../cli/runner2';
+import { CliWrapper } from '../cli/cli-wrapper';
 import { CliResult, isCliResultError, isCliResultPanic, isCliResultSuccess } from '../cli/models/cli-result';
-import { ExitCodes } from '../cli/exit-codes';
+import { ExitCode } from '../cli/exit-code';
 import { ScanResultBase } from '../cli/models/scan-result/scan-result-base';
 import { VersionResult } from '../cli/models/version-result';
-import { CliCommands } from '../cli/constants';
+import { CliCommands, CommandParameters } from '../cli/constants';
 import { AuthCheckResult } from '../cli/models/auth-check-result';
 import { AuthResult } from '../cli/models/auth-result';
-import { getScanTypeDisplayName, ScanType } from '../constants';
+import { getScanTypeDisplayName } from '../constants';
 import { ClassConstructor } from 'class-transformer';
 import { SecretScanResult } from '../cli/models/scan-result/secret/secret-scan-result';
 import { IScanResultsService } from './scan-results-service';
-import { updateDetectionState } from './common';
-import { refreshDiagnosticCollectionData } from '../providers/diagnostics/common';
-import { refreshTreeViewData } from '../providers/tree-data/utils';
 import { IExtensionService } from './extension-service';
 import { TrayNotificationTexts } from '../utils/texts';
 import { VscodeCommands } from '../commands';
@@ -28,13 +25,17 @@ import { ScaScanResult } from '../cli/models/scan-result/sca/sca-scan-result';
 import { SastScanResult } from '../cli/models/scan-result/sast/sast-scan-result';
 import { IacScanResult } from '../cli/models/scan-result/iac/iac-scan-result';
 import { DetectionBase } from '../cli/models/scan-result/detection-base';
+import { CliIgnoreType } from '../cli/models/cli-ignore-type';
+import { CliScanType } from '../cli/models/cli-scan-type';
 
 export interface ICliService {
   getProjectRootDirectory(): string | undefined; // TODO REMOVE
   healthCheck(cancellationToken?: CancellationToken): Promise<boolean>;
   checkAuth(cancellationToken?: CancellationToken): Promise<boolean>;
   doAuth(cancellationToken?: CancellationToken): Promise<boolean>;
-  doIgnore(cancellationToken?: CancellationToken): Promise<boolean>;
+  doIgnore(
+    scanType: CliScanType, ignoreType: CliIgnoreType, value: string, cancellationToken?: CancellationToken
+  ): Promise<boolean>;
   scanPathsSecrets(paths: string[], onDemand: boolean, cancellationToken: CancellationToken | undefined): Promise<void>;
   scanPathsSca(paths: string[], onDemand: boolean, cancellationToken: CancellationToken | undefined): Promise<void>;
   scanPathsIac(paths: string[], onDemand: boolean, cancellationToken: CancellationToken | undefined): Promise<void>;
@@ -82,7 +83,7 @@ export class CliService implements ICliService {
     }
 
     if (isCliResultPanic(result)) {
-      if (result.exitCode === ExitCodes.TERMINATION) {
+      if (result.exitCode === ExitCode.TERMINATION) {
         // don't notify user about user-requested terminations
         return null;
       }
@@ -111,14 +112,10 @@ export class CliService implements ICliService {
   }
 
   private async processCliScanResult(
-    scanType: ScanType, detections: DetectionBase[], onDemand: boolean,
+    scanType: CliScanType, detections: DetectionBase[], onDemand: boolean,
   ): Promise<void> {
     this.scanResultsService.setDetections(scanType, detections);
-
-    updateDetectionState(scanType);
-    await refreshDiagnosticCollectionData(this.extensionService.diagnosticCollection);
-    refreshTreeViewData(scanType, this.extensionService.treeView);
-
+    await this.extensionService.refreshProviders(scanType);
     this.showScanResultsNotification(scanType, detections.length, onDemand);
   }
 
@@ -186,23 +183,36 @@ export class CliService implements ICliService {
     return this.state.CliAuthed;
   }
 
-  public async doIgnore(cancellationToken?: CancellationToken): Promise<boolean> {
-    // TODO(MarshalX): implement arguments: scan type, ignore type, and ignore value
-    const args = [CliCommands.Ignore];
-    const result = await this.cli.executeCommand(null, args, cancellationToken);
-    const processedResult = this.processCliResult(result);
-
-    return isCliResultSuccess<AuthResult>(processedResult);
+  private mapIgnoreTypeToOptionName(ignoreType: CliIgnoreType): string {
+    switch (ignoreType) {
+      case CliIgnoreType.Value:
+        return CommandParameters.ByValue;
+      case CliIgnoreType.Rule:
+        return CommandParameters.ByPath;
+      case CliIgnoreType.Path:
+        return CommandParameters.ByRule;
+      default:
+        throw new Error('Invalid CliIgnoreType');
+    }
   }
 
-  private getCliScanOptions(scanType: ScanType): string[] {
+  public async doIgnore(
+    scanType: CliScanType, ignoreType: CliIgnoreType, value: string, cancellationToken?: CancellationToken,
+  ): Promise<boolean> {
+    const args = [CliCommands.Ignore, '-t', scanType.toLowerCase(), this.mapIgnoreTypeToOptionName(ignoreType), value];
+    const result = await this.cli.executeCommand(null, args, cancellationToken);
+    const processedResult = this.processCliResult(result);
+    return isCliResultSuccess<null>(processedResult);
+  }
+
+  private getCliScanOptions(scanType: CliScanType): string[] {
     const options: string[] = [];
 
-    if (scanType !== ScanType.Sast) {
+    if (scanType !== CliScanType.Sast) {
       options.push('--sync');
     }
 
-    if (scanType === ScanType.Sca) {
+    if (scanType === CliScanType.Sca) {
       options.push('--no-restore');
     }
 
@@ -210,63 +220,63 @@ export class CliService implements ICliService {
   }
 
   private async scanPaths<T extends ClassConstructor<unknown>>(
-    classConst: T, paths: string[], scanType: ScanType, cancellationToken?: CancellationToken,
+    classConst: T, paths: string[], scanType: CliScanType, cancellationToken?: CancellationToken,
   ): Promise<CliResult<T> | null> {
     const isolatedPaths: string[] = paths.map((path) => `"${path}"`);
     const scanOptions = this.getCliScanOptions(scanType);
-    const args = [CliCommands.Scan, '-t', scanType.toLowerCase(), ...scanOptions, 'path', ...isolatedPaths];
+    const args = [CliCommands.Scan, '-t', scanType.toLowerCase(), ...scanOptions, CliCommands.Path, ...isolatedPaths];
     return this.processCliResult(await this.cli.executeCommand(classConst, args, cancellationToken));
   }
 
-  private showScanResultsNotification(scanType: ScanType, detectionsCount: number, onDemand: boolean): void {
+  private showScanResultsNotification(scanType: CliScanType, detectionsCount: number, onDemand: boolean): void {
     const scanTypeDisplayName: string = getScanTypeDisplayName(scanType);
 
-    if (detectionsCount === 0 && onDemand) {
+    if (detectionsCount > 0) {
+      vscode.window
+        .showInformationMessage(
+          `Cycode has detected ${detectionsCount} ${scanTypeDisplayName} 
+          issues in your files. Check out your “Problems” tab to analyze.`,
+          TrayNotificationTexts.OpenProblemsTab,
+        )
+        .then((buttonPressed) => {
+          if (buttonPressed === TrayNotificationTexts.OpenProblemsTab) {
+            vscode.commands.executeCommand(VscodeCommands.ShowProblemsTab);
+          }
+        });
+    } else if (onDemand) {
       vscode.window.showInformationMessage(`No ${scanTypeDisplayName} issues were found.`);
       return;
     }
-
-    vscode.window
-      .showInformationMessage(
-        `Cycode has detected ${detectionsCount} ${scanTypeDisplayName} 
-          issues in your files. Check out your “Problems” tab to analyze.`,
-        TrayNotificationTexts.OpenProblemsTab,
-      )
-      .then((buttonPressed) => {
-        if (buttonPressed === TrayNotificationTexts.OpenProblemsTab) {
-          vscode.commands.executeCommand(VscodeCommands.ShowProblemsTab);
-        }
-      });
   }
 
   public async scanPathsSecrets(
     paths: string[], onDemand = false, cancellationToken: CancellationToken | undefined = undefined,
   ): Promise<void> {
-    const results = await this.scanPaths(SecretScanResult, paths, ScanType.Secret, cancellationToken);
+    const results = await this.scanPaths(SecretScanResult, paths, CliScanType.Secret, cancellationToken);
     if (!isCliResultSuccess<SecretScanResult>(results)) {
       this.logger.warn(`Failed to scan Secret paths: ${paths}`);
       return;
     }
 
-    await this.processCliScanResult(ScanType.Secret, results.result.detections, onDemand);
+    await this.processCliScanResult(CliScanType.Secret, results.result.detections, onDemand);
   }
 
   public async scanPathsSca(
     paths: string[], onDemand = false, cancellationToken: CancellationToken | undefined = undefined,
   ): Promise<void> {
-    const results = await this.scanPaths(ScaScanResult, paths, ScanType.Sca, cancellationToken);
+    const results = await this.scanPaths(ScaScanResult, paths, CliScanType.Sca, cancellationToken);
     if (!isCliResultSuccess<ScaScanResult>(results)) {
       this.logger.warn(`Failed to scan SCA paths: ${paths}`);
       return;
     }
 
-    await this.processCliScanResult(ScanType.Sca, results.result.detections, onDemand);
+    await this.processCliScanResult(CliScanType.Sca, results.result.detections, onDemand);
   }
 
   public async scanPathsIac(
     paths: string[], onDemand = false, cancellationToken: CancellationToken | undefined = undefined,
   ): Promise<void> {
-    const results = await this.scanPaths(IacScanResult, paths, ScanType.Iac, cancellationToken);
+    const results = await this.scanPaths(IacScanResult, paths, CliScanType.Iac, cancellationToken);
     if (!isCliResultSuccess<IacScanResult>(results)) {
       this.logger.warn(`Failed to scan IaC paths: ${paths}`);
       return;
@@ -281,18 +291,18 @@ export class CliService implements ICliService {
       return fs.existsSync(detection.detectionDetails.fileName);
     });
 
-    await this.processCliScanResult(ScanType.Iac, results.result.detections, onDemand);
+    await this.processCliScanResult(CliScanType.Iac, results.result.detections, onDemand);
   }
 
   public async scanPathsSast(
     paths: string[], onDemand = false, cancellationToken: CancellationToken | undefined = undefined,
   ): Promise<void> {
-    const results = await this.scanPaths(SastScanResult, paths, ScanType.Sast, cancellationToken);
+    const results = await this.scanPaths(SastScanResult, paths, CliScanType.Sast, cancellationToken);
     if (!isCliResultSuccess<SastScanResult>(results)) {
       this.logger.warn(`Failed to scan SAST paths: ${paths}`);
       return;
     }
 
-    await this.processCliScanResult(ScanType.Sast, results.result.detections, onDemand);
+    await this.processCliScanResult(CliScanType.Sast, results.result.detections, onDemand);
   }
 }

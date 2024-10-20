@@ -1,7 +1,8 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { TreeItem } from './item';
-import { ScanType, ScanTypeDisplayName } from '../../constants';
+import { ScanTypeDisplayName } from '../../constants';
+import { CliScanType } from '../../cli/models/cli-scan-type';
 
 const _PATH_TO_RESOURCES = path.join(__filename, '..', '..', 'resources');
 const PATH_TO_SCAN_TYPE_ICONS = path.join(_PATH_TO_RESOURCES, 'scan-type');
@@ -27,43 +28,48 @@ const _validateIconFilename = (filename: string): void => {
 const getSecretsSectionItem = (description: string): TreeItem => new TreeItem({
   title: ScanTypeDisplayName.Secrets,
   collapsibleState: vscode.TreeItemCollapsibleState.Collapsed,
-  scanSectionType: ScanType.Secret,
-  customIconPath: getScanTypeIconPath(ScanType.Secret),
+  scanSectionType: CliScanType.Secret,
+  customIconPath: getScanTypeIconPath(CliScanType.Secret),
   description,
 });
 
 const getScaSectionItem = (description: string): TreeItem => new TreeItem({
   title: ScanTypeDisplayName.Sca,
   collapsibleState: vscode.TreeItemCollapsibleState.Collapsed,
-  scanSectionType: ScanType.Sca,
-  customIconPath: getScanTypeIconPath(ScanType.Sca),
+  scanSectionType: CliScanType.Sca,
+  customIconPath: getScanTypeIconPath(CliScanType.Sca),
   description,
 });
 
 const getSastSectionItem = (description: string): TreeItem => new TreeItem({
   title: ScanTypeDisplayName.Sast,
   collapsibleState: vscode.TreeItemCollapsibleState.Collapsed,
-  scanSectionType: ScanType.Sast,
-  customIconPath: getScanTypeIconPath(ScanType.Sast),
+  scanSectionType: CliScanType.Sast,
+  customIconPath: getScanTypeIconPath(CliScanType.Sast),
   description: description,
 });
 
 const getIacSectionItem = (description: string): TreeItem => new TreeItem({
   title: ScanTypeDisplayName.Iac,
   collapsibleState: vscode.TreeItemCollapsibleState.Collapsed,
-  scanSectionType: ScanType.Iac,
-  customIconPath: getScanTypeIconPath(ScanType.Iac),
+  scanSectionType: CliScanType.Iac,
+  customIconPath: getScanTypeIconPath(CliScanType.Iac),
   description,
 });
 
 const _SCAN_TYPE_TO_SECTION_ITEM_CREATOR: Record<string, (description: string) => TreeItem> = {
-  [ScanType.Secret]: getSecretsSectionItem,
-  [ScanType.Sca]: getScaSectionItem,
-  [ScanType.Sast]: getSastSectionItem,
-  [ScanType.Iac]: getIacSectionItem,
+  [CliScanType.Secret]: getSecretsSectionItem,
+  [CliScanType.Sca]: getScaSectionItem,
+  [CliScanType.Sast]: getSastSectionItem,
+  [CliScanType.Iac]: getIacSectionItem,
 };
 
-export const SECTIONS_ORDER: readonly ScanType[] = [ScanType.Secret, ScanType.Sca, ScanType.Iac, ScanType.Sast];
+export const SECTIONS_ORDER: readonly CliScanType[] = [
+  CliScanType.Secret,
+  CliScanType.Sca,
+  CliScanType.Iac,
+  CliScanType.Sast,
+];
 
 export const getSectionItem = (scanType: string, description: string): TreeItem => {
   if (!(scanType in _SCAN_TYPE_TO_SECTION_ITEM_CREATOR)) {

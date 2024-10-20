@@ -1,4 +1,4 @@
-import { ScanType } from '../constants';
+import { CliScanType } from './models/cli-scan-type';
 
 export enum CliCommands {
   Path = 'path',
@@ -19,13 +19,13 @@ export enum CommandParameters {
 }
 
 const SCAN_TYPE_TO_SCAN_TYPE_CLI_FLAG_VALUE = {
-  [ScanType.Secret]: 'secret',
-  [ScanType.Sca]: 'sca',
-  [ScanType.Sast]: 'sast',
-  [ScanType.Iac]: 'iac',
+  [CliScanType.Secret]: 'secret',
+  [CliScanType.Sca]: 'sca',
+  [CliScanType.Sast]: 'sast',
+  [CliScanType.Iac]: 'iac',
 };
 
-export const getScanTypeCliValue = (scanType: ScanType): string => {
+export const getScanTypeCliValue = (scanType: CliScanType): string => {
   if (!SCAN_TYPE_TO_SCAN_TYPE_CLI_FLAG_VALUE[scanType]) {
     throw new Error(`Unsupported scan type: ${scanType}`);
   }

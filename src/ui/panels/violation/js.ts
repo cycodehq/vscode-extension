@@ -1,10 +1,10 @@
-import { ScanType } from '../../../constants';
 import scaRenderer from './renderer/sca';
 import secretRenderer from './renderer/secret';
 import iacRenderer from './renderer/iac';
 import sastRenderer from './renderer/sast';
+import { CliScanType } from '../../../cli/models/cli-scan-type';
 
-export default (detectionType: ScanType) => `
+export default (detectionType: CliScanType) => `
 <script>
     const vscode = acquireVsCodeApi();
     const prevState = vscode.getState();
@@ -55,10 +55,10 @@ export default (detectionType: ScanType) => `
       }
     };
 </script>
-    ${detectionType === ScanType.Sca ? scaRenderer : ''}
-    ${detectionType === ScanType.Secret ? secretRenderer : ''}
-    ${detectionType === ScanType.Iac ? iacRenderer : ''}
-    ${detectionType === ScanType.Sast ? sastRenderer : ''}
+    ${detectionType === CliScanType.Sca ? scaRenderer : ''}
+    ${detectionType === CliScanType.Secret ? secretRenderer : ''}
+    ${detectionType === CliScanType.Iac ? iacRenderer : ''}
+    ${detectionType === CliScanType.Sast ? sastRenderer : ''}
 <script>
     if (detection) {
         renderDetection(detection);

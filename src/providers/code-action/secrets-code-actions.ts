@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { DiagnosticCode } from '../../services/common';
+import { DiagnosticCode } from '../../utils/diagnostic-code';
 import { createOpenViolationCardAction } from './common-actions';
 
 export const createCommandCodeActions = (

@@ -2,6 +2,7 @@ import * as path from 'path';
 import { container } from 'tsyringe';
 import { IExtensionService } from './services/extension-service';
 import { ExtensionServiceSymbol } from './symbols';
+import { CliScanType } from './cli/models/cli-scan-type';
 
 // keep in lowercase.
 // eslint-disable-next-line max-len
@@ -102,13 +103,6 @@ export const getPackageFileForLockFile = (lockFile: string): string => {
   return _SCA_CONFIGURATION_SCAN_LOCK_FILE_TO_PACKAGE_FILE[lowerCaseFileName];
 };
 
-export enum ScanType {
-  Secret = 'Secret',
-  Sca = 'SCA',
-  Sast = 'SAST',
-  Iac = 'IaC',
-}
-
 export enum ScanTypeDisplayName {
   Secrets = 'Hardcoded Secrets',
   Sca = 'Open Source Threat',
@@ -120,10 +114,10 @@ export const SEVERITY_PRIORITIES_FIRST_LETTERS: readonly string[] = ['C', 'H', '
 export const SEVERITY_PRIORITIES: readonly string[] = ['Critical', 'High', 'Medium', 'Low', 'Info'];
 
 const _SCAN_TYPE_TO_DISPLAY_NAME: Record<string, string> = {
-  [ScanType.Secret]: ScanTypeDisplayName.Secrets,
-  [ScanType.Sca]: ScanTypeDisplayName.Sca,
-  [ScanType.Sast]: ScanTypeDisplayName.Sast,
-  [ScanType.Iac]: ScanTypeDisplayName.Iac,
+  [CliScanType.Secret]: ScanTypeDisplayName.Secrets,
+  [CliScanType.Sca]: ScanTypeDisplayName.Sca,
+  [CliScanType.Sast]: ScanTypeDisplayName.Sast,
+  [CliScanType.Iac]: ScanTypeDisplayName.Iac,
 };
 
 export const getScanTypeDisplayName = (scanType: string): string => {
@@ -133,8 +127,6 @@ export const getScanTypeDisplayName = (scanType: string): string => {
 
   return _SCAN_TYPE_TO_DISPLAY_NAME[scanType];
 };
-
-export const DIAGNOSTIC_CODE_SEPARATOR = '::';
 
 export const REQUIRED_CLI_VERSION = '1.11.0';
 

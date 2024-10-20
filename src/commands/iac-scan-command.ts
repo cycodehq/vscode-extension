@@ -3,7 +3,7 @@ import { container } from 'tsyringe';
 import TrayNotifications from '../utils/tray-notifications';
 import { validateConfig } from '../utils/config';
 import { CycodeService, ICycodeService } from '../services/cycode-service';
-import { ScanType } from '../constants';
+import { CliScanType } from '../cli/models/cli-scan-type';
 
 export default () => {
   // scan the current open document if opened
@@ -18,5 +18,5 @@ export default () => {
   }
 
   const cycodeService = container.resolve<ICycodeService>(CycodeService);
-  void cycodeService.startScan(ScanType.Iac, [vscode.window.activeTextEditor.document.fileName], true);
+  void cycodeService.startScan(CliScanType.Iac, [vscode.window.activeTextEditor.document.fileName], true);
 };

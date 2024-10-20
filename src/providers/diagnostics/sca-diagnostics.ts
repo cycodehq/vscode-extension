@@ -1,11 +1,11 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { getPackageFileForLockFile, isSupportedLockFile, ScanType } from '../../constants';
+import { getPackageFileForLockFile, isSupportedLockFile } from '../../constants';
 import { extensionId } from '../../utils/texts';
-import { DiagnosticCode } from '../../services/common';
-import { calculateUniqueDetectionId } from '../../services/scan-results-service';
+import { DiagnosticCode } from '../../utils/diagnostic-code';
 import { FileDiagnostics } from './types';
 import { ScaDetection } from '../../cli/models/scan-result/sca/sca-detection';
+import { CliScanType } from '../../cli/models/cli-scan-type';
 
 export const createDiagnostics = async (
   detections: ScaDetection[],
@@ -38,7 +38,7 @@ export const createDiagnostics = async (
     );
 
     diagnostic.source = extensionId;
-    diagnostic.code = new DiagnosticCode(ScanType.Sca, calculateUniqueDetectionId(detection)).toString();
+    diagnostic.code = DiagnosticCode.fromDetection(CliScanType.Sca, detection).toString();
 
     result[fileName] = result[fileName] || [];
     result[fileName].push(diagnostic);

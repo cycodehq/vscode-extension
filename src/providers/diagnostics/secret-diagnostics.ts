@@ -1,10 +1,9 @@
 import * as vscode from 'vscode';
 import { extensionId } from '../../utils/texts';
-import { DiagnosticCode } from '../../services/common';
-import { ScanType } from '../../constants';
-import { calculateUniqueDetectionId } from '../../services/scan-results-service';
+import { DiagnosticCode } from '../../utils/diagnostic-code';
 import { FileDiagnostics } from './types';
 import { SecretDetection } from '../../cli/models/scan-result/secret/secret-detection';
+import { CliScanType } from '../../cli/models/cli-scan-type';
 
 interface SecretDetectionIdeData {
   documentPath: string;
@@ -13,7 +12,7 @@ interface SecretDetectionIdeData {
   value: string;
 }
 
-export const getSecretDetectionIdeData = async (detection: SecretDetection): Promise<SecretDetectionIdeData> => {
+const _getSecretDetectionIdeData = async (detection: SecretDetection): Promise<SecretDetectionIdeData> => {
   const documentPath = detection.detectionDetails.getFilepath();
   const documentUri = vscode.Uri.file(documentPath);
   const document = await vscode.workspace.openTextDocument(documentUri);
@@ -43,7 +42,10 @@ export const createDiagnostics = async (
   const result: FileDiagnostics = {};
 
   for (const detection of detections) {
-    const ideData = await getSecretDetectionIdeData(detection);
+    const ideData = await _getSecretDetectionIdeData(detection);
+
+    // tricky mutation for ignoring by value
+    detection.detectionDetails.detectedValue = ideData.value;
 
     let message = `Severity: ${detection.severity}\n`;
     message += detection.getFormattedTitle();
@@ -57,7 +59,7 @@ export const createDiagnostics = async (
     );
 
     diagnostic.source = extensionId;
-    diagnostic.code = new DiagnosticCode(ScanType.Secret, calculateUniqueDetectionId(detection)).toString();
+    diagnostic.code = DiagnosticCode.fromDetection(CliScanType.Secret, detection).toString();
 
     result[ideData.documentPath] = result[ideData.documentPath] || [];
     result[ideData.documentPath].push(diagnostic);

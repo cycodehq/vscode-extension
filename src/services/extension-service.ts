@@ -1,11 +1,18 @@
 import * as vscode from 'vscode';
-import { singleton } from 'tsyringe';
+import { container, singleton } from 'tsyringe';
 import { TreeView } from '../providers/tree-data/types';
+import { refreshDiagnosticCollectionData } from '../providers/diagnostics/common';
+import { refreshTreeViewData } from '../providers/tree-data/utils';
+import { IStateService } from './state-service';
+import { ScanResultsServiceSymbol, StateServiceSymbol } from '../symbols';
+import { IScanResultsService } from './scan-results-service';
+import { CliScanType } from '../cli/models/cli-scan-type';
 
 export interface IExtensionService {
   extensionContext: vscode.ExtensionContext;
   diagnosticCollection: vscode.DiagnosticCollection;
   treeView: TreeView;
+  refreshProviders(scanType: CliScanType): Promise<void>;
 }
 
 @singleton()
@@ -16,6 +23,7 @@ export class ExtensionService implements IExtensionService {
    *It was developed for migration during huge refactoring.
    *I hope it will be removed in the future.
    */
+
   private _extensionContext?: vscode.ExtensionContext;
   private _diagnosticCollection?: vscode.DiagnosticCollection;
   private _treeView?: TreeView;
@@ -51,5 +59,25 @@ export class ExtensionService implements IExtensionService {
 
   set treeView(value: TreeView) {
     this._treeView = value;
+  }
+
+  private refreshDetectionsLocalState(scanType: CliScanType) {
+    const stateService = container.resolve<IStateService>(StateServiceSymbol);
+    const scanResultsService = container.resolve<IScanResultsService>(ScanResultsServiceSymbol);
+
+    const scanTypeDetections = scanResultsService.getDetections(scanType);
+    const hasDetections = scanTypeDetections.length > 0;
+    if (hasDetections) {
+      stateService.localState.TreeViewIsOpen = true;
+    }
+
+    stateService.localState.HasAnyDetections = scanResultsService.hasResults();
+    stateService.save();
+  }
+
+  public async refreshProviders(scanType: CliScanType) {
+    this.refreshDetectionsLocalState(scanType);
+    await refreshDiagnosticCollectionData(this.diagnosticCollection);
+    refreshTreeViewData(scanType, this.treeView);
   }
 }

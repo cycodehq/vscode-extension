@@ -5,10 +5,11 @@ import {
   getSeverityIconPath,
   SECTIONS_ORDER,
 } from './constants';
-import { ScanType, SEVERITY_PRIORITIES_FIRST_LETTERS } from '../../constants';
+import { SEVERITY_PRIORITIES_FIRST_LETTERS } from '../../constants';
 import { TreeDisplayedData } from './types';
 import { mapScanResultsToSeverityStatsString } from './utils';
 import { VscodeCommands } from '../../commands';
+import { CliScanType } from '../../cli/models/cli-scan-type';
 
 type TreeDataDatabase = Record<string, FileScanResult[]>;
 
@@ -28,10 +29,10 @@ export class TreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
   vscode.Event<TreeItem | undefined> = this._onDidChangeTreeData.event;
 
   private filesScanResults: TreeDataDatabase = {
-    [ScanType.Secret]: [],
-    [ScanType.Sca]: [],
-    [ScanType.Sast]: [],
-    [ScanType.Iac]: [],
+    [CliScanType.Secret]: [],
+    [CliScanType.Sca]: [],
+    [CliScanType.Sast]: [],
+    [CliScanType.Iac]: [],
   };
 
   getTreeItem(element: TreeItem): vscode.TreeItem {
@@ -73,19 +74,8 @@ export class TreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
     return Promise.resolve([]);
   }
 
-  refresh(filesScanResults: FileScanResult[], scanType: ScanType): void {
+  refresh(filesScanResults: FileScanResult[], scanType: CliScanType): void {
     this.filesScanResults[scanType] = filesScanResults;
-    this._onDidChangeTreeData.fire(undefined);
-  }
-
-  excludeViolationsByPath(path: string): void {
-    for (const scanType of SECTIONS_ORDER) {
-      const scanResults = this.filesScanResults[scanType];
-      this.filesScanResults[scanType] = scanResults.filter(
-        (scanResult) => scanResult.fullFilePath !== path,
-      );
-    }
-
     this._onDidChangeTreeData.fire(undefined);
   }
 }

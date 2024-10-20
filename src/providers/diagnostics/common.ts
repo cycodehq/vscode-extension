@@ -3,7 +3,6 @@ import { createDiagnostics as createDiagnosticsSecret } from './secret-diagnosti
 import { createDiagnostics as createDiagnosticsSca } from './sca-diagnostics';
 import { createDiagnostics as createDiagnosticsIac } from './iac-diagnostics';
 import { createDiagnostics as createDiagnosticsSast } from './sast-diagnostics';
-import { ScanType } from '../../constants';
 import { FileDiagnostics } from './types';
 import { validateTextRangeInOpenDoc } from '../../utils/range';
 import { container } from 'tsyringe';
@@ -14,15 +13,16 @@ import { DetectionBase } from '../../cli/models/scan-result/detection-base';
 import { ScaDetection } from '../../cli/models/scan-result/sca/sca-detection';
 import { IacDetection } from '../../cli/models/scan-result/iac/iac-detection';
 import { SastDetection } from '../../cli/models/scan-result/sast/sast-detection';
+import { CliScanType } from '../../cli/models/cli-scan-type';
 
 const createDiagnostics = async (
-  scanType: ScanType, detections: DetectionBase[],
+  scanType: CliScanType, detections: DetectionBase[],
 ): Promise<FileDiagnostics> => {
   const diagnosticFunctions = {
-    [ScanType.Secret]: (detections: DetectionBase[]) => createDiagnosticsSecret(detections as SecretDetection[]),
-    [ScanType.Sca]: (detections: DetectionBase[]) => createDiagnosticsSca(detections as ScaDetection[]),
-    [ScanType.Iac]: (detections: DetectionBase[]) => createDiagnosticsIac(detections as IacDetection[]),
-    [ScanType.Sast]: (detections: DetectionBase[]) => createDiagnosticsSast(detections as SastDetection[]),
+    [CliScanType.Secret]: (detections: DetectionBase[]) => createDiagnosticsSecret(detections as SecretDetection[]),
+    [CliScanType.Sca]: (detections: DetectionBase[]) => createDiagnosticsSca(detections as ScaDetection[]),
+    [CliScanType.Iac]: (detections: DetectionBase[]) => createDiagnosticsIac(detections as IacDetection[]),
+    [CliScanType.Sast]: (detections: DetectionBase[]) => createDiagnosticsSast(detections as SastDetection[]),
   };
 
   const createDiagnosticsFunction = diagnosticFunctions[scanType];
@@ -48,7 +48,7 @@ const setDiagnostics = (
 };
 
 const updateDiagnosticCollection = async (
-  scanType: ScanType, detections: DetectionBase[], diagnosticCollection: vscode.DiagnosticCollection,
+  scanType: CliScanType, detections: DetectionBase[], diagnosticCollection: vscode.DiagnosticCollection,
 ) => {
   const diagnostics = await createDiagnostics(scanType, detections);
   setDiagnostics(diagnostics, diagnosticCollection);
@@ -58,7 +58,7 @@ export const refreshDiagnosticCollectionData = async (diagnosticCollection: vsco
   diagnosticCollection.clear();
 
   const scanResultsService = container.resolve<IScanResultsService>(ScanResultsServiceSymbol);
-  for (const scanType of Object.values(ScanType)) {
+  for (const scanType of Object.values(CliScanType)) {
     const detections = scanResultsService.getDetections(scanType);
     await updateDiagnosticCollection(scanType, detections, diagnosticCollection);
   }

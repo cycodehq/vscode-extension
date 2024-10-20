@@ -1,7 +1,7 @@
 import { container } from 'tsyringe';
 import { validateConfig } from '../utils/config';
 import { CycodeService, ICycodeService } from '../services/cycode-service';
-import { ScanType } from '../constants';
+import { CliScanType } from '../cli/models/cli-scan-type';
 
 export default () => {
   if (validateConfig()) {
@@ -9,5 +9,5 @@ export default () => {
   }
 
   const cycodeService = container.resolve<ICycodeService>(CycodeService);
-  void cycodeService.startScanForCurrentProject(ScanType.Sast);
+  void cycodeService.startScanForCurrentProject(CliScanType.Sast);
 };

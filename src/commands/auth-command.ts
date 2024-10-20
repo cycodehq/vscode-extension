@@ -1,17 +1,11 @@
-import * as vscode from 'vscode';
-import { config, validateConfig } from '../utils/config';
-import { auth } from '../services/auth';
-
+import { validateConfig } from '../utils/config';
+import { container } from 'tsyringe';
+import { CycodeService, ICycodeService } from '../services/cycode-service';
 export default () => {
   if (validateConfig()) {
     return;
   }
 
-  const params = {
-    config,
-    workspaceFolderPath:
-            vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || '',
-  };
-
-  auth(params);
+  const cycodeService = container.resolve<ICycodeService>(CycodeService);
+  void cycodeService.startAuth();
 };

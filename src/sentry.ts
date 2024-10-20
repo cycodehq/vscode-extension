@@ -47,6 +47,7 @@ export const initSentry = () => {
     release: _getSentryRelease(),
     serverName: '',
     beforeSend: (event) => {
+      // eslint-disable-next-line camelcase
       event.server_name = ''; // somehow client options are not applied to the event
 
       if (_isSentryDisabled()) {
@@ -70,6 +71,7 @@ export const initSentry = () => {
 
 export const setSentryUser = (userId: string, tenantId: string) => {
   scope.setTag('tenant_id', tenantId);
+  // eslint-disable-next-line camelcase
   scope.setUser({ id: userId, tenant_id: tenantId });
 };
 

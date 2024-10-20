@@ -2,7 +2,7 @@ import * as path from 'path';
 import { container } from 'tsyringe';
 import { FileScanResult } from './provider';
 import { SeverityFirstLetter, TreeView, TreeDisplayedData } from './types';
-import { ScanType, SEVERITY_PRIORITIES } from '../../constants';
+import { SEVERITY_PRIORITIES } from '../../constants';
 import { IScanResultsService } from '../../services/scan-results-service';
 import { CliServiceSymbol, ScanResultsServiceSymbol } from '../../symbols';
 import { ICliService } from '../../services/cli-service';
@@ -11,6 +11,7 @@ import { ScaDetection } from '../../cli/models/scan-result/sca/sca-detection';
 import { IacDetection } from '../../cli/models/scan-result/iac/iac-detection';
 import { SastDetection } from '../../cli/models/scan-result/sast/sast-detection';
 import { DetectionBase } from '../../cli/models/scan-result/detection-base';
+import { CliScanType } from '../../cli/models/cli-scan-type';
 
 interface ValueItem {
   fullFilePath: string;
@@ -22,7 +23,7 @@ type SeverityCounted = Record<string, number>;
 const VSCODE_ENTRY_LINE_NUMBER = 1;
 
 export const refreshTreeViewData = (
-  scanType: ScanType, treeView: TreeView,
+  scanType: CliScanType, treeView: TreeView,
 ) => {
   const cliService = container.resolve<ICliService>(CliServiceSymbol);
   const projectRoot = cliService.getProjectRootDirectory();
@@ -54,7 +55,7 @@ const _getSecretValueItem = (detection: SecretDetection): ValueItem => {
     severityFirstLetter: mapSeverityToFirstLetter(severity),
     lineNumber: lineNumber,
     detection: detection,
-    detectionType: ScanType.Secret,
+    detectionType: CliScanType.Secret,
   };
 
   return { fullFilePath: detectionDetails.getFilepath(), data: valueItem };
@@ -69,7 +70,7 @@ const _getScaValueItem = (detection: ScaDetection): ValueItem => {
     severityFirstLetter: mapSeverityToFirstLetter(severity),
     lineNumber: lineInFile,
     detection: detection,
-    detectionType: ScanType.Sca,
+    detectionType: CliScanType.Sca,
   };
 
   return { fullFilePath: detectionDetails.getFilepath(), data: valueItem };
@@ -84,7 +85,7 @@ const _getIacValueItem = (detection: IacDetection): ValueItem => {
     severityFirstLetter: mapSeverityToFirstLetter(severity),
     lineNumber: lineInFile,
     detection: detection,
-    detectionType: ScanType.Iac,
+    detectionType: CliScanType.Iac,
   };
 
   return { fullFilePath: detectionDetails.getFilepath(), data: valueItem };
@@ -99,7 +100,7 @@ const _getSastValueItem = (detection: SastDetection): ValueItem => {
     severityFirstLetter: mapSeverityToFirstLetter(severity),
     lineNumber: lineInFile,
     detection: detection,
-    detectionType: ScanType.Sast,
+    detectionType: CliScanType.Sast,
   };
 
   return { fullFilePath: detectionDetails.getFilepath(), data: valueItem };
@@ -107,20 +108,20 @@ const _getSastValueItem = (detection: SastDetection): ValueItem => {
 
 const mapDetectionsByFileName = (
   detections: DetectionBase[],
-  scanType: ScanType,
+  scanType: CliScanType,
 ): Map<string, TreeDisplayedData[]> => {
   const resultMap = new Map<string, TreeDisplayedData[]>();
 
   detections.forEach((detection) => {
     let valueItem: ValueItem | undefined;
 
-    if (scanType === ScanType.Secret) {
+    if (scanType === CliScanType.Secret) {
       valueItem = _getSecretValueItem(detection as SecretDetection);
-    } else if (scanType === ScanType.Sca) {
+    } else if (scanType === CliScanType.Sca) {
       valueItem = _getScaValueItem(detection as ScaDetection);
-    } else if (scanType === ScanType.Iac) {
+    } else if (scanType === CliScanType.Iac) {
       valueItem = _getIacValueItem(detection as IacDetection);
-    } else if (scanType == ScanType.Sast) {
+    } else if (scanType == CliScanType.Sast) {
       valueItem = _getSastValueItem(detection as SastDetection);
     }
 

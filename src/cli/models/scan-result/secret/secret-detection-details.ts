@@ -1,3 +1,4 @@
+import { Exclude } from 'class-transformer';
 import { ScanDetectionDetailsBase } from '../scan-detection-details-base';
 
 export class SecretDetectionDetails extends ScanDetectionDetailsBase {
@@ -15,7 +16,8 @@ export class SecretDetectionDetails extends ScanDetectionDetailsBase {
   remediationGuidelines?: string;
   customRemediationGuidelines?: string;
   policyDisplayName?: string;
-  detectedValue?: string | null;
+  @Exclude({ toPlainOnly: true })
+  detectedValue?: string | null; // this field is used and exist only in IDE
 
   public getFilepath(): string {
     return `${this.filePath}${this.fileName}`;

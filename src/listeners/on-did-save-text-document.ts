@@ -1,9 +1,10 @@
 import * as vscode from 'vscode';
 import { container } from 'tsyringe';
 import { config, validateConfig } from '../utils/config';
-import { isSupportedIacFile, isSupportedPackageFile, ScanType } from '../constants';
+import { isSupportedIacFile, isSupportedPackageFile } from '../constants';
 import { getVsCodeRootPathPrefix } from '../utils/global-config';
 import { CycodeService, ICycodeService } from '../services/cycode-service';
+import { CliScanType } from '../cli/models/cli-scan-type';
 
 export const OnDidSaveTextDocument = (document: vscode.TextDocument) => {
   if (!config.scanOnSaveEnabled) {
@@ -28,15 +29,15 @@ export const OnDidSaveTextDocument = (document: vscode.TextDocument) => {
   const cycodeService = container.resolve<ICycodeService>(CycodeService);
 
   if (isSupportedPackageFile(document.fileName)) {
-    void cycodeService.startScan(ScanType.Sca, [fileFsPath], false);
+    void cycodeService.startScan(CliScanType.Sca, [fileFsPath], false);
   }
 
   if (isSupportedIacFile(document.fileName)) {
-    void cycodeService.startScan(ScanType.Iac, [fileFsPath], false);
+    void cycodeService.startScan(CliScanType.Iac, [fileFsPath], false);
   }
 
   // run Secrets scan on any saved file. CLI will exclude irrelevant files
-  void cycodeService.startScan(ScanType.Secret, [fileFsPath], false);
+  void cycodeService.startScan(CliScanType.Secret, [fileFsPath], false);
 };
 
 export const registerOnDidSaveTextDocument = (context: vscode.ExtensionContext) => {

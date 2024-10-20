@@ -1,11 +1,10 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { extensionId } from '../../utils/texts';
-import { DiagnosticCode } from '../../services/common';
-import { ScanType } from '../../constants';
-import { calculateUniqueDetectionId } from '../../services/scan-results-service';
+import { DiagnosticCode } from '../../utils/diagnostic-code';
 import { FileDiagnostics } from './types';
 import { IacDetection } from '../../cli/models/scan-result/iac/iac-detection';
+import { CliScanType } from '../../cli/models/cli-scan-type';
 
 export const createDiagnostics = async (
   detections: IacDetection[],
@@ -34,7 +33,7 @@ export const createDiagnostics = async (
     );
 
     diagnostic.source = extensionId;
-    diagnostic.code = new DiagnosticCode(ScanType.Iac, calculateUniqueDetectionId(detection)).toString();
+    diagnostic.code = DiagnosticCode.fromDetection(CliScanType.Iac, detection).toString();
 
     result[documentPath] = result[documentPath] || [];
     result[documentPath].push(diagnostic);

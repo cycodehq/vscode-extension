@@ -1,9 +1,9 @@
 import { container } from 'tsyringe';
-import { ScanType } from '../constants';
 import { validateConfig } from '../utils/config';
 import { StateServiceSymbol } from '../symbols';
 import { IStateService } from '../services/state-service';
 import { CycodeService, ICycodeService } from '../services/cycode-service';
+import { CliScanType } from '../cli/models/cli-scan-type';
 
 export const onProjectOpen = () => {
   /*
@@ -28,5 +28,5 @@ export const onProjectOpen = () => {
   }
 
   const cycodeService = container.resolve<ICycodeService>(CycodeService);
-  void cycodeService.startScanForCurrentProject(ScanType.Sca);
+  void cycodeService.startScanForCurrentProject(CliScanType.Sca);
 };

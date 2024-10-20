@@ -2,13 +2,13 @@ import * as vscode from 'vscode';
 import * as crypto from 'crypto';
 import { singleton } from 'tsyringe';
 import { instanceToPlain } from 'class-transformer';
-import { ScanType } from '../constants';
 import { LocalKeyValueStorage } from './key-value-storage-service';
 import { SecretDetection } from '../cli/models/scan-result/secret/secret-detection';
 import { SastDetection } from '../cli/models/scan-result/sast/sast-detection';
 import { IacDetection } from '../cli/models/scan-result/iac/iac-detection';
 import { ScaDetection } from '../cli/models/scan-result/sca/sca-detection';
 import { DetectionBase } from '../cli/models/scan-result/detection-base';
+import { CliScanType } from '../cli/models/cli-scan-type';
 
 export const calculateUniqueDetectionId = (detection: DetectionBase): string => {
   const hash = crypto.createHash('sha256');
@@ -24,9 +24,11 @@ export const calculateUniqueDetectionId = (detection: DetectionBase): string => 
 export interface IScanResultsService {
   initContext(context: vscode.ExtensionContext): void;
   getDetectionById(detectionId: string): DetectionBase | undefined;
-  getDetections(scanType: ScanType): DetectionBase[];
-  setDetections(scanType: ScanType, detections: DetectionBase[]): void;
+  getDetections(scanType: CliScanType): DetectionBase[];
+  setDetections(scanType: CliScanType, detections: DetectionBase[]): void;
+  hasResults(): boolean;
   dropAllScanResults(): void;
+  excludeResultsByValue(value: string): void;
 }
 
 @singleton()
@@ -38,34 +40,41 @@ export class ScanResultsService implements IScanResultsService {
   private _iacScanDetections: IacDetection[] = [];
   private _sastScanDetections: SastDetection[] = [];
 
-  private _uniqueDetectionIdMap: Record<string, DetectionBase> = {};
+  private _uniqueDetectionIdMap = new Map<string, DetectionBase>();
 
   public initContext(context: vscode.ExtensionContext): void {
     this.storage.initContext(context);
   }
 
   public getDetectionById(detectionId: string): DetectionBase | undefined {
-    return this._uniqueDetectionIdMap[detectionId];
+    return this._uniqueDetectionIdMap.get(detectionId);
   }
 
-  public getDetections(scanType: ScanType): DetectionBase[] {
+  public getDetections(scanType: CliScanType): DetectionBase[] {
     const detectionMap = {
-      [ScanType.Secret]: () => this._secretScanDetections,
-      [ScanType.Sca]: () => this._scaScanDetections,
-      [ScanType.Iac]: () => this._iacScanDetections,
-      [ScanType.Sast]: () => this._sastScanDetections,
+      [CliScanType.Secret]: () => this._secretScanDetections,
+      [CliScanType.Sca]: () => this._scaScanDetections,
+      [CliScanType.Iac]: () => this._iacScanDetections,
+      [CliScanType.Sast]: () => this._sastScanDetections,
     };
 
     const getDetectionsFunc = detectionMap[scanType];
     return getDetectionsFunc ? getDetectionsFunc() : [];
   }
 
-  private clearDetections(scanType: ScanType): void {
+  public hasResults(): boolean {
+    return this._secretScanDetections.length > 0
+      || this._scaScanDetections.length > 0
+      || this._iacScanDetections.length > 0
+      || this._sastScanDetections.length > 0;
+  }
+
+  private clearDetections(scanType: CliScanType): void {
     const detectionMap = {
-      [ScanType.Secret]: () => this._secretScanDetections = [],
-      [ScanType.Sca]: () => this._scaScanDetections = [],
-      [ScanType.Iac]: () => this._iacScanDetections = [],
-      [ScanType.Sast]: () => this._sastScanDetections = [],
+      [CliScanType.Secret]: () => this._secretScanDetections = [],
+      [CliScanType.Sca]: () => this._scaScanDetections = [],
+      [CliScanType.Iac]: () => this._iacScanDetections = [],
+      [CliScanType.Sast]: () => this._sastScanDetections = [],
     };
 
     const clearDetectionsFunc = detectionMap[scanType];
@@ -74,24 +83,24 @@ export class ScanResultsService implements IScanResultsService {
     }
   }
 
-  private saveDetections(scanType: ScanType, detections: DetectionBase[]): void {
+  private saveDetections(scanType: CliScanType, detections: DetectionBase[]): void {
     detections.forEach((detection) => {
       this.saveDetection(scanType, detection);
     });
   }
 
-  public setDetections(scanType: ScanType, detections: DetectionBase[]): void {
+  public setDetections(scanType: CliScanType, detections: DetectionBase[]): void {
     // TODO(MarshalX): smart merge with existing detections will be cool someday
     this.clearDetections(scanType);
     this.saveDetections(scanType, detections);
   }
 
-  private saveDetection(scanType: ScanType, detection: DetectionBase): void {
+  private saveDetection(scanType: CliScanType, detection: DetectionBase): void {
     const detectionMap = {
-      [ScanType.Secret]: () => this._secretScanDetections.push(detection as SecretDetection),
-      [ScanType.Sca]: () => this._scaScanDetections.push(detection as ScaDetection),
-      [ScanType.Iac]: () => this._iacScanDetections.push(detection as IacDetection),
-      [ScanType.Sast]: () => this._sastScanDetections.push(detection as SastDetection),
+      [CliScanType.Secret]: () => this._secretScanDetections.push(detection as SecretDetection),
+      [CliScanType.Sca]: () => this._scaScanDetections.push(detection as ScaDetection),
+      [CliScanType.Iac]: () => this._iacScanDetections.push(detection as IacDetection),
+      [CliScanType.Sast]: () => this._sastScanDetections.push(detection as SastDetection),
     };
 
     const saveDetectionFunc = detectionMap[scanType];
@@ -100,7 +109,7 @@ export class ScanResultsService implements IScanResultsService {
     }
 
     const uniqueDetectionKey = calculateUniqueDetectionId(detection);
-    this._uniqueDetectionIdMap[uniqueDetectionKey] = detection;
+    this._uniqueDetectionIdMap.set(uniqueDetectionKey, detection);
   }
 
   public dropAllScanResults(): void {
@@ -108,10 +117,16 @@ export class ScanResultsService implements IScanResultsService {
      * free memory, clean state
      * typically called on launch to drop all previous scan results
      */
-    this._uniqueDetectionIdMap = {};
+    this._uniqueDetectionIdMap.clear();
 
-    for (const scanType of Object.values(ScanType)) {
+    for (const scanType of Object.values(CliScanType)) {
       this.clearDetections(scanType);
     }
+  }
+
+  public excludeResultsByValue(value: string): void {
+    this._secretScanDetections = this._secretScanDetections.filter((detection) => {
+      return detection.detectionDetails.detectedValue !== value;
+    });
   }
 }
