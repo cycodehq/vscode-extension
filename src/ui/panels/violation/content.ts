@@ -4,9 +4,9 @@ import secretCard from './card/secret';
 import iacCard from './card/iac';
 import sastCard from './card/sast';
 import js from './js';
-import {ScanType} from '../../../constants';
+import { CliScanType } from '../../../cli/models/cli-scan-type';
 
-export default (detectionType: ScanType) => `
+export default (detectionType: CliScanType) => `
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -17,10 +17,10 @@ export default (detectionType: ScanType) => `
 <body>
     ${style}
 
-    ${detectionType == ScanType.Sca ? scaCard : ''}
-    ${detectionType == ScanType.Secrets ? secretCard : ''}
-    ${detectionType == ScanType.Iac ? iacCard : ''}
-    ${detectionType == ScanType.Sast ? sastCard : ''}
+    ${detectionType == CliScanType.Sca ? scaCard : ''}
+    ${detectionType == CliScanType.Secret ? secretCard : ''}
+    ${detectionType == CliScanType.Iac ? iacCard : ''}
+    ${detectionType == CliScanType.Sast ? sastCard : ''}
 
     ${js(detectionType)}
 </body>

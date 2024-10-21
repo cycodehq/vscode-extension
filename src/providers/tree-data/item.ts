@@ -1,14 +1,13 @@
 import * as vscode from 'vscode';
-import {ScanType} from '../../constants';
-import {TreeDisplayedData} from './types';
-
+import { TreeDisplayedData } from './types';
+import { CliScanType } from '../../cli/models/cli-scan-type';
 
 interface TreeItemOptions {
   title: string;
   collapsibleState: vscode.TreeItemCollapsibleState;
   vulnerability?: TreeDisplayedData;
   vulnerabilities?: TreeDisplayedData[];
-  scanSectionType?: ScanType;
+  scanSectionType?: CliScanType;
   customIconPath?: string;
   description?: string;
   fullFilePath?: string;
@@ -19,7 +18,7 @@ interface TreeItemOptions {
 export class TreeItem extends vscode.TreeItem {
   public static readonly viewType = 'cycode.view.tree';
 
-  public scanSectionType: ScanType | undefined;
+  public scanSectionType: CliScanType | undefined;
   public fullFilePath: string | undefined;
   public vulnerabilities: TreeDisplayedData[] | undefined;
   public vulnerability: TreeDisplayedData | undefined;

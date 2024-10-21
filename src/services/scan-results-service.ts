@@ -1,24 +1,19 @@
 import * as vscode from 'vscode';
 import * as crypto from 'crypto';
-import {AnyDetection} from '../types/detection';
-import {ScanType} from '../constants';
-import {singleton} from 'tsyringe';
-import {LocalKeyValueStorage} from './key-value-storage-service';
+import { singleton } from 'tsyringe';
+import { instanceToPlain } from 'class-transformer';
+import { LocalKeyValueStorage } from './key-value-storage-service';
+import { SecretDetection } from '../cli/models/scan-result/secret/secret-detection';
+import { SastDetection } from '../cli/models/scan-result/sast/sast-detection';
+import { IacDetection } from '../cli/models/scan-result/iac/iac-detection';
+import { ScaDetection } from '../cli/models/scan-result/sca/sca-detection';
+import { DetectionBase } from '../cli/models/scan-result/detection-base';
+import { CliScanType } from '../cli/models/cli-scan-type';
 
-const _STORAGE_KEY_PREFIX = 'CS:';
-
-const getScanTypeKey = (scanType: ScanType): string => {
-  return `${_STORAGE_KEY_PREFIX}${scanType}`;
-};
-
-const getDetectionsKey = (): string => {
-  return `${_STORAGE_KEY_PREFIX}DETECTIONS`;
-};
-
-export const calculateUniqueDetectionId = (detection: AnyDetection): string => {
+export const calculateUniqueDetectionId = (detection: DetectionBase): string => {
   const hash = crypto.createHash('sha256');
 
-  const detectionJson = JSON.stringify(detection);
+  const detectionJson = JSON.stringify(instanceToPlain(detection));
   hash.update(detectionJson);
 
   const hexHash = hash.digest('hex');
@@ -26,90 +21,112 @@ export const calculateUniqueDetectionId = (detection: AnyDetection): string => {
   return hexHash.slice(0, shortHashLength);
 };
 
-interface ScanResult {
-  scanType: ScanType;
-  detection: AnyDetection;
-}
-
-type StoredData = Record<string, ScanResult>;
-
-const _slowDeepClone = (obj: any): any => {
-  // TODO(MarshalX): move to faster approach if the performance is critical
-  return JSON.parse(JSON.stringify(obj));
-};
-
 export interface IScanResultsService {
   initContext(context: vscode.ExtensionContext): void;
-  getDetectionById(detectionId: string): ScanResult | undefined;
-  getDetections(scanType: ScanType): AnyDetection[];
-  clearDetections(scanType: ScanType): void;
-  saveDetections(scanType: ScanType, detections: AnyDetection[]): void;
-  setDetections(scanType: ScanType, detections: AnyDetection[]): void;
-  saveDetection(scanType: ScanType, detection: AnyDetection): void;
+  getDetectionById(detectionId: string): DetectionBase | undefined;
+  getDetections(scanType: CliScanType): DetectionBase[];
+  setDetections(scanType: CliScanType, detections: DetectionBase[]): void;
+  hasResults(): boolean;
   dropAllScanResults(): void;
+  excludeResultsByValue(value: string): void;
 }
 
 @singleton()
 export class ScanResultsService implements IScanResultsService {
-  // We are returning cloned objects to prevent mutations in the storage.
-  // The mutations of detections itself happen, for example, for enriching detections for rendering violation card.
-  // But not mutated detections are used to create diagnostics, tree view, etc.
-
   private storage = new LocalKeyValueStorage();
+
+  private _secretScanDetections: SecretDetection[] = [];
+  private _scaScanDetections: ScaDetection[] = [];
+  private _iacScanDetections: IacDetection[] = [];
+  private _sastScanDetections: SastDetection[] = [];
+
+  private _uniqueDetectionIdMap = new Map<string, DetectionBase>();
 
   public initContext(context: vscode.ExtensionContext): void {
     this.storage.initContext(context);
   }
 
-  public getDetectionById(detectionId: string): ScanResult | undefined {
-    const detections = this.storage.get(getDetectionsKey()) as StoredData;
-    return _slowDeepClone(detections[detectionId]) as ScanResult | undefined;
+  public getDetectionById(detectionId: string): DetectionBase | undefined {
+    return this._uniqueDetectionIdMap.get(detectionId);
   }
 
-  public getDetections(scanType: ScanType): AnyDetection[] {
-    const scanTypeKey = getScanTypeKey(scanType);
-    const detections = this.storage.get(scanTypeKey) as AnyDetection[] || [];
-    return _slowDeepClone(detections);
+  public getDetections(scanType: CliScanType): DetectionBase[] {
+    const detectionMap = {
+      [CliScanType.Secret]: () => this._secretScanDetections,
+      [CliScanType.Sca]: () => this._scaScanDetections,
+      [CliScanType.Iac]: () => this._iacScanDetections,
+      [CliScanType.Sast]: () => this._sastScanDetections,
+    };
+
+    const getDetectionsFunc = detectionMap[scanType];
+    return getDetectionsFunc ? getDetectionsFunc() : [];
   }
 
-  public clearDetections(scanType: ScanType): void {
-    this.storage.set(getScanTypeKey(scanType), []);
+  public hasResults(): boolean {
+    return this._secretScanDetections.length > 0
+      || this._scaScanDetections.length > 0
+      || this._iacScanDetections.length > 0
+      || this._sastScanDetections.length > 0;
   }
 
-  public saveDetections(scanType: ScanType, detections: AnyDetection[]): void {
+  private clearDetections(scanType: CliScanType): void {
+    const detectionMap = {
+      [CliScanType.Secret]: () => this._secretScanDetections = [],
+      [CliScanType.Sca]: () => this._scaScanDetections = [],
+      [CliScanType.Iac]: () => this._iacScanDetections = [],
+      [CliScanType.Sast]: () => this._sastScanDetections = [],
+    };
+
+    const clearDetectionsFunc = detectionMap[scanType];
+    if (clearDetectionsFunc) {
+      clearDetectionsFunc();
+    }
+  }
+
+  private saveDetections(scanType: CliScanType, detections: DetectionBase[]): void {
     detections.forEach((detection) => {
       this.saveDetection(scanType, detection);
     });
   }
 
-  public setDetections(scanType: ScanType, detections: AnyDetection[]): void {
+  public setDetections(scanType: CliScanType, detections: DetectionBase[]): void {
     // TODO(MarshalX): smart merge with existing detections will be cool someday
     this.clearDetections(scanType);
     this.saveDetections(scanType, detections);
   }
 
-  public saveDetection(scanType: ScanType, detection: AnyDetection): void {
-    const scanTypeDetections = this.getDetections(scanType);
-    scanTypeDetections.push(detection);
-    this.storage.set(getScanTypeKey(scanType), scanTypeDetections);
+  private saveDetection(scanType: CliScanType, detection: DetectionBase): void {
+    const detectionMap = {
+      [CliScanType.Secret]: () => this._secretScanDetections.push(detection as SecretDetection),
+      [CliScanType.Sca]: () => this._scaScanDetections.push(detection as ScaDetection),
+      [CliScanType.Iac]: () => this._iacScanDetections.push(detection as IacDetection),
+      [CliScanType.Sast]: () => this._sastScanDetections.push(detection as SastDetection),
+    };
 
-    const detectionsKey = getDetectionsKey();
-    const detections = this.storage.get(detectionsKey) as StoredData;
+    const saveDetectionFunc = detectionMap[scanType];
+    if (saveDetectionFunc) {
+      saveDetectionFunc();
+    }
 
     const uniqueDetectionKey = calculateUniqueDetectionId(detection);
-    detections[uniqueDetectionKey] = {scanType, detection};
-
-    this.storage.set(detectionsKey, detections);
+    this._uniqueDetectionIdMap.set(uniqueDetectionKey, detection);
   }
 
   public dropAllScanResults(): void {
-    // free memory, clean state
-    // typically called on launch to drop all previous scan results
-    const detectionsKey = getDetectionsKey();
-    this.storage.set(detectionsKey, {});
+    /*
+     * free memory, clean state
+     * typically called on launch to drop all previous scan results
+     */
+    this._uniqueDetectionIdMap.clear();
 
-    for (const scanType of Object.values(ScanType)) {
+    for (const scanType of Object.values(CliScanType)) {
       this.clearDetections(scanType);
     }
+  }
+
+  public excludeResultsByValue(value: string): void {
+    this._secretScanDetections = this._secretScanDetections.filter((detection) => {
+      return detection.detectionDetails.detectedValue !== value;
+    });
   }
 }

@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## [v1.10.1]
+
+- Code refactoring
+
 ## [v1.10.0]
 
 - Add sync flow for Secrets and IaC
@@ -95,6 +99,8 @@
 
 The first stable release with the support of Secrets, SCA, TreeView, Violation Card, and more.
 
+[v1.10.1]: https://github.com/cycodehq/vscode-extension/releases/tag/v1.10.1
+
 [v1.10.0]: https://github.com/cycodehq/vscode-extension/releases/tag/v1.10.0
 
 [v1.9.4]: https://github.com/cycodehq/vscode-extension/releases/tag/v1.9.4
@@ -131,4 +137,4 @@ The first stable release with the support of Secrets, SCA, TreeView, Violation C
 
 [v1.0.0]: https://github.com/cycodehq/vscode-extension/releases/tag/v1.0.0
 
-[Unreleased]: https://github.com/cycodehq/vscode-extension/compare/v1.10.0...HEAD
+[Unreleased]: https://github.com/cycodehq/vscode-extension/compare/v1.10.1...HEAD

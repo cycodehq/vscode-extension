@@ -1,7 +1,7 @@
 {
   "name": "cycode",
   "displayName": "Cycode",
-  "version": "1.10.0",
+  "version": "1.10.1",
   "publisher": "cycode",
   "description": "Boost security in your dev lifecycle via SAST, SCA, Secrets & IaC scanning.",
   "repository": {
@@ -19,6 +19,7 @@
     "Other"
   ],
   "engines": {
+    "node": ">=18.0.0",
     "vscode": "^1.63.0"
   },
   "activationEvents": [
@@ -59,7 +60,7 @@
       "view/item/context": [
         {
           "command": "cycode.secretScanForProject",
-          "when": "viewItem == Secrets",
+          "when": "viewItem == Secret",
           "group": "inline"
         },
         {
@@ -79,7 +80,7 @@
         },
         {
           "command": "cycode.secretScanForProject",
-          "when": "view == cycode.view.tree && viewItem == Secrets"
+          "when": "view == cycode.view.tree && viewItem == Secret"
         },
         {
           "command": "cycode.iacScanForProject",
@@ -110,67 +111,73 @@
         "cycode.cliAutoManaged": {
           "type": "boolean",
           "default": true,
-          "description": "Enable executable auto-management.",
-          "markdownDescription": "Enable executable auto-management."
+          "description": "Enable executable auto-management. If enabled, the extension will automatically download and manage the Cycode CLI. If disabled, you must provide the path to the Cycode CLI.",
+          "markdownDescription": "Enable executable auto-management. If enabled, the extension will automatically download and manage the Cycode CLI. If disabled, you must provide the path to the Cycode CLI."
         },
         "cycode.cliPath": {
           "type": "string",
           "default": "",
-          "description": "Path to the Cycode CLI executable.",
-          "markdownDescription": "Path to the Cycode CLI executable."
+          "description": "Path to self-managed Cycode CLI executable.",
+          "markdownDescription": "Path to self-managed Cycode CLI executable."
         },
         "cycode.scanOnSave": {
           "type": "boolean",
           "default": true,
-          "description": "Scan your files for secrets upon save. If auto-scan disabled you can still trigger scans manually from the command palette. Open the command palette with `Ctrl+Shift+P` and search for `Cycode: Scan for hardcoded secrets`.",
-          "markdownDescription": "Perform a scan on save"
+          "description": "Scan your files upon save (excluding Code Security). If auto-scan disabled you can still trigger scans manually from the command palette or activity bar.",
+          "markdownDescription": "Scan your files upon save (excluding Code Security). If auto-scan disabled you can still trigger scans manually from the command palette or activity bar."
         },
         "cycode.additionalParameters": {
           "type": "string",
           "default": "",
-          "markdownDescription": "Additional parameters to pass to the Cycode CLI. See the [Cycode CLI documentation](https://github.com/cycodehq/cycode-cli#install-cycode-cli)"
+          "markdownDescription": "Additional parameters to pass to the Cycode CLI. See the [Cycode CLI documentation](https://github.com/cycodehq/cycode-cli#install-cycode-cli)."
         },
         "cycode.apiUrl": {
           "type": "string",
           "default": "",
-          "markdownDescription": "Changes the API URL when running scans. Equivalent to setting CYCODE_API_URL env var in the CLI."
+          "markdownDescription": "Changes the API URL when running CLI."
         },
         "cycode.appUrl": {
           "type": "string",
           "default": "",
-          "markdownDescription": "Changes the app URL when running scans. Equivalent to setting CYCODE_APP_URL env var in the CLI."
+          "markdownDescription": "Changes the APP URL when running CLI."
         }
       }
     },
     "commands": [
       {
         "command": "cycode.secretScanForProject",
-        "title": "Cycode: Scan for hardcoded secrets",
+        "category": "Cycode",
+        "title": "Scan for hardcoded secrets",
         "icon": "$(testing-run-icon)"
       },
       {
         "command": "cycode.iacScanForProject",
-        "title": "Cycode: Scan for Infrastructure As Code",
+        "category": "Cycode",
+        "title": "Scan for Infrastructure As Code",
         "icon": "$(testing-run-icon)"
       },
       {
         "command": "cycode.sastScanForProject",
-        "title": "Cycode: Scan for Cycode Security",
+        "category": "Cycode",
+        "title": "Scan for Code Security",
         "icon": "$(testing-run-icon)"
       },
       {
         "command": "cycode.scaScan",
-        "title": "Cycode: Scan for package vulnerabilities",
+        "category": "Cycode",
+        "title": "Scan for package vulnerabilities",
         "icon": "$(testing-run-icon)"
       },
       {
         "command": "cycode.openSettings",
-        "title": "Cycode: Open settings",
+        "category": "Cycode",
+        "title": "Open settings",
         "icon": "$(gear)"
       },
       {
         "command": "cycode.openMainMenu",
-        "title": "Cycode: Return to Home Screen",
+        "category": "Cycode",
+        "title": "Return to Home Screen",
         "icon": "$(arrow-left)"
       },
       {
@@ -241,36 +248,39 @@
     }
   },
   "scripts": {
-    "lint": "eslint src --ext ts",
+    "lint": "eslint src",
     "watch": "webpack --watch",
     "compile": "webpack",
     "package": "webpack --mode production",
     "vscode:prepublish": "yarn run package"
   },
   "devDependencies": {
+    "@eslint/js": "^9.12.0",
     "@sentry/webpack-plugin": "^2.21.1",
+    "@stylistic/eslint-plugin": "^2.9.0",
     "@types/decompress": "^4.2.7",
+    "@types/eslint__js": "^8.42.3",
     "@types/glob": "8.1.0",
     "@types/mocha": "10.0.1",
     "@types/node": "16.x",
     "@types/shelljs": "0.8.11",
     "@types/showdown": "^2.0.1",
     "@types/vscode": "1.63.0",
-    "@typescript-eslint/eslint-plugin": "6.7.5",
-    "@typescript-eslint/parser": "6.7.5",
-    "@vscode/test-electron": "2.2.3",
-    "eslint": "8.49.0",
-    "eslint-config-google": "^0.14.0",
+    "@typescript-eslint/eslint-plugin": "^8.9.0",
+    "@typescript-eslint/parser": "^8.9.0",
+    "eslint": "^9.12.0",
     "glob": "8.1.0",
     "mocha": "10.2.0",
     "prettier": "^3.0.3",
     "ts-loader": "9.5.0",
     "typescript": "4.9.5",
+    "typescript-eslint": "^8.9.0",
     "webpack": "5.94.0",
     "webpack-cli": "5.0.1"
   },
   "dependencies": {
     "@sentry/node": "^8.20.0",
+    "class-transformer": "^0.5.1",
     "decompress": "^4.2.1",
     "reflect-metadata": "^0.2.2",
     "semver": "7.5.4",

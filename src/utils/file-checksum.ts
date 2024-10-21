@@ -1,10 +1,10 @@
 import * as fs from 'fs';
 import * as crypto from 'crypto';
 import * as path from 'path';
-import {captureException} from '../sentry';
-import {container} from 'tsyringe';
-import {ILoggerService} from '../services/logger-service';
-import {LoggerServiceSymbol} from '../symbols';
+import { captureException } from '../sentry';
+import { container } from 'tsyringe';
+import { ILoggerService } from '../services/logger-service';
+import { LoggerServiceSymbol } from '../symbols';
 
 const getFileShaHash = (filePath: string): string => {
   const fileBuffer = fs.readFileSync(filePath);

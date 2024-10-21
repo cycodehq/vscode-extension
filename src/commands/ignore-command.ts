@@ -1,24 +1,15 @@
-import * as vscode from 'vscode';
-import {IgnoreCommandConfig} from '../types/commands';
-import {config, validateConfig} from '../utils/config';
-import {ignore} from '../services/ignore';
-import {container} from 'tsyringe';
-import {IExtensionService} from '../services/extension-service';
-import {ExtensionServiceSymbol} from '../symbols';
+import { validateConfig } from '../utils/config';
+import { container } from 'tsyringe';
+import { CycodeServiceSymbol } from '../symbols';
+import { ICycodeService } from '../services/cycode-service';
+import { CliIgnoreType } from '../cli/models/cli-ignore-type';
+import { CliScanType } from '../cli/models/cli-scan-type';
 
-export default async (ignoreConfig: IgnoreCommandConfig) => {
+export default (scanType: CliScanType, ignoreType: CliIgnoreType, value: string) => {
   if (validateConfig()) {
     return;
   }
 
-  const extension = container.resolve<IExtensionService>(ExtensionServiceSymbol);
-
-  await ignore({
-    config,
-    workspaceFolderPath: vscode.workspace.workspaceFolders?.[0]?.uri.fsPath,
-    ignoreConfig,
-    diagnosticCollection: extension.diagnosticCollection,
-    treeView: extension.treeView,
-  });
+  const cycodeService = container.resolve<ICycodeService>(CycodeServiceSymbol);
+  void cycodeService.applyDetectionIgnore(scanType, ignoreType, value);
 };
-

@@ -1,22 +1,23 @@
-import * as vscode from 'vscode';
-import {config, validateConfig} from '../utils/config';
-import {scaScan} from '../services/scanners/sca-scanner';
-import {container} from 'tsyringe';
-import {IExtensionService} from '../services/extension-service';
-import {ExtensionServiceSymbol, StateServiceSymbol} from '../symbols';
-import {IStateService} from '../services/state-service';
+import { container } from 'tsyringe';
+import { validateConfig } from '../utils/config';
+import { StateServiceSymbol } from '../symbols';
+import { IStateService } from '../services/state-service';
+import { CycodeService, ICycodeService } from '../services/cycode-service';
+import { CliScanType } from '../cli/models/cli-scan-type';
 
-export const OnProjectOpen = () => {
-  // dead code
-  // was disabled because of slow scanning performance
-  // right now it only starts sca scan on project open
+export const onProjectOpen = () => {
+  /*
+   * dead code
+   * was disabled because of slow scanning performance
+   * right now it only starts sca scan on project open
+   */
+
   const stateService = container.resolve<IStateService>(StateServiceSymbol);
-
   if (!stateService.globalState.CliAuthed) {
     return;
   }
 
-  const scaScanOnOpen = false;
+  const scaScanOnOpen = false; // previously was extensions setting
   if (!scaScanOnOpen) {
     return;
   }
@@ -26,21 +27,6 @@ export const OnProjectOpen = () => {
     return;
   }
 
-  const workspaceFolderPath = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
-  // we should run sca scan only if the project is open!
-  if (!workspaceFolderPath) {
-    return;
-  }
-
-  const extension = container.resolve<IExtensionService>(ExtensionServiceSymbol);
-
-  scaScan(
-      {
-        config,
-        pathToScan: workspaceFolderPath,
-        workspaceFolderPath,
-        diagnosticCollection: extension.diagnosticCollection,
-      },
-      extension.treeView,
-  );
+  const cycodeService = container.resolve<ICycodeService>(CycodeService);
+  void cycodeService.startScanForCurrentProject(CliScanType.Sca);
 };

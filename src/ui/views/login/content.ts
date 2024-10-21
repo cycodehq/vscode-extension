@@ -1,4 +1,5 @@
-import {getContent} from '../content-base';
+import { getContent } from '../content-base';
+import { VscodeCommands } from '../../../commands';
 
 const title = 'Login';
 
@@ -24,10 +25,9 @@ const body = `
 <script>
 const vscode = acquireVsCodeApi();
 document
-  .getElementById("authenticate-button")
-  .addEventListener("click", () => {
-    // Send a message to the extension code when the button is clicked
-    vscode.postMessage({ command: "runAuthCommand" });
+  .getElementById('authenticate-button')
+  .addEventListener('click', () => {
+    vscode.postMessage({ command: '${VscodeCommands.AuthCommandId}' });
   });
 </script>
 `;

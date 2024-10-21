@@ -20,20 +20,20 @@ const renderDetection = detection => {
 
   ge('title').innerText = 'Hardcoded ' + detection.type + ' is used';
   ge('short-details').innerText = detection.severity;
-  ge('summary-text').innerHTML = detection.detection_details.description;
+  ge('summary-text').innerHTML = detection.detectionDetails.description;
 
-  ge('rule').innerText = detection.detection_rule_id;
-  ge('file').innerText = detection.detection_details.file_name;
-  ge('sha').innerText = detection.detection_details.sha512;
+  ge('rule').innerText = detection.detectionRuleId;
+  ge('file').innerText = detection.detectionDetails.fileName;
+  ge('sha').innerText = detection.detectionDetails.sha512;
 
-  if (detection.detection_details.custom_remediation_guidelines) {
+  if (detection.detectionDetails.customRemediationGuidelines) {
     showElement('company-guidelines');
-    ge('company-guidelines-text').innerHTML = detection.detection_details.custom_remediation_guidelines;    
+    ge('company-guidelines-text').innerHTML = detection.detectionDetails.customRemediationGuidelines;    
   }
 
-  if (detection.detection_details.remediation_guidelines) {
+  if (detection.detectionDetails.remediationGuidelines) {
     showElement('cycode-guidelines');
-    ge('cycode-guidelines-text').innerHTML = detection.detection_details.remediation_guidelines;    
+    ge('cycode-guidelines-text').innerHTML = detection.detectionDetails.remediationGuidelines;    
   }
 };
 </script>

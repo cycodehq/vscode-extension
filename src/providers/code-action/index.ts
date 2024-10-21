@@ -1,21 +1,19 @@
 import * as vscode from 'vscode';
-import {DiagnosticCode} from '../../services/common';
-import {ScanType} from '../../constants';
-import {createCommandCodeActions as createSecretCommandCodeActions} from './secrets-code-actions';
-import {createCommandCodeActions as createScaCommandCodeActions} from './sca-code-actions';
-import {createCommandCodeActions as createIacCommandCodeActions} from './iac-code-actions';
-import {createCommandCodeActions as createSastCommandCodeActions} from './sast-code-actions';
-import {aggregateDiagnosticsByCode} from './unique-diagnostics';
+import { DiagnosticCode } from '../../utils/diagnostic-code';
+import { createCommandCodeActions as createSecretCommandCodeActions } from './secrets-code-actions';
+import { createCommandCodeActions as createScaCommandCodeActions } from './sca-code-actions';
+import { createCommandCodeActions as createIacCommandCodeActions } from './iac-code-actions';
+import { createCommandCodeActions as createSastCommandCodeActions } from './sast-code-actions';
+import { aggregateDiagnosticsByCode } from './unique-diagnostics';
+import { CliScanType } from '../../cli/models/cli-scan-type';
 
 export class CycodeActions implements vscode.CodeActionProvider {
-  public static readonly providedCodeActionKinds = [
-    vscode.CodeActionKind.QuickFix,
-  ];
+  public static readonly providedCodeActionKinds = [vscode.CodeActionKind.QuickFix];
 
   provideCodeActions(
-      _document: vscode.TextDocument,
-      _range: vscode.Range | vscode.Selection,
-      context: vscode.CodeActionContext
+    _document: vscode.TextDocument,
+    _range: vscode.Range | vscode.Selection,
+    context: vscode.CodeActionContext,
   ): vscode.CodeAction[] {
     const aggregatedDiagnostics = aggregateDiagnosticsByCode(context.diagnostics);
 
@@ -28,18 +26,18 @@ export class CycodeActions implements vscode.CodeActionProvider {
   }
 
   private createCodeActions(
-      rawDiagnosticCode: string,
-      diagnostics: vscode.Diagnostic[],
+    rawDiagnosticCode: string,
+    diagnostics: vscode.Diagnostic[],
   ) {
     const diagnosticCode = DiagnosticCode.fromString(rawDiagnosticCode);
     switch (diagnosticCode.scanType) {
-      case ScanType.Secrets:
+      case CliScanType.Secret:
         return createSecretCommandCodeActions(diagnostics, diagnosticCode);
-      case ScanType.Sca:
+      case CliScanType.Sca:
         return createScaCommandCodeActions(diagnostics, diagnosticCode);
-      case ScanType.Iac:
+      case CliScanType.Iac:
         return createIacCommandCodeActions(diagnostics, diagnosticCode);
-      case ScanType.Sast:
+      case CliScanType.Sast:
         return createSastCommandCodeActions(diagnostics, diagnosticCode);
       default:
         return [];
@@ -48,14 +46,14 @@ export class CycodeActions implements vscode.CodeActionProvider {
 
   private getUniqueCodeActions(actions: vscode.CodeAction[]): vscode.CodeAction[] {
     /*
-    * The idea behind this function is to remove duplicate code actions using display name as a key.
-    * The aggregation of diagnostics by code is not enough for "ignore path" action.
-    * One range could have multiple diagnostics with different codes, *ignore path* action is the same for all of them.
-    *
-    * We don't have this problem in Intellij Plugin because, I assume, they have this deduplication logic in place.
-    *
-    * Note: display name must be unique for each action, for example, "Ignore rule: UUID"
-    */
+     * The idea behind this function is to remove duplicate code actions using display name as a key.
+     * The aggregation of diagnostics by code is not enough for "ignore path" action.
+     * One range could have multiple diagnostics with different codes, *ignore path* action is the same for all of them.
+     *
+     * We don't have this problem in Intellij Plugin because, I assume, they have this deduplication logic in place.
+     *
+     * Note: display name must be unique for each action, for example, "Ignore rule: UUID"
+     */
     const codeActions: vscode.CodeAction[] = [];
     const visitedActions = new Set<string>();
 
@@ -74,9 +72,9 @@ export class CycodeActions implements vscode.CodeActionProvider {
 
 export const registerCodeActionsProvider = (context: vscode.ExtensionContext) => {
   const quickActionsDisposable = vscode.languages.registerCodeActionsProvider(
-      {scheme: 'file', language: '*'},
-      new CycodeActions(),
-      {providedCodeActionKinds: [vscode.CodeActionKind.QuickFix]}
+    { scheme: 'file', language: '*' },
+    new CycodeActions(),
+    { providedCodeActionKinds: [vscode.CodeActionKind.QuickFix] },
   );
   context.subscriptions.push(quickActionsDisposable);
 };

@@ -43,7 +43,7 @@ export enum VscodeCommands {
   OpenViolationPanelFromTreeItemContextMenu = 'cycode.openViolationPanelFromTreeItemContextMenu',
 }
 
-const _VS_CODE_COMMANDS_ID_TO_CALLBACK: Record<string, (...args: any[]) => any> = {
+const _VS_CODE_COMMANDS_ID_TO_CALLBACK: Record<string, (...args: never[]) => unknown> = {
   [VscodeCommands.AuthCommandId]: authCommand,
   [VscodeCommands.IgnoreCommandId]: ignoreCommand,
   [VscodeCommands.SecretScanCommandId]: secretScanCommand,

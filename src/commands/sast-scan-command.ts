@@ -1,36 +1,22 @@
 import * as vscode from 'vscode';
+import { container } from 'tsyringe';
 import TrayNotifications from '../utils/tray-notifications';
-import {config, validateConfig} from '../utils/config';
-import {sastScan} from '../services/scanners/sast-scanner';
-import {container} from 'tsyringe';
-import {IExtensionService} from '../services/extension-service';
-import {ExtensionServiceSymbol} from '../symbols';
+import { validateConfig } from '../utils/config';
+import { CycodeService, ICycodeService } from '../services/cycode-service';
+import { CliScanType } from '../cli/models/cli-scan-type';
 
 export default () => {
   // scan the current open document if opened
-
-  if (!vscode.window.activeTextEditor?.document ||
-          vscode.window?.activeTextEditor?.document?.uri.scheme === 'output'
-  ) {
-    TrayNotifications.showMustBeFocusedOnFile();
-
-    return;
-  }
 
   if (validateConfig()) {
     return;
   }
 
-  const extension = container.resolve<IExtensionService>(ExtensionServiceSymbol);
+  if (!vscode.window.activeTextEditor?.document || vscode.window.activeTextEditor.document.uri.scheme === 'output') {
+    TrayNotifications.showMustBeFocusedOnFile();
+    return;
+  }
 
-  sastScan(
-      {
-        config,
-        pathToScan: vscode.window.activeTextEditor.document.fileName,
-        workspaceFolderPath: vscode.workspace.workspaceFolders?.[0]?.uri.fsPath,
-        diagnosticCollection: extension.diagnosticCollection,
-        onDemand: true,
-      },
-      extension.treeView,
-  );
+  const cycodeService = container.resolve<ICycodeService>(CycodeService);
+  void cycodeService.startScan(CliScanType.Sast, [vscode.window.activeTextEditor.document.fileName], true);
 };
