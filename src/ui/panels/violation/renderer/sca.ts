@@ -20,7 +20,7 @@ const _resetDomState = () => {
 const renderDetection = detection => {
   _resetDomState();
 
-  const severityFirstLetter = detection.severity[0].toUpperCase();
+  const severityFirstLetter = detection.severity;
   ge('severity-icon').src = severityIcons[severityFirstLetter];
   ge('package').innerText = detection.detectionDetails.packageName;
   ge('version').innerText = detection.detectionDetails.packageVersion;

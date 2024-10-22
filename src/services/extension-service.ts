@@ -1,8 +1,7 @@
 import * as vscode from 'vscode';
 import { container, singleton } from 'tsyringe';
-import { TreeView } from '../providers/tree-data/types';
+import { TreeView } from '../providers/tree-data';
 import { refreshDiagnosticCollectionData } from '../providers/diagnostics/common';
-import { refreshTreeViewData } from '../providers/tree-data/utils';
 import { IStateService } from './state-service';
 import { ScanResultsServiceSymbol, StateServiceSymbol } from '../symbols';
 import { IScanResultsService } from './scan-results-service';
@@ -78,6 +77,6 @@ export class ExtensionService implements IExtensionService {
   public async refreshProviders(scanType: CliScanType) {
     this.refreshDetectionsLocalState(scanType);
     await refreshDiagnosticCollectionData(this.diagnosticCollection);
-    refreshTreeViewData(scanType, this.treeView);
+    this.treeView.provider.refresh();
   }
 }

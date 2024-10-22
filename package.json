@@ -28,16 +28,6 @@
   "main": "./dist/extension.js",
   "contributes": {
     "menus": {
-      "commandPalette": [
-        {
-          "command": "cycode.openViolationInFileFromTreeItemContextMenu",
-          "when": "false"
-        },
-        {
-          "command": "cycode.openViolationPanelFromTreeItemContextMenu",
-          "when": "false"
-        }
-      ],
       "explorer/context": [
         {
           "when": "explorerResourceIsFolder",
@@ -60,47 +50,39 @@
       "view/item/context": [
         {
           "command": "cycode.secretScanForProject",
-          "when": "viewItem == Secret",
+          "when": "viewItem == secretScanTypeNode",
           "group": "inline"
         },
         {
           "command": "cycode.scaScan",
-          "when": "viewItem == SCA",
+          "when": "viewItem == scaScanTypeNode",
           "group": "inline"
         },
         {
           "command": "cycode.iacScanForProject",
-          "when": "viewItem == IaC",
+          "when": "viewItem == iacScanTypeNode",
           "group": "inline"
         },
         {
           "command": "cycode.sastScanForProject",
-          "when": "viewItem == SAST",
+          "when": "viewItem == sastScanTypeNode",
           "group": "inline"
         },
         {
           "command": "cycode.secretScanForProject",
-          "when": "view == cycode.view.tree && viewItem == Secret"
-        },
-        {
-          "command": "cycode.iacScanForProject",
-          "when": "view == cycode.view.tree && viewItem == IaC"
-        },
-        {
-          "command": "cycode.sastScanForProject",
-          "when": "view == cycode.view.tree && viewItem == SAST"
+          "when": "view == cycode.view.tree && viewItem == secretScanTypeNode"
         },
         {
           "command": "cycode.scaScan",
-          "when": "view == cycode.view.tree && viewItem == SCA"
+          "when": "view == cycode.view.tree && viewItem == scaScanTypeNode"
         },
         {
-          "command": "cycode.openViolationInFileFromTreeItemContextMenu",
-          "when": "view == cycode.view.tree && viewItem =~ /-file-vulnerability$/"
+          "command": "cycode.iacScanForProject",
+          "when": "view == cycode.view.tree && viewItem == iacScanTypeNode"
         },
         {
-          "command": "cycode.openViolationPanelFromTreeItemContextMenu",
-          "when": "view == cycode.view.tree && viewItem =~ /-file-vulnerability$/"
+          "command": "cycode.sastScanForProject",
+          "when": "view == cycode.view.tree && viewItem == sastScanTypeNode"
         }
       ]
     },
@@ -183,14 +165,6 @@
       {
         "command": "cycode.auth",
         "title": "Authenticate with service"
-      },
-      {
-        "command": "cycode.openViolationInFileFromTreeItemContextMenu",
-        "title": "Show violation in the file"
-      },
-      {
-        "command": "cycode.openViolationPanelFromTreeItemContextMenu",
-        "title": "Open violation details"
       }
     ],
     "viewsContainers": {

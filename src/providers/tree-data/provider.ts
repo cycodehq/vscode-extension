@@ -1,132 +1,112 @@
 import * as vscode from 'vscode';
-import { TreeItem } from './item';
-import {
-  getSectionItem,
-  getSeverityIconPath,
-  SECTIONS_ORDER,
-} from './constants';
-import { SEVERITY_PRIORITIES_FIRST_LETTERS } from '../../constants';
-import { TreeDisplayedData } from './types';
-import { mapScanResultsToSeverityStatsString } from './utils';
-import { VscodeCommands } from '../../commands';
 import { CliScanType } from '../../cli/models/cli-scan-type';
+import { ScanTypeNode } from './nodes/scan-type-node';
+import { BaseNode } from './nodes/base-node';
+import { FileNode } from './nodes/file-node';
+import { DetectionNode } from './nodes/detection-node';
+import { container } from 'tsyringe';
+import { IScanResultsService } from '../../services/scan-results-service';
+import { ScanResultsServiceSymbol } from '../../symbols';
+import { DetectionBase } from '../../cli/models/scan-result/detection-base';
 
-type TreeDataDatabase = Record<string, FileScanResult[]>;
+export class TreeDataProvider implements vscode.TreeDataProvider<BaseNode> {
+  public static readonly viewType = 'cycode.view.tree';
 
-export class FileScanResult {
-  constructor(
-    public fileName: string,
-    public fullFilePath: string,
-    public vulnerabilities: TreeDisplayedData[],
-  ) {}
-}
-
-export class TreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
   private _onDidChangeTreeData:
-  vscode.EventEmitter<TreeItem | undefined> = new vscode.EventEmitter<TreeItem | undefined>();
+  vscode.EventEmitter<BaseNode | undefined> = new vscode.EventEmitter<BaseNode | undefined>();
 
   readonly onDidChangeTreeData:
-  vscode.Event<TreeItem | undefined> = this._onDidChangeTreeData.event;
+  vscode.Event<BaseNode | undefined> = this._onDidChangeTreeData.event;
 
-  private filesScanResults: TreeDataDatabase = {
-    [CliScanType.Secret]: [],
-    [CliScanType.Sca]: [],
-    [CliScanType.Sast]: [],
-    [CliScanType.Iac]: [],
-  };
+  private _createdRootNodes: ScanTypeNode[] = [];
+  private _createdNodesToChildren = new Map<BaseNode, BaseNode[]>();
 
-  getTreeItem(element: TreeItem): vscode.TreeItem {
+  getTreeItem(element: BaseNode): vscode.TreeItem {
     return element;
   }
 
   getChildren(
-    element?: TreeItem,
-  ): Thenable<TreeItem[]> {
+    element?: BaseNode,
+  ): Thenable<BaseNode[]> {
     if (!element) {
-      const treeTopLevelItems = [];
-      for (const scanType of SECTIONS_ORDER) {
-        const description = mapScanResultsToSeverityStatsString(this.filesScanResults[scanType]);
-        treeTopLevelItems.push(getSectionItem(scanType, description));
-      }
-      return Promise.resolve(treeTopLevelItems);
+      return Promise.resolve(this._createdRootNodes);
     }
 
-    if (element.scanSectionType) {
-      const scanResults = this.filesScanResults[element.scanSectionType];
-
-      return Promise.resolve(
-        scanResults.map(
-          (scanResult) => new TreeItem({
-            title: scanResult.fileName,
-            collapsibleState: vscode.TreeItemCollapsibleState.Collapsed,
-            vulnerabilities: scanResult.vulnerabilities,
-            fullFilePath: scanResult.fullFilePath,
-            contextValue: `${element.contextValue}-file`,
-          }),
-        ),
-      );
-    }
-
-    if (element.vulnerabilities) {
-      return Promise.resolve(_createSeveritySortedTreeItems(element));
-    }
-
-    return Promise.resolve([]);
+    return Promise.resolve(this._createdNodesToChildren.get(element) || []);
   }
 
-  refresh(filesScanResults: FileScanResult[], scanType: CliScanType): void {
-    this.filesScanResults[scanType] = filesScanResults;
+  private getSeverityWeight(severity: string): number {
+    switch (severity) {
+      case 'critical':
+        return 4;
+      case 'high':
+        return 3;
+      case 'medium':
+        return 2;
+      case 'low':
+        return 1;
+      default:
+        return 0;
+    }
+  }
+
+  private getScanTypeNodeSummary(sortedDetections: DetectionBase[]): string {
+    // detections must be sorted by severity
+    const groupedBySeverity = sortedDetections.reduce<Map<string, DetectionBase[]>>((acc, detection) => {
+      acc.set(detection.severity, acc.get(detection.severity) || []);
+      acc.get(detection.severity)?.push(detection);
+      return acc;
+    }, new Map());
+
+    const summaries: string[] = [];
+    for (const [severity, detections] of groupedBySeverity) {
+      summaries.push(`${severity} - ${detections.length}`);
+    }
+
+    return summaries.join(' | ');
+  }
+
+  private createNodes(scanType: CliScanType) {
+    const scanResultsService = container.resolve<IScanResultsService>(ScanResultsServiceSymbol);
+    const detections = scanResultsService.getDetections(scanType);
+
+    const severitySortedDetections = detections.sort((a, b) => {
+      return this.getSeverityWeight(b.severity.toLowerCase()) - this.getSeverityWeight(a.severity.toLowerCase());
+    });
+    const groupedByFilepathDetection = severitySortedDetections
+      .reduce<Map<string, DetectionBase[]>>((acc, detection) => {
+        const filepath = detection.detectionDetails.getFilepath();
+        if (!acc.has(filepath)) {
+          acc.set(filepath, []);
+        }
+        acc.get(filepath)?.push(detection);
+        return acc;
+      }, new Map());
+
+    const scanTypeNode = new ScanTypeNode(scanType, this.getScanTypeNodeSummary(severitySortedDetections));
+    this._createdRootNodes.push(scanTypeNode);
+    this._createdNodesToChildren.set(scanTypeNode, []);
+
+    for (const [filepath, detections] of groupedByFilepathDetection) {
+      const fileNode = new FileNode(filepath, detections.length);
+      this._createdNodesToChildren.get(scanTypeNode)?.push(fileNode);
+      this._createdNodesToChildren.set(fileNode, []);
+      for (const detection of detections) {
+        const detectionNode = new DetectionNode(scanType, detection);
+        this._createdNodesToChildren.get(fileNode)?.push(detectionNode);
+      }
+    }
+  }
+
+  public refresh(): void {
+    this._createdRootNodes = [];
+    this._createdNodesToChildren.clear();
+
+    this.createNodes(CliScanType.Secret);
+    this.createNodes(CliScanType.Sca);
+    this.createNodes(CliScanType.Iac);
+    this.createNodes(CliScanType.Sast);
+
     this._onDidChangeTreeData.fire(undefined);
   }
 }
-
-const _mapSeverityToDisplayedData
-  = (treeDisplayedData: TreeDisplayedData[]): Record<string, TreeDisplayedData[]> => {
-    const severityToDisplayData: Record<string, TreeDisplayedData[]> = {};
-    for (const displayedData of treeDisplayedData) {
-      const { severityFirstLetter } = displayedData;
-      if (!(severityFirstLetter in severityToDisplayData)) {
-        severityToDisplayData[severityFirstLetter] = [displayedData];
-      } else {
-        severityToDisplayData[severityFirstLetter].push(displayedData);
-      }
-    }
-
-    return severityToDisplayData;
-  };
-
-const _createSeveritySortedTreeItems = (treeItem: TreeItem): TreeItem[] => {
-  if (!treeItem.vulnerabilities) {
-    return [];
-  }
-
-  const severityToDisplayData = _mapSeverityToDisplayedData(treeItem.vulnerabilities);
-
-  const sortedVulnerabilities: TreeItem[] = [];
-  SEVERITY_PRIORITIES_FIRST_LETTERS.forEach((severityFirstLetter) => {
-    const vulnerabilitiesOfSeverity = severityToDisplayData[severityFirstLetter];
-    if (!vulnerabilitiesOfSeverity) {
-      return;
-    }
-
-    vulnerabilitiesOfSeverity.forEach((vulnerability) => {
-      const openFileCommand: vscode.Command = {
-        command: VscodeCommands.OnTreeItemClick,
-        title: '',
-        arguments: [treeItem.fullFilePath, vulnerability],
-      };
-
-      sortedVulnerabilities.push(new TreeItem({
-        title: vulnerability.title,
-        vulnerability: vulnerability,
-        collapsibleState: vscode.TreeItemCollapsibleState.None,
-        customIconPath: getSeverityIconPath(severityFirstLetter),
-        fullFilePath: treeItem.fullFilePath,
-        command: openFileCommand,
-        contextValue: `${treeItem.contextValue}-vulnerability`,
-      }));
-    });
-  });
-
-  return sortedVulnerabilities;
-};

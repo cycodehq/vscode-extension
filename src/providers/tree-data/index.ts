@@ -1,18 +1,23 @@
 import * as vscode from 'vscode';
-import { TreeView } from './types';
 import { TreeDataProvider } from './provider';
-import { TreeItem } from './item';
+import { BaseNode } from './nodes/base-node';
+
+export interface TreeView {
+  provider: TreeDataProvider;
+  view: vscode.TreeView<BaseNode>;
+}
 
 export const createTreeView = (context: vscode.ExtensionContext): TreeView => {
   const provider = new TreeDataProvider();
-  const view = vscode.window.createTreeView(TreeItem.viewType, {
+  const view = vscode.window.createTreeView(TreeDataProvider.viewType, {
     treeDataProvider: provider,
-    canSelectMany: true,
+    showCollapseAll: true,
+    canSelectMany: false,
   });
 
   context.subscriptions.push(
     vscode.window.registerTreeDataProvider(
-      TreeItem.viewType,
+      TreeDataProvider.viewType,
       provider,
     ),
   );

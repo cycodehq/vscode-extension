@@ -34,18 +34,21 @@ export const getDetectionForRender = (detectionType: CliScanType, detection: Det
   return enrichFunction ? enrichFunction(detection) : detection;
 };
 
-const _updateFieldWithHtmlIfValid = (object: Record<string, any>, field: string) => {
-  // a little bit hacky because of any type
+const _updateDetectionDetailsFieldWithHtmlIfValid = (plainDetectionDetails: Record<string, string>, field: string) => {
+  /*
+   * a little bit hacky because of record type
+   * we expect to work only with string fields
+   */
 
-  if (!object[field]) {
+  if (!plainDetectionDetails[field]) {
     return;
   }
 
-  if (typeof object[field] !== 'string') {
+  if (typeof plainDetectionDetails[field] !== 'string') {
     return;
   }
 
-  object[field] = _MARKDOWN_CONVERTER.makeHtml(object[field]);
+  plainDetectionDetails[field] = _MARKDOWN_CONVERTER.makeHtml(plainDetectionDetails[field]);
 };
 
 const _getScaDetectionForRender = (detection: ScaDetection): object => {
@@ -53,14 +56,14 @@ const _getScaDetectionForRender = (detection: ScaDetection): object => {
 
   renderedDetection.detectionDetails.description
       = detection.detectionDetails.alert?.description || detection.detectionDetails.description;
-  _updateFieldWithHtmlIfValid(renderedDetection.detectionDetails, 'description');
+  _updateDetectionDetailsFieldWithHtmlIfValid(renderedDetection.detectionDetails, 'description');
 
   if (!detection.detectionDetails.alert) {
     return renderedDetection;
   }
 
-  _updateFieldWithHtmlIfValid(renderedDetection.detectionDetails, 'customRemediationGuidelines');
-  _updateFieldWithHtmlIfValid(renderedDetection.detectionDetails, 'remediationGuidelines');
+  _updateDetectionDetailsFieldWithHtmlIfValid(renderedDetection.detectionDetails, 'customRemediationGuidelines');
+  _updateDetectionDetailsFieldWithHtmlIfValid(renderedDetection.detectionDetails, 'remediationGuidelines');
 
   if (!detection.detectionDetails.alert.firstPatchedVersion) {
     renderedDetection.detectionDetails.alert.firstPatchedVersion = 'Not fixed';
@@ -75,10 +78,10 @@ const _getSecretDetectionForRender = (detection: SecretDetection): object => {
   renderedDetection.message = detection.getFormattedMessage();
 
   renderedDetection.detectionDetails.description = detection.detectionDetails.description || detection.message;
-  _updateFieldWithHtmlIfValid(renderedDetection.detectionDetails, 'description');
+  _updateDetectionDetailsFieldWithHtmlIfValid(renderedDetection.detectionDetails, 'description');
 
-  _updateFieldWithHtmlIfValid(renderedDetection.detectionDetails, 'customRemediationGuidelines');
-  _updateFieldWithHtmlIfValid(renderedDetection.detectionDetails, 'remediationGuidelines');
+  _updateDetectionDetailsFieldWithHtmlIfValid(renderedDetection.detectionDetails, 'customRemediationGuidelines');
+  _updateDetectionDetailsFieldWithHtmlIfValid(renderedDetection.detectionDetails, 'remediationGuidelines');
 
   return renderedDetection;
 };
@@ -89,10 +92,10 @@ const _getIacDetectionForRender = (detection: IacDetection): object => {
   renderedDetection.detectionDetails.fileName = path.basename(detection.detectionDetails.fileName);
 
   renderedDetection.detectionDetails.description = detection.detectionDetails.description || detection.message;
-  _updateFieldWithHtmlIfValid(renderedDetection.detectionDetails, 'description');
+  _updateDetectionDetailsFieldWithHtmlIfValid(renderedDetection.detectionDetails, 'description');
 
-  _updateFieldWithHtmlIfValid(renderedDetection.detectionDetails, 'customRemediationGuidelines');
-  _updateFieldWithHtmlIfValid(renderedDetection.detectionDetails, 'remediationGuidelines');
+  _updateDetectionDetailsFieldWithHtmlIfValid(renderedDetection.detectionDetails, 'customRemediationGuidelines');
+  _updateDetectionDetailsFieldWithHtmlIfValid(renderedDetection.detectionDetails, 'remediationGuidelines');
 
   return renderedDetection;
 };
@@ -100,9 +103,9 @@ const _getIacDetectionForRender = (detection: IacDetection): object => {
 const _getSastDetectionForRender = (detection: SastDetection): object => {
   const renderedDetection = instanceToPlain(detection);
 
-  _updateFieldWithHtmlIfValid(renderedDetection.detectionDetails, 'description');
-  _updateFieldWithHtmlIfValid(renderedDetection.detectionDetails, 'customRemediationGuidelines');
-  _updateFieldWithHtmlIfValid(renderedDetection.detectionDetails, 'remediationGuidelines');
+  _updateDetectionDetailsFieldWithHtmlIfValid(renderedDetection.detectionDetails, 'description');
+  _updateDetectionDetailsFieldWithHtmlIfValid(renderedDetection.detectionDetails, 'customRemediationGuidelines');
+  _updateDetectionDetailsFieldWithHtmlIfValid(renderedDetection.detectionDetails, 'remediationGuidelines');
 
   return renderedDetection;
 };

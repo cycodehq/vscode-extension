@@ -1,4 +1,5 @@
 // MIT Licensed. Original code by Donavon West: https://github.com/donavon/json_/blob/master/LICENSE
+/* eslint-disable @typescript-eslint/no-explicit-any */
 type Parse = typeof JSON.parse;
 type Reviver = Parameters<Parse>[1];
 type Stringify = typeof JSON.stringify;

@@ -5,7 +5,7 @@ import { ExtensionServiceSymbol } from '../symbols';
 import { DetectionBase } from '../cli/models/scan-result/detection-base';
 import { CliScanType } from '../cli/models/cli-scan-type';
 
-export default (detectionType: CliScanType, detection: DetectionBase) => {
+export default (scanType: CliScanType, detection: DetectionBase) => {
   const extension = container.resolve<IExtensionService>(ExtensionServiceSymbol);
-  createAndInitPanel(extension.extensionContext, detectionType, detection);
+  createAndInitPanel(extension.extensionContext, scanType, detection);
 };
