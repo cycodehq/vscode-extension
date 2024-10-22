@@ -9,10 +9,6 @@ import iacScanForCurrentProjectCommand from './iac-scan-for-current-project-comm
 import sastScanCommand from './sast-scan-command';
 import sastScanForCurrentProjectCommand from './sast-scan-for-current-project-command';
 import onTreeItemClickCommand from './on-tree-item-click-command';
-import onOpenViolationInFileFromTreeItemContextMenuCommand
-  from './on-open-violation-in-file-from-tree-item-context-menu-command';
-import onOpenViolationPanelFromTreeItemContextMenuCommand
-  from './on-open-violation-panel-from-tree-item-context-menu-command';
 import openViolationInFileCommand from './open-violation-in-file-command';
 import openViolationPanelCommand from './open-violation-panel-command';
 import openSettingsCommand from './open-settings-command';
@@ -39,8 +35,6 @@ export enum VscodeCommands {
   OpenViolationInFile = 'cycode.openViolationInFile',
   OpenViolationPanel = 'cycode.openViolationPanel',
   OnTreeItemClick = 'cycode.onTreeItemClick',
-  OpenViolationInFileFromTreeItemContextMenu = 'cycode.openViolationInFileFromTreeItemContextMenu',
-  OpenViolationPanelFromTreeItemContextMenu = 'cycode.openViolationPanelFromTreeItemContextMenu',
 }
 
 const _VS_CODE_COMMANDS_ID_TO_CALLBACK: Record<string, (...args: never[]) => unknown> = {
@@ -54,8 +48,6 @@ const _VS_CODE_COMMANDS_ID_TO_CALLBACK: Record<string, (...args: never[]) => unk
   [VscodeCommands.SastScanCommandId]: sastScanCommand,
   [VscodeCommands.SastScanForProjectCommandId]: sastScanForCurrentProjectCommand,
   [VscodeCommands.OnTreeItemClick]: onTreeItemClickCommand,
-  [VscodeCommands.OpenViolationInFileFromTreeItemContextMenu]: onOpenViolationInFileFromTreeItemContextMenuCommand,
-  [VscodeCommands.OpenViolationPanelFromTreeItemContextMenu]: onOpenViolationPanelFromTreeItemContextMenuCommand,
   [VscodeCommands.OpenViolationInFile]: openViolationInFileCommand,
   [VscodeCommands.OpenViolationPanel]: openViolationPanelCommand,
   [VscodeCommands.OpenSettingsCommandId]: openSettingsCommand,

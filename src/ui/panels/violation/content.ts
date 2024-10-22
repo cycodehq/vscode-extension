@@ -6,7 +6,7 @@ import sastCard from './card/sast';
 import js from './js';
 import { CliScanType } from '../../../cli/models/cli-scan-type';
 
-export default (detectionType: CliScanType) => `
+export default (scanType: CliScanType) => `
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -17,12 +17,12 @@ export default (detectionType: CliScanType) => `
 <body>
     ${style}
 
-    ${detectionType == CliScanType.Sca ? scaCard : ''}
-    ${detectionType == CliScanType.Secret ? secretCard : ''}
-    ${detectionType == CliScanType.Iac ? iacCard : ''}
-    ${detectionType == CliScanType.Sast ? sastCard : ''}
+    ${scanType == CliScanType.Sca ? scaCard : ''}
+    ${scanType == CliScanType.Secret ? secretCard : ''}
+    ${scanType == CliScanType.Iac ? iacCard : ''}
+    ${scanType == CliScanType.Sast ? sastCard : ''}
 
-    ${js(detectionType)}
+    ${js(scanType)}
 </body>
 </html>
 `;

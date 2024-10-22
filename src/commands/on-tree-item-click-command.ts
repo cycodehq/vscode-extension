@@ -1,8 +1,9 @@
 import * as vscode from 'vscode';
 import { VscodeCommands } from './index';
-import { TreeDisplayedData } from '../providers/tree-data/types';
+import { CliScanType } from '../cli/models/cli-scan-type';
+import { DetectionBase } from '../cli/models/scan-result/detection-base';
 
-export default async (fullFilePath: string, violation: TreeDisplayedData) => {
-  await vscode.commands.executeCommand(VscodeCommands.OpenViolationInFile, fullFilePath, violation.lineNumber);
-  vscode.commands.executeCommand(VscodeCommands.OpenViolationPanel, violation.detectionType, violation.detection);
+export default async (scanType: CliScanType, detection: DetectionBase) => {
+  await vscode.commands.executeCommand(VscodeCommands.OpenViolationInFile, detection);
+  await vscode.commands.executeCommand(VscodeCommands.OpenViolationPanel, scanType, detection);
 };

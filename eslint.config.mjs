@@ -45,7 +45,7 @@ export default tseslint.config(
                     'format': ['camelCase', 'UPPER_CASE', 'PascalCase'],
                 },
             ],
-            '@typescript-eslint/no-explicit-any': 'warn', // we will make it error pretty soon
+            '@typescript-eslint/no-explicit-any': 'error',
             '@typescript-eslint/prefer-nullish-coalescing': 'off',
             // enabled someday:
             '@typescript-eslint/no-unnecessary-condition': 'off', // some of this could be useful

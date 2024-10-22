@@ -11,7 +11,7 @@ const _resetDomState = () => {
 const renderDetection = detection => {
   _resetDomState();
 
-  const severityFirstLetter = detection.severity[0].toUpperCase();
+  const severityFirstLetter = detection.severity;
   ge('severity-icon').src = severityIcons[severityFirstLetter];
 
   ge('title').innerText = detection.message;
