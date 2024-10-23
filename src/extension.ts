@@ -22,7 +22,7 @@ import { ILoggerService } from './services/logger-service';
 import { IScanResultsService } from './services/scan-results-service';
 import { IExtensionService } from './services/extension-service';
 import { onProjectOpen } from './listeners/on-project-open';
-import { createTreeView } from './providers/tree-data';
+import { createTreeDataProvider } from './providers/tree-data';
 import { registerCommands } from './commands';
 import { registerOnDidSaveTextDocument } from './listeners/on-did-save-text-document';
 import { registerActivityBar } from './ui/views/activity-bar';
@@ -49,12 +49,12 @@ export async function activate(context: vscode.ExtensionContext) {
   logger.info('Cycode plugin is running');
 
   const diagnosticCollection = vscode.languages.createDiagnosticCollection(extensionName);
-  const treeView = createTreeView(context);
+  const treeDataProvider = createTreeDataProvider(context);
 
   const extension = container.resolve<IExtensionService>(ExtensionServiceSymbol);
   extension.extensionContext = context;
   extension.diagnosticCollection = diagnosticCollection;
-  extension.treeView = treeView;
+  extension.treeDataProvider = treeDataProvider;
 
   // refactor this to porper class
   const extensionStatusBar = statusBar.create();

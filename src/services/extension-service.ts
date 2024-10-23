@@ -1,16 +1,16 @@
 import * as vscode from 'vscode';
 import { container, singleton } from 'tsyringe';
-import { TreeView } from '../providers/tree-data';
 import { refreshDiagnosticCollectionData } from '../providers/diagnostics/common';
 import { IStateService } from './state-service';
 import { ScanResultsServiceSymbol, StateServiceSymbol } from '../symbols';
 import { IScanResultsService } from './scan-results-service';
 import { CliScanType } from '../cli/models/cli-scan-type';
+import { TreeDataProvider } from '../providers/tree-data/provider';
 
 export interface IExtensionService {
   extensionContext: vscode.ExtensionContext;
   diagnosticCollection: vscode.DiagnosticCollection;
-  treeView: TreeView;
+  treeDataProvider: TreeDataProvider;
   refreshProviders(scanType: CliScanType): Promise<void>;
 }
 
@@ -25,7 +25,7 @@ export class ExtensionService implements IExtensionService {
 
   private _extensionContext?: vscode.ExtensionContext;
   private _diagnosticCollection?: vscode.DiagnosticCollection;
-  private _treeView?: TreeView;
+  private _treeDataProvider?: TreeDataProvider;
 
   get extensionContext(): vscode.ExtensionContext {
     if (!this._extensionContext) {
@@ -49,15 +49,15 @@ export class ExtensionService implements IExtensionService {
     this._diagnosticCollection = value;
   }
 
-  get treeView(): TreeView {
-    if (!this._treeView) {
-      throw new Error('Tree view is not initialized');
+  get treeDataProvider(): TreeDataProvider {
+    if (!this._treeDataProvider) {
+      throw new Error('Tree view data provider is not initialized');
     }
-    return this._treeView;
+    return this._treeDataProvider;
   }
 
-  set treeView(value: TreeView) {
-    this._treeView = value;
+  set treeDataProvider(value: TreeDataProvider) {
+    this._treeDataProvider = value;
   }
 
   private refreshDetectionsLocalState(scanType: CliScanType) {
@@ -77,6 +77,6 @@ export class ExtensionService implements IExtensionService {
   public async refreshProviders(scanType: CliScanType) {
     this.refreshDetectionsLocalState(scanType);
     await refreshDiagnosticCollectionData(this.diagnosticCollection);
-    this.treeView.provider.refresh();
+    this.treeDataProvider.refresh();
   }
 }

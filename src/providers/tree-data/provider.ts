@@ -8,21 +8,26 @@ import { container } from 'tsyringe';
 import { IScanResultsService } from '../../services/scan-results-service';
 import { ScanResultsServiceSymbol } from '../../symbols';
 import { DetectionBase } from '../../cli/models/scan-result/detection-base';
+import { VscodeCommands } from '../../commands';
 
 export class TreeDataProvider implements vscode.TreeDataProvider<BaseNode> {
   public static readonly viewType = 'cycode.view.tree';
 
-  private _onDidChangeTreeData:
-  vscode.EventEmitter<BaseNode | undefined> = new vscode.EventEmitter<BaseNode | undefined>();
+  public treeView: vscode.TreeView<BaseNode>;
 
-  readonly onDidChangeTreeData:
-  vscode.Event<BaseNode | undefined> = this._onDidChangeTreeData.event;
+  private _onDidChangeTreeData: vscode.EventEmitter<void> = new vscode.EventEmitter<void>();
+  readonly onDidChangeTreeData: vscode.Event<void> = this._onDidChangeTreeData.event;
 
   private _createdRootNodes: ScanTypeNode[] = [];
   private _createdNodesToChildren = new Map<BaseNode, BaseNode[]>();
+  private _createdChildToParentNode = new Map<BaseNode, BaseNode>();
 
   getTreeItem(element: BaseNode): vscode.TreeItem {
     return element;
+  }
+
+  getParent(element: BaseNode): vscode.ProviderResult<BaseNode> {
+    return this._createdChildToParentNode.get(element);
   }
 
   getChildren(
@@ -36,18 +41,14 @@ export class TreeDataProvider implements vscode.TreeDataProvider<BaseNode> {
   }
 
   private getSeverityWeight(severity: string): number {
-    switch (severity) {
-      case 'critical':
-        return 4;
-      case 'high':
-        return 3;
-      case 'medium':
-        return 2;
-      case 'low':
-        return 1;
-      default:
-        return 0;
-    }
+    const severityWeights: Record<string, number> = {
+      critical: 4,
+      high: 3,
+      medium: 2,
+      low: 1,
+    };
+
+    return severityWeights[severity.toLowerCase()] || 0;
   }
 
   private getScanTypeNodeSummary(sortedDetections: DetectionBase[]): string {
@@ -71,7 +72,7 @@ export class TreeDataProvider implements vscode.TreeDataProvider<BaseNode> {
     const detections = scanResultsService.getDetections(scanType);
 
     const severitySortedDetections = detections.sort((a, b) => {
-      return this.getSeverityWeight(b.severity.toLowerCase()) - this.getSeverityWeight(a.severity.toLowerCase());
+      return this.getSeverityWeight(b.severity) - this.getSeverityWeight(a.severity);
     });
     const groupedByFilepathDetection = severitySortedDetections
       .reduce<Map<string, DetectionBase[]>>((acc, detection) => {
@@ -91,9 +92,12 @@ export class TreeDataProvider implements vscode.TreeDataProvider<BaseNode> {
       const fileNode = new FileNode(filepath, detections.length);
       this._createdNodesToChildren.get(scanTypeNode)?.push(fileNode);
       this._createdNodesToChildren.set(fileNode, []);
+      this._createdChildToParentNode.set(fileNode, scanTypeNode);
+
       for (const detection of detections) {
         const detectionNode = new DetectionNode(scanType, detection);
         this._createdNodesToChildren.get(fileNode)?.push(detectionNode);
+        this._createdChildToParentNode.set(detectionNode, fileNode);
       }
     }
   }
@@ -101,12 +105,45 @@ export class TreeDataProvider implements vscode.TreeDataProvider<BaseNode> {
   public refresh(): void {
     this._createdRootNodes = [];
     this._createdNodesToChildren.clear();
+    this._createdChildToParentNode.clear();
 
     this.createNodes(CliScanType.Secret);
     this.createNodes(CliScanType.Sca);
     this.createNodes(CliScanType.Iac);
     this.createNodes(CliScanType.Sast);
 
-    this._onDidChangeTreeData.fire(undefined);
+    this._onDidChangeTreeData.fire();
+  }
+
+  public async expandAll() {
+    /*
+     * vscode api limits rendering of expanding.
+     * Editing of collapsibleState field doesn't affect nodes that are visible already.
+     * To bypass this limitation, we can use reveal method instead.
+     * This method is limited to depth of 3; it is enough to our tree.
+     * More of the context: https://github.com/microsoft/vscode/issues/131955
+     */
+
+    const revealOptions = { expand: 3, select: false, focus: false };
+    const thenables: Thenable<void>[] = [];
+    for (const rootNode of this._createdRootNodes) {
+      thenables.push(this.treeView.reveal(rootNode, revealOptions));
+      for (const fileNode of this._createdNodesToChildren.get(rootNode) || []) {
+        thenables.push(this.treeView.reveal(fileNode, revealOptions));
+      }
+    }
+
+    await Promise.all(thenables);
+  }
+
+  public async collapseAll() {
+    /*
+     * It works excellently and always re-renders the tree view,
+     * even already visible elements,
+     * but unfortunately, there is no build-in "ExpandAll" command.
+     * That's why we use our own implementation.
+     */
+
+    await vscode.commands.executeCommand(VscodeCommands.WorkbenchTreeViewCollapseAll);
   }
 }

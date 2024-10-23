@@ -37,6 +37,21 @@
       ],
       "view/title": [
         {
+          "command": "cycode.runAllScans",
+          "when": "view =~ /^cycode./",
+          "group": "navigation@0"
+        },
+        {
+          "command": "cycode.treeViewCollapseAllCommand",
+          "when": "view == cycode.view.tree",
+          "group": "navigation@1"
+        },
+        {
+          "command": "cycode.treeViewExpandAllCommand",
+          "when": "view == cycode.view.tree",
+          "group": "navigation@1"
+        },
+        {
           "command": "cycode.openMainMenu",
           "when": "view == cycode.view.tree",
           "group": "navigation@1"
@@ -161,6 +176,24 @@
         "category": "Cycode",
         "title": "Return to Home Screen",
         "icon": "$(arrow-left)"
+      },
+      {
+        "command": "cycode.runAllScans",
+        "category": "Cycode",
+        "title": "Run all scans types for the entire project",
+        "icon": "$(testing-run-icon)"
+      },
+      {
+        "command": "cycode.treeViewExpandAllCommand",
+        "category": "Cycode",
+        "title": "Expand All Nodes in Tree View",
+        "icon": "$(expand-all)"
+      },
+      {
+        "command": "cycode.treeViewCollapseAllCommand",
+        "category": "Cycode",
+        "title": "Collapse All Nodes in Tree View",
+        "icon": "$(collapse-all)"
       },
       {
         "command": "cycode.auth",

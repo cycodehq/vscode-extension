@@ -240,7 +240,7 @@ export class CliService implements ICliService {
         )
         .then((buttonPressed) => {
           if (buttonPressed === TrayNotificationTexts.OpenProblemsTab) {
-            vscode.commands.executeCommand(VscodeCommands.ShowProblemsTab);
+            vscode.commands.executeCommand(VscodeCommands.WorkbenchShowProblemsTab);
           }
         });
     } else if (onDemand) {
