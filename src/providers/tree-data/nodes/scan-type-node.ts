@@ -13,6 +13,5 @@ export class ScanTypeNode extends BaseNode {
 
     this.scanType = scanType;
     this.contextValue = `${scanType.toLowerCase()}ScanTypeNode`;
-    console.log(this.contextValue);
   }
 }

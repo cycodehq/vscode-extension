@@ -8,11 +8,14 @@ import iacScanCommand from './iac-scan-command';
 import iacScanForCurrentProjectCommand from './iac-scan-for-current-project-command';
 import sastScanCommand from './sast-scan-command';
 import sastScanForCurrentProjectCommand from './sast-scan-for-current-project-command';
-import onTreeItemClickCommand from './on-tree-item-click-command';
 import openViolationInFileCommand from './open-violation-in-file-command';
 import openViolationPanelCommand from './open-violation-panel-command';
 import openSettingsCommand from './open-settings-command';
 import openMainMenuCommand from './open-main-menu-command';
+import onTreeViewDetectionNodeClickCommand from './on-tree-view-detection-node-click-command';
+import treeViewExpandAllCommand from './tree-view-expand-all-command';
+import treeViewCollapseAllCommand from './tree-view-collapse-all-command';
+import runAllScansCommand from './run-all-scans-command';
 
 export enum VscodeCommands {
   SecretScanCommandId = 'cycode.secretScan',
@@ -22,6 +25,7 @@ export enum VscodeCommands {
   IacScanForProjectCommandId = 'cycode.iacScanForProject',
   SastScanCommandId = 'cycode.sastScan',
   SastScanForProjectCommandId = 'cycode.sastScanForProject',
+  RunAllScansCommandId = 'cycode.runAllScans',
 
   AuthCommandId = 'cycode.auth',
   IgnoreCommandId = 'cycode.ignore',
@@ -29,12 +33,17 @@ export enum VscodeCommands {
   OpenSettingsCommandId = 'cycode.openSettings',
   OpenMainMenuCommandId = 'cycode.openMainMenu',
 
-  ShowProblemsTab = 'workbench.action.problems.focus',
-  ShowCycodeView = 'workbench.view.extension.cycode',
-
   OpenViolationInFile = 'cycode.openViolationInFile',
   OpenViolationPanel = 'cycode.openViolationPanel',
-  OnTreeItemClick = 'cycode.onTreeItemClick',
+
+  OnTreeViewDetectionNodeClickCommand = 'cycode.onTreeViewDetectionNodeClickCommand',
+  TreeViewExpandAllCommand = 'cycode.treeViewExpandAllCommand',
+  TreeViewCollapseAllCommand = 'cycode.treeViewCollapseAllCommand',
+
+  // built-in or created automatically by vscode:
+  WorkbenchShowProblemsTab = 'workbench.action.problems.focus',
+  WorkbenchShowCycodeView = 'workbench.view.extension.cycode',
+  WorkbenchTreeViewCollapseAll = 'workbench.actions.treeView.cycode.view.tree.collapseAll',
 }
 
 const _VS_CODE_COMMANDS_ID_TO_CALLBACK: Record<string, (...args: never[]) => unknown> = {
@@ -47,11 +56,14 @@ const _VS_CODE_COMMANDS_ID_TO_CALLBACK: Record<string, (...args: never[]) => unk
   [VscodeCommands.IacScanForProjectCommandId]: iacScanForCurrentProjectCommand,
   [VscodeCommands.SastScanCommandId]: sastScanCommand,
   [VscodeCommands.SastScanForProjectCommandId]: sastScanForCurrentProjectCommand,
-  [VscodeCommands.OnTreeItemClick]: onTreeItemClickCommand,
+  [VscodeCommands.RunAllScansCommandId]: runAllScansCommand,
   [VscodeCommands.OpenViolationInFile]: openViolationInFileCommand,
   [VscodeCommands.OpenViolationPanel]: openViolationPanelCommand,
   [VscodeCommands.OpenSettingsCommandId]: openSettingsCommand,
   [VscodeCommands.OpenMainMenuCommandId]: openMainMenuCommand,
+  [VscodeCommands.OnTreeViewDetectionNodeClickCommand]: onTreeViewDetectionNodeClickCommand,
+  [VscodeCommands.TreeViewExpandAllCommand]: treeViewExpandAllCommand,
+  [VscodeCommands.TreeViewCollapseAllCommand]: treeViewCollapseAllCommand,
 };
 
 export const registerCommands = (context: vscode.ExtensionContext): void => {

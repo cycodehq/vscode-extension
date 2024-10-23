@@ -17,7 +17,7 @@ export class DetectionNode extends BaseNode {
 
     this.command = {
       title: '',
-      command: VscodeCommands.OnTreeItemClick,
+      command: VscodeCommands.OnTreeViewDetectionNodeClickCommand,
       arguments: [scanType, detection],
     };
     this.collapsibleState = vscode.TreeItemCollapsibleState.None;
