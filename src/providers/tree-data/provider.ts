@@ -27,6 +27,7 @@ export class TreeDataProvider implements vscode.TreeDataProvider<BaseNode> {
   }
 
   getParent(element: BaseNode): vscode.ProviderResult<BaseNode> {
+    // must be implemented properly to be able to call this.treeView.reveal()
     return this._createdChildToParentNode.get(element);
   }
 
