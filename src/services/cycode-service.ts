@@ -90,8 +90,10 @@ export class CycodeService implements ICycodeService {
   }
 
   public async startAuth() {
-    this.localState.AuthenticatingInProgress = true;
-    this.stateService.save();
+    /*
+     * this.localState.AuthenticatingInProgress = true;
+     * this.stateService.save();
+     */
 
     try {
       await this.withProgressBar(
@@ -151,13 +153,13 @@ export class CycodeService implements ICycodeService {
     }
   }
 
-  private async applyDetectionIgnoreInUi(scanType: CliScanType, ignoreType: CliIgnoreType, value: string) {
+  private async applyDetectionIgnoreInUi(ignoreType: CliIgnoreType, value: string) {
     if (ignoreType !== CliIgnoreType.Value) {
       return;
     }
 
     this.scanResultsService.excludeResultsByValue(value);
-    await this.extensionService.refreshProviders(scanType);
+    await this.extensionService.refreshProviders();
   }
 
   public async applyDetectionIgnore(
@@ -169,7 +171,7 @@ export class CycodeService implements ICycodeService {
         this.logger.debug(`[IGNORE] Start ignoring by ${ignoreType} for ${scanType}`);
 
         // we are removing is from UI first to show how it's blazing fast and then apply it in the background
-        await this.applyDetectionIgnoreInUi(scanType, ignoreType, value);
+        await this.applyDetectionIgnoreInUi(ignoreType, value);
         await this.cliService.doIgnore(scanType, ignoreType, value, cancellationToken);
 
         this.logger.debug(`[IGNORE] Finish ignoring by ${ignoreType} for ${scanType}`);

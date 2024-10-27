@@ -14,10 +14,9 @@ export class GlobalExtensionState {
 }
 export type GlobalExtensionStateKey = keyof GlobalExtensionState;
 
+// eslint-disable-next-line @typescript-eslint/no-extraneous-class
 export class LocalExtensionState {
-  public AuthenticatingInProgress = false;
-  public HasAnyDetections = false;
-  public TreeViewIsOpen = false;
+  // add local state here
 }
 export type LocalExtensionStateKey = keyof LocalExtensionState;
 
@@ -25,22 +24,18 @@ const _GLOBAL_STATE_KEY = 'cycode:globalState';
 const _LOCAL_STATE_KEY = 'cycode:localState';
 
 enum VscodeStates {
-  AuthenticatingInProgress = 'auth.isAuthenticating',
   IsAuthorized = 'auth.isAuthed',
-  HasAnyDetections = 'scan.hasAnyDetections',
-  TreeViewIsOpen = 'treeView.isShowed',
+  IsInstalled = 'cli.isInstalled',
 }
 
 const _CONTEXT_EXPORTED_GLOBAL_STATE_KEYS: Record<string, string> = {
   // map global state keys to vscode context keys
   CliAuthed: VscodeStates.IsAuthorized,
+  CliInstalled: VscodeStates.IsInstalled,
 };
 
 const _CONTEXT_EXPORTED_LOCAL_STATE_KEYS: Record<string, string> = {
   // map local state keys to vscode context keys
-  AuthenticatingInProgress: VscodeStates.AuthenticatingInProgress,
-  HasAnyDetections: VscodeStates.HasAnyDetections,
-  TreeViewIsOpen: VscodeStates.TreeViewIsOpen,
 };
 
 export interface IStateService {
@@ -163,15 +158,8 @@ export class StateService implements IStateService {
     );
   }
 
-  private mergeLocalState(extensionState: LocalExtensionState): void {
-    if (extensionState.AuthenticatingInProgress !== undefined) (
-      this._localState.AuthenticatingInProgress = extensionState.AuthenticatingInProgress
-    );
-    if (extensionState.HasAnyDetections !== undefined) (
-      this._localState.HasAnyDetections = extensionState.HasAnyDetections
-    );
-    if (extensionState.TreeViewIsOpen !== undefined) (
-      this._localState.TreeViewIsOpen = extensionState.TreeViewIsOpen
-    );
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  private mergeLocalState(_extensionState: LocalExtensionState): void {
+    // merge local state here
   }
 }

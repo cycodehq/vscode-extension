@@ -1,17 +1,13 @@
 import * as vscode from 'vscode';
-import { container, singleton } from 'tsyringe';
+import { singleton } from 'tsyringe';
 import { refreshDiagnosticCollectionData } from '../providers/diagnostics/common';
-import { IStateService } from './state-service';
-import { ScanResultsServiceSymbol, StateServiceSymbol } from '../symbols';
-import { IScanResultsService } from './scan-results-service';
-import { CliScanType } from '../cli/models/cli-scan-type';
 import { TreeDataProvider } from '../providers/tree-data/provider';
 
 export interface IExtensionService {
   extensionContext: vscode.ExtensionContext;
   diagnosticCollection: vscode.DiagnosticCollection;
   treeDataProvider: TreeDataProvider;
-  refreshProviders(scanType: CliScanType): Promise<void>;
+  refreshProviders(): Promise<void>;
 }
 
 @singleton()
@@ -60,22 +56,7 @@ export class ExtensionService implements IExtensionService {
     this._treeDataProvider = value;
   }
 
-  private refreshDetectionsLocalState(scanType: CliScanType) {
-    const stateService = container.resolve<IStateService>(StateServiceSymbol);
-    const scanResultsService = container.resolve<IScanResultsService>(ScanResultsServiceSymbol);
-
-    const scanTypeDetections = scanResultsService.getDetections(scanType);
-    const hasDetections = scanTypeDetections.length > 0;
-    if (hasDetections) {
-      stateService.localState.TreeViewIsOpen = true;
-    }
-
-    stateService.localState.HasAnyDetections = scanResultsService.hasResults();
-    stateService.save();
-  }
-
-  public async refreshProviders(scanType: CliScanType) {
-    this.refreshDetectionsLocalState(scanType);
+  public async refreshProviders() {
     await refreshDiagnosticCollectionData(this.diagnosticCollection);
     this.treeDataProvider.refresh();
   }
