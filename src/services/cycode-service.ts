@@ -90,22 +90,12 @@ export class CycodeService implements ICycodeService {
   }
 
   public async startAuth() {
-    /*
-     * this.localState.AuthenticatingInProgress = true;
-     * this.stateService.save();
-     */
-
-    try {
-      await this.withProgressBar(
-        'Authenticating to Cycode...',
-        async (cancellationToken: vscode.CancellationToken) => {
-          await this.cliService.doAuth(cancellationToken);
-          await this.cliService.checkAuth(cancellationToken);
-        });
-    } finally {
-      this.localState.AuthenticatingInProgress = false;
-      this.stateService.save();
-    }
+    await this.withProgressBar(
+      'Authenticating to Cycode...',
+      async (cancellationToken: vscode.CancellationToken) => {
+        await this.cliService.doAuth(cancellationToken);
+        await this.cliService.checkAuth(cancellationToken);
+      });
   }
 
   public getScanProgressBarOptions(onDemand: boolean): ProgressOptions {
