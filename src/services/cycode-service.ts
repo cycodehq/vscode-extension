@@ -6,7 +6,6 @@ import {
   CliServiceSymbol, ExtensionServiceSymbol,
   LoggerServiceSymbol,
   ScanResultsServiceSymbol,
-  StateServiceSymbol,
 } from '../symbols';
 import { ICliService } from './cli-service';
 import { ProgressOptions } from 'vscode';
@@ -15,7 +14,6 @@ import { getScanTypeDisplayName } from '../constants';
 import statusBar from '../utils/status-bar';
 import { TrayNotificationTexts } from '../utils/texts';
 import { captureException } from '../sentry';
-import { IStateService, LocalExtensionState } from './state-service';
 import { CliIgnoreType } from '../cli/models/cli-ignore-type';
 import { IScanResultsService } from './scan-results-service';
 import { IExtensionService } from './extension-service';
@@ -33,18 +31,13 @@ type ProgressBar = vscode.Progress<{ message?: string; increment?: number }>;
 
 @injectable()
 export class CycodeService implements ICycodeService {
-  private localState: LocalExtensionState;
-
   constructor(
     @inject(LoggerServiceSymbol) private logger: ILoggerService,
     @inject(CliDownloadServiceSymbol) private cliDownloadService: ICliDownloadService,
     @inject(CliServiceSymbol) private cliService: ICliService,
-    @inject(StateServiceSymbol) private stateService: IStateService,
     @inject(ScanResultsServiceSymbol) private scanResultsService: IScanResultsService,
     @inject(ExtensionServiceSymbol) private extensionService: IExtensionService,
-  ) {
-    this.localState = this.stateService.localState;
-  }
+  ) {}
 
   private async withProgressBar(
     message: string,
