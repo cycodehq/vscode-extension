@@ -1,0 +1,65 @@
+name: Lint and build. Publish on tag/release creation
+
+on: [ push ]
+
+permissions:
+  contents: write
+
+jobs:
+  lint_build_publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run Cimon (eBPF)
+        uses: cycodelabs/cimon-action@v0
+        with:
+          client-id: ${{ secrets.CIMON_CLIENT_ID }}
+          secret: ${{ secrets.CIMON_SECRET }}
+          allowed-hosts: >
+            registry.yarnpkg.com
+            marketplace.visualstudio.com
+            update.code.visualstudio.com
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        run: |
+          npm install
+          npm install -g @vscode/vsce
+
+      - name: Code Linting
+        run: npm run lint
+
+      - name: Build extension
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+        run: vsce package
+
+      - name: Upload extension package to artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: cycode-extension
+          path: "*.vsix"
+          if-no-files-found: error
+
+      - name: Publish extension to marketplace
+        # it runs on tag creation only which starts with 'v' (e.g., v1.0.0)
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          VSCE_PAT: ${{ secrets.VSCODE_MARKETPLACE_TOKEN }}
+        run: vsce publish
+
+      - name: Publish extension to GitHub Release
+        # it runs on tag creation only which starts with 'v' (e.g., v1.0.0)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: svenstaro/upload-release-action@v2
+        with:
+          file: cycode-extension.vsix
+          tag: ${{ github.ref }}
+          overwrite: true
