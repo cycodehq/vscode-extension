@@ -64,7 +64,12 @@ export class CliService implements ICliService {
     return vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
   }
 
-  private resetPluginCLiState() {
+  private resetPluginCLiStateIfNeeded<T>(result: CliResult<T>) {
+    if (isCliResultPanic(result) && result.exitCode === ExitCode.TERMINATION) {
+      // don't reset state on user-requested terminations
+      return null;
+    }
+
     this.state.CliInstalled = false;
     this.state.CliVer = null;
     this.stateService.save();
@@ -115,7 +120,7 @@ export class CliService implements ICliService {
     scanType: CliScanType, detections: DetectionBase[], onDemand: boolean,
   ): Promise<void> {
     this.scanResultsService.setDetections(scanType, detections);
-    await this.extensionService.refreshProviders(scanType);
+    await this.extensionService.refreshProviders();
     this.showScanResultsNotification(scanType, detections.length, onDemand);
   }
 
@@ -132,7 +137,7 @@ export class CliService implements ICliService {
       return true;
     }
 
-    this.resetPluginCLiState();
+    this.resetPluginCLiStateIfNeeded(result);
     return false;
   }
 
@@ -143,7 +148,7 @@ export class CliService implements ICliService {
     const processedResult = this.processCliResult(result);
 
     if (!isCliResultSuccess<AuthCheckResult>(processedResult)) {
-      this.resetPluginCLiState();
+      this.resetPluginCLiStateIfNeeded(result);
       return false;
     }
 

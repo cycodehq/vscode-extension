@@ -25,7 +25,11 @@ export abstract class CycodeView implements vscode.WebviewViewProvider {
     this._view.webview.onDidReceiveMessage((message) => {
       const command = message?.command;
       if (Object.values(VscodeCommands).includes(command)) {
-        vscode.commands.executeCommand(command);
+        // send command back after executing to unblock disabled buttons
+        vscode.commands.executeCommand(command).then(
+          () => this._view?.webview.postMessage({ command, finished: true, success: true }),
+          () => this._view?.webview.postMessage({ command, finished: true, success: false }),
+        );
       }
     });
   }

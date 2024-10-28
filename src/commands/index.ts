@@ -11,11 +11,11 @@ import sastScanForCurrentProjectCommand from './sast-scan-for-current-project-co
 import openViolationInFileCommand from './open-violation-in-file-command';
 import openViolationPanelCommand from './open-violation-panel-command';
 import openSettingsCommand from './open-settings-command';
-import openMainMenuCommand from './open-main-menu-command';
 import onTreeViewDetectionNodeClickCommand from './on-tree-view-detection-node-click-command';
 import treeViewExpandAllCommand from './tree-view-expand-all-command';
 import treeViewCollapseAllCommand from './tree-view-collapse-all-command';
 import runAllScansCommand from './run-all-scans-command';
+import clearAllScanResultsCommand from './clear-all-scan-results-command';
 
 export enum VscodeCommands {
   SecretScanCommandId = 'cycode.secretScan',
@@ -31,7 +31,7 @@ export enum VscodeCommands {
   IgnoreCommandId = 'cycode.ignore',
 
   OpenSettingsCommandId = 'cycode.openSettings',
-  OpenMainMenuCommandId = 'cycode.openMainMenu',
+  ClearAllScanResultsCommand = 'cycode.clearAllScanResults',
 
   OpenViolationInFile = 'cycode.openViolationInFile',
   OpenViolationPanel = 'cycode.openViolationPanel',
@@ -60,7 +60,7 @@ const _VS_CODE_COMMANDS_ID_TO_CALLBACK: Record<string, (...args: never[]) => unk
   [VscodeCommands.OpenViolationInFile]: openViolationInFileCommand,
   [VscodeCommands.OpenViolationPanel]: openViolationPanelCommand,
   [VscodeCommands.OpenSettingsCommandId]: openSettingsCommand,
-  [VscodeCommands.OpenMainMenuCommandId]: openMainMenuCommand,
+  [VscodeCommands.ClearAllScanResultsCommand]: clearAllScanResultsCommand,
   [VscodeCommands.OnTreeViewDetectionNodeClickCommand]: onTreeViewDetectionNodeClickCommand,
   [VscodeCommands.TreeViewExpandAllCommand]: treeViewExpandAllCommand,
   [VscodeCommands.TreeViewCollapseAllCommand]: treeViewCollapseAllCommand,

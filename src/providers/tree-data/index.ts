@@ -14,5 +14,8 @@ export const createTreeDataProvider = (context: vscode.ExtensionContext): TreeDa
     ),
   );
 
+  // it will create empty root nodes
+  treeDataProvider.refresh();
+
   return treeDataProvider;
 };

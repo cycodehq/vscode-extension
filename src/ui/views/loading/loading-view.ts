@@ -1,8 +1,8 @@
 import { CycodeView } from '../cycode-view';
 import content from './content';
 
-export default class LoginView extends CycodeView {
-  public static readonly viewType = 'cycode.view.login';
+export default class LoadingView extends CycodeView {
+  public static readonly viewType = 'cycode.view.loading';
 
   constructor() {
     super(content);

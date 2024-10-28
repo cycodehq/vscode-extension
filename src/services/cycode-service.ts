@@ -6,7 +6,6 @@ import {
   CliServiceSymbol, ExtensionServiceSymbol,
   LoggerServiceSymbol,
   ScanResultsServiceSymbol,
-  StateServiceSymbol,
 } from '../symbols';
 import { ICliService } from './cli-service';
 import { ProgressOptions } from 'vscode';
@@ -15,7 +14,6 @@ import { getScanTypeDisplayName } from '../constants';
 import statusBar from '../utils/status-bar';
 import { TrayNotificationTexts } from '../utils/texts';
 import { captureException } from '../sentry';
-import { IStateService, LocalExtensionState } from './state-service';
 import { CliIgnoreType } from '../cli/models/cli-ignore-type';
 import { IScanResultsService } from './scan-results-service';
 import { IExtensionService } from './extension-service';
@@ -33,18 +31,13 @@ type ProgressBar = vscode.Progress<{ message?: string; increment?: number }>;
 
 @injectable()
 export class CycodeService implements ICycodeService {
-  private localState: LocalExtensionState;
-
   constructor(
     @inject(LoggerServiceSymbol) private logger: ILoggerService,
     @inject(CliDownloadServiceSymbol) private cliDownloadService: ICliDownloadService,
     @inject(CliServiceSymbol) private cliService: ICliService,
-    @inject(StateServiceSymbol) private stateService: IStateService,
     @inject(ScanResultsServiceSymbol) private scanResultsService: IScanResultsService,
     @inject(ExtensionServiceSymbol) private extensionService: IExtensionService,
-  ) {
-    this.localState = this.stateService.localState;
-  }
+  ) {}
 
   private async withProgressBar(
     message: string,
@@ -90,20 +83,12 @@ export class CycodeService implements ICycodeService {
   }
 
   public async startAuth() {
-    this.localState.AuthenticatingInProgress = true;
-    this.stateService.save();
-
-    try {
-      await this.withProgressBar(
-        'Authenticating to Cycode...',
-        async (cancellationToken: vscode.CancellationToken) => {
-          await this.cliService.doAuth(cancellationToken);
-          await this.cliService.checkAuth(cancellationToken);
-        });
-    } finally {
-      this.localState.AuthenticatingInProgress = false;
-      this.stateService.save();
-    }
+    await this.withProgressBar(
+      'Authenticating to Cycode...',
+      async (cancellationToken: vscode.CancellationToken) => {
+        await this.cliService.doAuth(cancellationToken);
+        await this.cliService.checkAuth(cancellationToken);
+      });
   }
 
   public getScanProgressBarOptions(onDemand: boolean): ProgressOptions {
@@ -151,13 +136,13 @@ export class CycodeService implements ICycodeService {
     }
   }
 
-  private async applyDetectionIgnoreInUi(scanType: CliScanType, ignoreType: CliIgnoreType, value: string) {
+  private async applyDetectionIgnoreInUi(ignoreType: CliIgnoreType, value: string) {
     if (ignoreType !== CliIgnoreType.Value) {
       return;
     }
 
     this.scanResultsService.excludeResultsByValue(value);
-    await this.extensionService.refreshProviders(scanType);
+    await this.extensionService.refreshProviders();
   }
 
   public async applyDetectionIgnore(
@@ -169,7 +154,7 @@ export class CycodeService implements ICycodeService {
         this.logger.debug(`[IGNORE] Start ignoring by ${ignoreType} for ${scanType}`);
 
         // we are removing is from UI first to show how it's blazing fast and then apply it in the background
-        await this.applyDetectionIgnoreInUi(scanType, ignoreType, value);
+        await this.applyDetectionIgnoreInUi(ignoreType, value);
         await this.cliService.doIgnore(scanType, ignoreType, value, cancellationToken);
 
         this.logger.debug(`[IGNORE] Finish ignoring by ${ignoreType} for ${scanType}`);

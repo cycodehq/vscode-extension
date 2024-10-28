@@ -1,22 +1,9 @@
-import * as vscode from 'vscode';
 import { container } from 'tsyringe';
-import { validateConfig } from '../utils/config';
 import { CycodeService, ICycodeService } from '../services/cycode-service';
 import { CliScanType } from '../cli/models/cli-scan-type';
-import { IStateService } from '../services/state-service';
-import { StateServiceSymbol } from '../symbols';
+import { getCommonCommand } from './common';
 
-export default async () => {
-  if (validateConfig()) {
-    return;
-  }
-
-  const stateService = container.resolve<IStateService>(StateServiceSymbol);
-  if (!stateService.globalState.CliAuthed) {
-    vscode.window.showErrorMessage('Please authenticate with Cycode first');
-    return;
-  }
-
+export default getCommonCommand(async () => {
   const cycodeService = container.resolve<ICycodeService>(CycodeService);
 
   const scanPromises = [];
@@ -25,4 +12,4 @@ export default async () => {
   scanPromises.push(cycodeService.startScanForCurrentProject(CliScanType.Iac));
   scanPromises.push(cycodeService.startScanForCurrentProject(CliScanType.Sast));
   await Promise.all(scanPromises);
-};
+});

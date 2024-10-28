@@ -2,9 +2,13 @@
 
 ## [Unreleased]
 
-## [v1.10.1]
+## [v1.11.0]
 
-- Code refactoring
+- Add extension loading screen
+- Add toolbar actions: Run All, Expand All, Collapse All, Clear Results
+- Rework extension sidebar. Now it vertically splits the screen and always shows the tree view on top
+- Rework sidebar views to be more dynamic with proper action states
+- Huge code refactoring
 
 ## [v1.10.0]
 
@@ -99,7 +103,7 @@
 
 The first stable release with the support of Secrets, SCA, TreeView, Violation Card, and more.
 
-[v1.10.1]: https://github.com/cycodehq/vscode-extension/releases/tag/v1.10.1
+[v1.11.0]: https://github.com/cycodehq/vscode-extension/releases/tag/v1.11.0
 
 [v1.10.0]: https://github.com/cycodehq/vscode-extension/releases/tag/v1.10.0
 
@@ -137,4 +141,4 @@ The first stable release with the support of Secrets, SCA, TreeView, Violation C
 
 [v1.0.0]: https://github.com/cycodehq/vscode-extension/releases/tag/v1.0.0
 
-[Unreleased]: https://github.com/cycodehq/vscode-extension/compare/v1.10.1...HEAD
+[Unreleased]: https://github.com/cycodehq/vscode-extension/compare/v1.11.0...HEAD

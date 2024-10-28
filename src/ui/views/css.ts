@@ -1,15 +1,10 @@
-const _CONTENT_TEMPLATE = `
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title>{title}</title>
-  </head>
-  <style>
+export default `
+<style>
     #container {
       display: flex;
       flex-direction: column;
     }
+
     button {
       color: var(--vscode-button-foreground);
       background-color: var(--vscode-button-background);
@@ -25,17 +20,15 @@ const _CONTENT_TEMPLATE = `
       text-align: center;
       width: 100%;
     }
+    button:disabled {
+      background-color: var(--vscode-button-background);
+      cursor: not-allowed;
+      opacity: 0.4;
+    }
+
     .styled-link {
       text-decoration: none;
       cursor: pointer;
     }
-  </style>
-  <body id="container">
-    {body}
-  </body>
-</html>
+</style>
 `;
-
-export const getContent = (title: string, body: string): string => {
-  return _CONTENT_TEMPLATE.replace('{title}', title).replace('{body}', body);
-};

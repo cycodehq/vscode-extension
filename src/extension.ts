@@ -31,7 +31,7 @@ import { registerCodeActionsProvider } from './providers/code-action';
 import { registerOnDidChangeActiveTextEditor } from './listeners/on-did-change-active-text-editor';
 import { showCliInstallFailed } from './utils/tray-notifications';
 
-export async function activate(context: vscode.ExtensionContext) {
+export function activate(context: vscode.ExtensionContext) {
   initSentry();
 
   const logger = container.resolve<ILoggerService>(LoggerServiceSymbol);
@@ -72,6 +72,15 @@ export async function activate(context: vscode.ExtensionContext) {
   registerOnDidSaveTextDocument(context);
   registerOnDidChangeActiveTextEditor(context);
 
+  // do not await because it blocks loading of the extension like views rendering
+  void postActivate().then(() => {
+    onProjectOpen();
+  });
+}
+
+const postActivate = async () => {
+  const logger = container.resolve<ILoggerService>(LoggerServiceSymbol);
+
   try {
     const cycode = container.resolve<ICycodeService>(CycodeServiceSymbol);
     await cycode.installCliIfNeededAndCheckAuthentication();
@@ -80,9 +89,7 @@ export async function activate(context: vscode.ExtensionContext) {
     logger.error(`Cycode CLI is not installed: ${error}`);
     showCliInstallFailed();
   }
-
-  onProjectOpen();
-}
+};
 
 // This method is called when your extension is deactivated
 // eslint-disable-next-line @typescript-eslint/no-empty-function

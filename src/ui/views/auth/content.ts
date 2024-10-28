@@ -1,7 +1,5 @@
-import { getContent } from '../content-base';
+import { getContent } from '../content';
 import { VscodeCommands } from '../../../commands';
-
-const title = 'Login';
 
 const body = `
 <p>
@@ -23,13 +21,8 @@ const body = `
 </div>
 
 <script>
-const vscode = acquireVsCodeApi();
-document
-  .getElementById('authenticate-button')
-  .addEventListener('click', () => {
-    vscode.postMessage({ command: '${VscodeCommands.AuthCommandId}' });
-  });
+registerButton('authenticate-button', '${VscodeCommands.AuthCommandId}', 'Authenticating...');
 </script>
 `;
 
-export default getContent(title, body);
+export default getContent(body);

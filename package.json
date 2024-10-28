@@ -1,7 +1,7 @@
 {
   "name": "cycode",
   "displayName": "Cycode",
-  "version": "1.10.1",
+  "version": "1.11.0",
   "publisher": "cycode",
   "description": "Boost security in your dev lifecycle via SAST, SCA, Secrets & IaC scanning.",
   "repository": {
@@ -38,7 +38,7 @@
       "view/title": [
         {
           "command": "cycode.runAllScans",
-          "when": "view =~ /^cycode./",
+          "when": "view == cycode.view.tree",
           "group": "navigation@0"
         },
         {
@@ -52,14 +52,14 @@
           "group": "navigation@1"
         },
         {
-          "command": "cycode.openMainMenu",
+          "command": "cycode.clearAllScanResults",
           "when": "view == cycode.view.tree",
-          "group": "navigation@1"
+          "group": "navigation@2"
         },
         {
           "command": "cycode.openSettings",
-          "when": "view =~ /^cycode./",
-          "group": "navigation@2"
+          "when": "view == cycode.view.tree",
+          "group": "navigation@3"
         }
       ],
       "view/item/context": [
@@ -172,10 +172,10 @@
         "icon": "$(gear)"
       },
       {
-        "command": "cycode.openMainMenu",
+        "command": "cycode.clearAllScanResults",
         "category": "Cycode",
-        "title": "Return to Home Screen",
-        "icon": "$(arrow-left)"
+        "title": "Clear all scan results",
+        "icon": "$(trash)"
       },
       {
         "command": "cycode.runAllScans",
@@ -219,28 +219,28 @@
     "views": {
       "cycode": [
         {
-          "type": "webview",
-          "id": "cycode.view.login",
-          "name": "login",
-          "when": "!cycode:auth.isAuthed && !cycode:auth.isAuthenticating"
-        },
-        {
-          "type": "webview",
-          "id": "cycode.view.authenticating",
-          "name": "login",
-          "when": "cycode:auth.isAuthenticating"
-        },
-        {
-          "type": "webview",
-          "id": "cycode.view.main",
-          "name": "scan",
-          "when": "cycode:auth.isAuthed && (!cycode:scan.hasAnyDetections || !cycode:treeView.isShowed)"
-        },
-        {
           "type": "tree",
           "id": "cycode.view.tree",
           "name": "Scan Results",
-          "when": "cycode:scan.hasAnyDetections && cycode:treeView.isShowed"
+          "when": "true"
+        },
+        {
+          "type": "webview",
+          "id": "cycode.view.loading",
+          "name": "Loading",
+          "when": "!cycode:cli.isInstalled"
+        },
+        {
+          "type": "webview",
+          "id": "cycode.view.auth",
+          "name": "Login",
+          "when": "cycode:cli.isInstalled && !cycode:auth.isAuthed"
+        },
+        {
+          "type": "webview",
+          "id": "cycode.view.scan",
+          "name": "Scan",
+          "when": "cycode:cli.isInstalled && cycode:auth.isAuthed"
         }
       ]
     },

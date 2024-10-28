@@ -1,23 +1,23 @@
 import * as vscode from 'vscode';
-import MainView from './main/main-view';
-import AuthenticatingView from './authenticating/authenticating-view';
-import LoginView from './login/login-view';
+import ScanView from './scan/scan-view';
+import LoadingView from './loading/loading-view';
+import AuthView from './auth/auth-view';
 
 export const registerActivityBar = (context: vscode.ExtensionContext): void => {
   const scanView = vscode.window.registerWebviewViewProvider(
-    MainView.viewType,
-    new MainView(),
+    ScanView.viewType,
+    new ScanView(),
   );
 
-  const authenticatingView = vscode.window.registerWebviewViewProvider(
-    AuthenticatingView.viewType,
-    new AuthenticatingView(),
+  const loadingView = vscode.window.registerWebviewViewProvider(
+    LoadingView.viewType,
+    new LoadingView(),
   );
 
-  const loginView = vscode.window.registerWebviewViewProvider(
-    LoginView.viewType,
-    new LoginView(),
+  const authView = vscode.window.registerWebviewViewProvider(
+    AuthView.viewType,
+    new AuthView(),
   );
 
-  context.subscriptions.push(scanView, authenticatingView, loginView);
+  context.subscriptions.push(scanView, loadingView, authView);
 };
