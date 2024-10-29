@@ -8,7 +8,7 @@ import { ILoggerService } from '../services/logger-service';
 import { LoggerServiceSymbol } from '../symbols';
 import JSON_ from '../utils/json_';
 import { ClassConstructor, plainToInstance } from 'class-transformer';
-import { CliError } from './models/cli-error';
+import { CliError, isCliError } from './models/cli-error';
 import { ExitCode } from './exit-code';
 import { CommandParameters } from './constants';
 import { getUserAgentArg } from './user-agent';
@@ -30,27 +30,24 @@ export class CliWrapper {
       return new CliResultSuccess(null);
     }
 
+    const camelCasedObj = JSON_.parse(out);
+    if (isCliError(camelCasedObj)) {
+      this.logger.debug('Found CliError in output. Returning CliResultError');
+      const cliError = plainToInstance(CliError, camelCasedObj);
+      return new CliResultError(cliError);
+    }
+
     try {
-      const cliResult = plainToInstance(classConst, JSON_.parse(out)) as T;
+      this.logger.debug('Trying to parse CliResultSuccess');
+      const cliResult = plainToInstance(classConst, camelCasedObj) as T;
       if (!cliResult) {
         throw new Error('Failed to parse CliResultSuccess');
       }
 
       return new CliResultSuccess<T>(cliResult);
     } catch {
-      this.logger.debug('Failed to parse CliResultSuccess. Parsing CliResultError');
-
-      try {
-        const cliError = plainToInstance(CliError, JSON_.parse(out));
-        if (!cliError) {
-          throw new Error('Failed to parse CliError');
-        }
-
-        return new CliResultError(cliError);
-      } catch {
-        this.logger.debug('Failed to parse any output Returning CliResultPanic');
-        return new CliResultPanic(exitCode, out);
-      }
+      this.logger.debug('Failed to parse any output Returning CliResultPanic');
+      return new CliResultPanic(exitCode, out);
     }
   }
 

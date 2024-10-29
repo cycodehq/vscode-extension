@@ -5,3 +5,7 @@ export class CliError {
   public message: string;
   public softFail?: boolean = false;
 }
+
+export const isCliError = (obj: any): boolean => { // eslint-disable-line @typescript-eslint/no-explicit-any
+  return obj.message !== undefined && (obj.code !== undefined || obj.error !== undefined);
+};
