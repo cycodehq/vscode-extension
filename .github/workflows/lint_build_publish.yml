@@ -60,6 +60,6 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/v')
         uses: svenstaro/upload-release-action@v2
         with:
-          file: cycode-extension.vsix
+          file: "*.vsix"
           tag: ${{ github.ref }}
           overwrite: true
