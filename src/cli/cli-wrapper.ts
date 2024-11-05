@@ -12,6 +12,7 @@ import { CliError, isCliError } from './models/cli-error';
 import { ExitCode } from './exit-code';
 import { CommandParameters } from './constants';
 import { getUserAgentArg } from './user-agent';
+import { captureException } from '../sentry';
 
 export class CliWrapper {
   public workDirectory?: string;
@@ -27,10 +28,19 @@ export class CliWrapper {
   ): CliResult<T> {
     if (classConst == null) {
       // in case when we do not expect any output and want just call command like "ignore" command
+      this.logger.debug('No classConst provided. Returning CliResultSuccess(null)');
       return new CliResultSuccess(null);
     }
 
-    const camelCasedObj = JSON_.parse(out);
+    let camelCasedObj;
+    try {
+      camelCasedObj = JSON_.parse(out);
+    } catch (e) {
+      captureException(e);
+      this.logger.debug('Failed to parse output as JSON. Returning CliResultPanic');
+      return new CliResultPanic(exitCode, out);
+    }
+
     if (isCliError(camelCasedObj)) {
       this.logger.debug('Found CliError in output. Returning CliResultError');
       const cliError = plainToInstance(CliError, camelCasedObj);
@@ -94,11 +104,11 @@ export class CliWrapper {
       childProcess.on('close', (code: number) => {
         // we receive all "data" events before close
         this.logger.debug(`Streams of a command have been closed with code: ${code}`);
-        resolve(this.parseCliResult(classConst, stdout, exitCode));
+        resolve(this.parseCliResult(classConst, stdout || stderr, exitCode));
       });
 
       childProcess.on('error', (error: { errno: number }) => {
-        resolve(this.parseCliResult(classConst, stderr, error.errno));
+        resolve(this.parseCliResult(classConst, stderr || stdout, error.errno));
       });
 
       childProcess.stdout.on('data', (data) => {

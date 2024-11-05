@@ -40,7 +40,11 @@ export enum VscodeCommands {
   TreeViewExpandAllCommand = 'cycode.treeViewExpandAllCommand',
   TreeViewCollapseAllCommand = 'cycode.treeViewCollapseAllCommand',
 
-  // built-in or created automatically by vscode:
+  /*
+   * Warning: These commands do not exist in Theia API.
+   *
+   * Built-in or created automatically by vscode:
+   */
   WorkbenchShowProblemsTab = 'workbench.action.problems.focus',
   WorkbenchShowCycodeView = 'workbench.view.extension.cycode',
   WorkbenchTreeViewCollapseAll = 'workbench.actions.treeView.cycode.view.tree.collapseAll',

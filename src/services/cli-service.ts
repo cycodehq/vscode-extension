@@ -81,29 +81,31 @@ export class CliService implements ICliService {
   }
 
   private processCliResult<T>(result: CliResult<T>): CliResult<T> | null {
-    if (isCliResultError(result)) {
-      this.logger.error(result.result.message);
-      this.showErrorNotification(result.result.message);
-      return null;
-    }
-
     if (isCliResultPanic(result)) {
       if (result.exitCode === ExitCode.TERMINATION) {
         // don't notify user about user-requested terminations
         return null;
       }
 
-      this.logger.error(result.errorMessage);
+      this.logger.error(`[processCliResult] CLI panic: ${result.errorMessage}`);
       this.showErrorNotification(result.errorMessage);
+      return null;
+    }
+
+    if (isCliResultError(result)) {
+      this.logger.error(`[processCliResult] CLI error: ${result.result.message}`);
+      this.showErrorNotification(result.result.message);
       return null;
     }
 
     if (isCliResultSuccess(result) && result.result instanceof ScanResultBase) {
       const errors = result.result.errors;
       if (!errors.length) {
+        this.logger.info('[processCliResult] CLI scan results success');
         return result;
       }
 
+      this.logger.error('[processCliResult] CLI scan results success with errors');
       errors.forEach((error) => {
         this.logger.error(error.message);
         this.showErrorNotification(error.message);
@@ -113,6 +115,7 @@ export class CliService implements ICliService {
       return null;
     }
 
+    this.logger.error('[processCliResult] CLI success');
     return result;
   }
 
@@ -241,7 +244,7 @@ export class CliService implements ICliService {
         .showInformationMessage(
           `Cycode has detected ${detectionsCount} ${scanTypeDisplayName} 
           issues in your files. Check out your “Problems” tab to analyze.`,
-          TrayNotificationTexts.OpenProblemsTab,
+          this.state.EnvVsCode ? TrayNotificationTexts.OpenProblemsTab : '', // show button only in VSCode
         )
         .then((buttonPressed) => {
           if (buttonPressed === TrayNotificationTexts.OpenProblemsTab) {

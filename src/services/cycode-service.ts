@@ -12,7 +12,6 @@ import { ProgressOptions } from 'vscode';
 import { ILoggerService } from './logger-service';
 import { getScanTypeDisplayName } from '../constants';
 import statusBar from '../utils/status-bar';
-import { TrayNotificationTexts } from '../utils/texts';
 import { captureException } from '../sentry';
 import { CliIgnoreType } from '../cli/models/cli-ignore-type';
 import { IScanResultsService } from './scan-results-service';
@@ -47,19 +46,15 @@ export class CycodeService implements ICycodeService {
     await vscode.window.withProgress(
       options,
       async (progress: ProgressBar, cancellationToken: vscode.CancellationToken) => {
-        progress.report({ message });
         try {
-          statusBar.showScanningInProgress();
+          progress.report({ message });
           await fn(cancellationToken);
-          statusBar.showScanComplete();
         } catch (error: unknown) {
           captureException(error);
           if (error instanceof Error) {
             this.logger.error(`Error during progress: ${error.message}`);
+            vscode.window.showErrorMessage(`Cycode error: ${error.message}`);
           }
-
-          statusBar.showScanError();
-          vscode.window.showErrorMessage(TrayNotificationTexts.ScanError);
         } finally {
           progress.report({ increment: 100 });
         }
@@ -121,19 +116,22 @@ export class CycodeService implements ICycodeService {
     };
 
     const scanMethod = scanMethods[scanType];
-    if (scanMethod) {
-      await this.withProgressBar(
-        `Cycode is scanning files for ${getScanTypeDisplayName(scanType)}...`,
-        async (cancellationToken: vscode.CancellationToken) => {
-          this.logger.debug(`[${scanType}] Start scanning paths: ${paths}`);
-          await scanMethod(cancellationToken);
-          this.logger.debug(`[${scanType}] Finish scanning paths: ${paths}`);
-        },
-        this.getScanProgressBarOptions(onDemand),
-      );
-    } else {
+    if (!scanMethod) {
       this.logger.error(`Unknown scan type: ${scanType}`);
+      return;
     }
+
+    await this.withProgressBar(
+      `Cycode is scanning files for ${getScanTypeDisplayName(scanType)}...`,
+      async (cancellationToken: vscode.CancellationToken) => {
+        this.logger.debug(`[${scanType}] Start scanning paths: ${paths}`);
+        statusBar.showScanningInProgress();
+        await scanMethod(cancellationToken);
+        statusBar.showScanComplete();
+        this.logger.debug(`[${scanType}] Finish scanning paths: ${paths}`);
+      },
+      this.getScanProgressBarOptions(onDemand),
+    );
   }
 
   private async applyDetectionIgnoreInUi(ignoreType: CliIgnoreType, value: string) {

@@ -15,8 +15,7 @@ const renderDetection = detection => {
     vscode.postMessage({ command: 'ignoreSecretByValue', uniqueDetectionId });
   };
 
-  const severityFirstLetter = detection.severity;
-  ge('severity-icon').src = severityIcons[severityFirstLetter];
+  ge('severity-icon').src = severityIcons[detection.severity];
 
   ge('title').innerText = 'Hardcoded ' + detection.type + ' is used';
   ge('short-details').innerText = detection.severity;

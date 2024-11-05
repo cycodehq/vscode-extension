@@ -20,8 +20,7 @@ const _resetDomState = () => {
 const renderDetection = detection => {
   _resetDomState();
 
-  const severityFirstLetter = detection.severity;
-  ge('severity-icon').src = severityIcons[severityFirstLetter];
+  ge('severity-icon').src = severityIcons[detection.severity];
   ge('package').innerText = detection.detectionDetails.packageName;
   ge('version').innerText = detection.detectionDetails.packageVersion;
   ge('dependency-path-value').innerText = detection.detectionDetails.dependencyPaths;

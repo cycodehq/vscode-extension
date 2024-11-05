@@ -5,6 +5,7 @@ import { ILoggerService } from './logger-service';
 import { GlobalKeyValueStorage, LocalKeyValueStorage } from './key-value-storage-service';
 
 export class GlobalExtensionState {
+  public EnvVsCode = true;
   public CliInstalled = false;
   public CliAuthed = false;
   public CliVer: string | null = null;
@@ -24,12 +25,14 @@ const _GLOBAL_STATE_KEY = 'cycode:globalState';
 const _LOCAL_STATE_KEY = 'cycode:localState';
 
 enum VscodeStates {
+  IsVsCodeEnv = 'env.isVsCode',
   IsAuthorized = 'auth.isAuthed',
   IsInstalled = 'cli.isInstalled',
 }
 
 const _CONTEXT_EXPORTED_GLOBAL_STATE_KEYS: Record<string, string> = {
   // map global state keys to vscode context keys
+  EnvVsCode: VscodeStates.IsVsCodeEnv,
   CliAuthed: VscodeStates.IsAuthorized,
   CliInstalled: VscodeStates.IsInstalled,
 };
@@ -148,6 +151,7 @@ export class StateService implements IStateService {
   }
 
   private mergeGlobalState(extensionState: GlobalExtensionState): void {
+    if (extensionState.EnvVsCode !== undefined) (this._globalState.EnvVsCode = extensionState.EnvVsCode);
     if (extensionState.CliInstalled !== undefined) (this._globalState.CliInstalled = extensionState.CliInstalled);
     if (extensionState.CliAuthed !== undefined) (this._globalState.CliAuthed = extensionState.CliAuthed);
     if (extensionState.CliVer !== undefined) (this._globalState.CliVer = extensionState.CliVer);

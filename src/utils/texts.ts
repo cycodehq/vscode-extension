@@ -15,7 +15,6 @@ export enum StatusBarTexts {
 
 export enum TrayNotificationTexts {
   CliInstallError = 'Cycode CLI installation failed. Check output for more details.',
-  ScanError = 'Cycode failed to scan, please try again',
   MustBeFocusedOnFile = 'Cycode scans the file that is currently focused. Please focus on a file and try again',
   OpenSettings = 'Open settings',
   OpenProblemsTab = 'Open Problems tab',

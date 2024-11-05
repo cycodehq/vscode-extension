@@ -5,11 +5,12 @@ import { createPanel, getPanel, removePanel, revealPanel } from './panel-manager
 import { calculateUniqueDetectionId, IScanResultsService } from '../../../services/scan-results-service';
 import { getDetectionForRender } from './rendered-detection';
 import { VscodeCommands } from '../../../commands';
-import { ScanResultsServiceSymbol } from '../../../symbols';
+import { LoggerServiceSymbol, ScanResultsServiceSymbol } from '../../../symbols';
 import { DetectionBase } from '../../../cli/models/scan-result/detection-base';
 import { SecretDetection } from '../../../cli/models/scan-result/secret/secret-detection';
 import { CliIgnoreType } from '../../../cli/models/cli-ignore-type';
 import { CliScanType } from '../../../cli/models/cli-scan-type';
+import { ILoggerService } from '../../../services/logger-service';
 
 const _SEVERITY_NAMES: readonly string[] = ['Critical', 'High', 'Medium', 'Low', 'Info'];
 
@@ -25,26 +26,38 @@ const _loadSeverityIcons = (context: vscode.ExtensionContext, panel: vscode.Webv
   return webviewUris;
 };
 
-const _sendSeverityIconsToRender = (scanType: CliScanType, context: vscode.ExtensionContext) => {
+const _sendSeverityIconsToRender = async (scanType: CliScanType, context: vscode.ExtensionContext) => {
+  const logger = container.resolve<ILoggerService>(LoggerServiceSymbol);
+
   const panel = getPanel(scanType);
   if (!panel) {
+    logger.error('Panel not found to send severity icons to render violation card');
     return;
   }
 
-  panel.webview.postMessage({ severityIcons: _loadSeverityIcons(context, panel) });
+  const res = await panel.webview.postMessage({ severityIcons: _loadSeverityIcons(context, panel) });
+  if (!res) {
+    logger.error('Failed to send severity icons to render violation card');
+  }
 };
 
-const _sendDetectionToRender = (scanType: CliScanType, detection: DetectionBase) => {
+const _sendDetectionToRender = async (scanType: CliScanType, detection: DetectionBase) => {
+  const logger = container.resolve<ILoggerService>(LoggerServiceSymbol);
+
   const panel = getPanel(scanType);
   if (!panel) {
+    logger.error('Panel not found to send detection to render violation card');
     return;
   }
 
-  panel.webview.postMessage({
+  const res = await panel.webview.postMessage({
     detectionType: scanType,
     detection: getDetectionForRender(scanType, detection),
     uniqueDetectionId: calculateUniqueDetectionId(detection),
   });
+  if (!res) {
+    logger.error('Failed to send detection to render violation card');
+  }
 };
 
 const _onDidReceiveMessage = (message: Record<string, string>) => {
@@ -86,7 +99,7 @@ const _initPanel = (scanType: CliScanType, panel: vscode.WebviewPanel, context?:
   );
 };
 
-export const createAndInitPanel = (
+export const createAndInitPanel = async (
   context: vscode.ExtensionContext,
   scanType: CliScanType,
   detection: DetectionBase,
@@ -99,8 +112,8 @@ export const createAndInitPanel = (
     _initPanel(scanType, panel, context);
   }
 
-  _sendSeverityIconsToRender(scanType, context);
-  _sendDetectionToRender(scanType, detection);
+  await _sendSeverityIconsToRender(scanType, context);
+  await _sendDetectionToRender(scanType, detection);
 
   return panel;
 };
