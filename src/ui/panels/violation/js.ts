@@ -89,5 +89,10 @@ export default (detectionType: CliScanType) => `
     };
 
     window.addEventListener('message', messageHandler);
+    window.onload = () => {
+        vscode.postMessage({
+            command: 'ready',
+        });
+    }
 </script>
 `;

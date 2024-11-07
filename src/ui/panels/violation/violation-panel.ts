@@ -60,7 +60,7 @@ const _sendDetectionToRender = async (scanType: CliScanType, detection: Detectio
   }
 };
 
-const _onDidReceiveMessage = (message: Record<string, string>) => {
+const _ignoreCommandHandler = async (message: Record<string, string>) => {
   if (message.command !== 'ignoreSecretByValue' || !message.uniqueDetectionId) {
     // TODO(MarshalX): implement other ignore commands
     return;
@@ -72,31 +72,57 @@ const _onDidReceiveMessage = (message: Record<string, string>) => {
     return;
   }
 
-  vscode.commands.executeCommand(
+  removePanel(CliScanType.Secret);
+
+  await vscode.commands.executeCommand(
     VscodeCommands.IgnoreCommandId,
     CliScanType.Secret,
     CliIgnoreType.Value,
     (detection as SecretDetection).detectionDetails.detectedValue,
   );
-
-  removePanel(CliScanType.Secret);
 };
 
-const _initPanel = (scanType: CliScanType, panel: vscode.WebviewPanel, context?: vscode.ExtensionContext) => {
-  let subscriptions;
-  if (context) {
-    subscriptions = context.subscriptions;
-  }
+const _readyCommandHandler = (onLoadResolve: (value: boolean) => void) => {
+  /*
+   * the webview is ready to receive messages
+   * it works even without it in VS Code, but Theia behaves differently and do not wait until scripts are loaded
+   */
+  onLoadResolve(true);
+};
 
-  panel.webview.onDidReceiveMessage(_onDidReceiveMessage);
-  panel.webview.html = content(scanType);
-  panel.onDidDispose(
-    () => {
-      removePanel(scanType);
-    },
-    null,
-    subscriptions,
-  );
+const _getOnDidReceiveMessage = (onLoadResolve: (value: boolean) => void) => {
+  return async (message: Record<string, string>) => {
+    switch (message.command) {
+      case 'ready':
+        _readyCommandHandler(onLoadResolve);
+        break;
+      case 'ignoreSecretByValue':
+        await _ignoreCommandHandler(message);
+        break;
+      default:
+        break;
+    }
+  };
+};
+
+const _initPanel = async (scanType: CliScanType, panel: vscode.WebviewPanel, context?: vscode.ExtensionContext) => {
+  // the promise is resolved when the webview is ready to receive messages
+  await new Promise((resolve) => {
+    let subscriptions;
+    if (context) {
+      subscriptions = context.subscriptions;
+    }
+
+    panel.webview.onDidReceiveMessage(_getOnDidReceiveMessage(resolve));
+    panel.webview.html = content(scanType);
+    panel.onDidDispose(
+      () => {
+        removePanel(scanType);
+      },
+      null,
+      subscriptions,
+    );
+  });
 };
 
 export const createAndInitPanel = async (
@@ -109,7 +135,7 @@ export const createAndInitPanel = async (
     revealPanel(scanType);
   } else {
     panel = createPanel(scanType);
-    _initPanel(scanType, panel, context);
+    await _initPanel(scanType, panel, context); // awaits script loading
   }
 
   await _sendSeverityIconsToRender(scanType, context);
