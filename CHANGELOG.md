@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+## [v1.11.2]
+
+- Add support for Theia IDE
+- Add auto publishing the extension to the Open VSX Registry
+- Fix false positive status bar changes
+- Fix CLI output handling
+
 ## [v1.11.1]
 
 - Fix CliError parsing
@@ -107,6 +114,8 @@
 
 The first stable release with the support of Secrets, SCA, TreeView, Violation Card, and more.
 
+[v1.11.2]: https://github.com/cycodehq/vscode-extension/releases/tag/v1.11.2
+
 [v1.11.1]: https://github.com/cycodehq/vscode-extension/releases/tag/v1.11.1
 
 [v1.11.0]: https://github.com/cycodehq/vscode-extension/releases/tag/v1.11.0
@@ -147,4 +156,4 @@ The first stable release with the support of Secrets, SCA, TreeView, Violation C
 
 [v1.0.0]: https://github.com/cycodehq/vscode-extension/releases/tag/v1.0.0
 
-[Unreleased]: https://github.com/cycodehq/vscode-extension/compare/v1.11.1...HEAD
+[Unreleased]: https://github.com/cycodehq/vscode-extension/compare/v1.11.2...HEAD

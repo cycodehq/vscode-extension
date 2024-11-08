@@ -7,6 +7,7 @@ import './ioc';
 import * as vscode from 'vscode';
 import { extensionName } from './utils/texts';
 import statusBar from './utils/status-bar';
+import { config } from './utils/config';
 import { captureException, initSentry } from './sentry';
 import { container } from 'tsyringe';
 import { ICycodeService } from './services/cycode-service';
@@ -63,6 +64,11 @@ export function activate(context: vscode.ExtensionContext) {
 
   if (!stateService.globalState.CliAuthed) {
     statusBar.showAuthIsRequired();
+  }
+
+  if (config.isTheiaIde) {
+    stateService.globalState.EnvVsCode = false;
+    stateService.save();
   }
 
   registerCommands(context);

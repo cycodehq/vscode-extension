@@ -11,8 +11,7 @@ const _resetDomState = () => {
 const renderDetection = detection => {
   _resetDomState();
 
-  const severityFirstLetter = detection.severity;
-  ge('severity-icon').src = severityIcons[severityFirstLetter];
+  ge('severity-icon').src = severityIcons[detection.severity];
 
   ge('title').innerText = detection.detectionDetails.policyDisplayName;
 

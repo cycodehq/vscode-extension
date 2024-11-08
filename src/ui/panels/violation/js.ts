@@ -9,7 +9,7 @@ export default (detectionType: CliScanType) => `
     const vscode = acquireVsCodeApi();
     const prevState = vscode.getState();
 
-    let severityIcons = (prevState && prevState.severityIcons) || {};
+    let severityIcons = (prevState && prevState.severityIcons) || undefined;
     let detection = (prevState && prevState.detection) || undefined; 
     let uniqueDetectionId = (prevState && prevState.uniqueDetectionId) || undefined; 
 
@@ -60,12 +60,12 @@ export default (detectionType: CliScanType) => `
     ${detectionType === CliScanType.Iac ? iacRenderer : ''}
     ${detectionType === CliScanType.Sast ? sastRenderer : ''}
 <script>
-    if (detection) {
+    if (severityIcons && detection) {
         renderDetection(detection);
     }
 
     const updateState = () => {
-        vscode.setState({ severityIcons: severityIcons, detection: detection });
+        vscode.setState({ severityIcons, detection });
     };
 
     const messageHandler = event => {
@@ -81,11 +81,18 @@ export default (detectionType: CliScanType) => `
         } else if (message.detection) {
             detection = message.detection;
             updateState();
+        }
 
-            renderDetection(message.detection);
+        if (severityIcons && detection) {
+            renderDetection(detection);
         }
     };
 
     window.addEventListener('message', messageHandler);
+    window.onload = () => {
+        vscode.postMessage({
+            command: 'ready',
+        });
+    }
 </script>
 `;

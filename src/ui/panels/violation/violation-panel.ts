@@ -5,11 +5,12 @@ import { createPanel, getPanel, removePanel, revealPanel } from './panel-manager
 import { calculateUniqueDetectionId, IScanResultsService } from '../../../services/scan-results-service';
 import { getDetectionForRender } from './rendered-detection';
 import { VscodeCommands } from '../../../commands';
-import { ScanResultsServiceSymbol } from '../../../symbols';
+import { LoggerServiceSymbol, ScanResultsServiceSymbol } from '../../../symbols';
 import { DetectionBase } from '../../../cli/models/scan-result/detection-base';
 import { SecretDetection } from '../../../cli/models/scan-result/secret/secret-detection';
 import { CliIgnoreType } from '../../../cli/models/cli-ignore-type';
 import { CliScanType } from '../../../cli/models/cli-scan-type';
+import { ILoggerService } from '../../../services/logger-service';
 
 const _SEVERITY_NAMES: readonly string[] = ['Critical', 'High', 'Medium', 'Low', 'Info'];
 
@@ -25,29 +26,41 @@ const _loadSeverityIcons = (context: vscode.ExtensionContext, panel: vscode.Webv
   return webviewUris;
 };
 
-const _sendSeverityIconsToRender = (scanType: CliScanType, context: vscode.ExtensionContext) => {
+const _sendSeverityIconsToRender = async (scanType: CliScanType, context: vscode.ExtensionContext) => {
+  const logger = container.resolve<ILoggerService>(LoggerServiceSymbol);
+
   const panel = getPanel(scanType);
   if (!panel) {
+    logger.error('Panel not found to send severity icons to render violation card');
     return;
   }
 
-  panel.webview.postMessage({ severityIcons: _loadSeverityIcons(context, panel) });
+  const res = await panel.webview.postMessage({ severityIcons: _loadSeverityIcons(context, panel) });
+  if (!res) {
+    logger.error('Failed to send severity icons to render violation card');
+  }
 };
 
-const _sendDetectionToRender = (scanType: CliScanType, detection: DetectionBase) => {
+const _sendDetectionToRender = async (scanType: CliScanType, detection: DetectionBase) => {
+  const logger = container.resolve<ILoggerService>(LoggerServiceSymbol);
+
   const panel = getPanel(scanType);
   if (!panel) {
+    logger.error('Panel not found to send detection to render violation card');
     return;
   }
 
-  panel.webview.postMessage({
+  const res = await panel.webview.postMessage({
     detectionType: scanType,
     detection: getDetectionForRender(scanType, detection),
     uniqueDetectionId: calculateUniqueDetectionId(detection),
   });
+  if (!res) {
+    logger.error('Failed to send detection to render violation card');
+  }
 };
 
-const _onDidReceiveMessage = (message: Record<string, string>) => {
+const _ignoreCommandHandler = async (message: Record<string, string>) => {
   if (message.command !== 'ignoreSecretByValue' || !message.uniqueDetectionId) {
     // TODO(MarshalX): implement other ignore commands
     return;
@@ -59,34 +72,60 @@ const _onDidReceiveMessage = (message: Record<string, string>) => {
     return;
   }
 
-  vscode.commands.executeCommand(
+  removePanel(CliScanType.Secret);
+
+  await vscode.commands.executeCommand(
     VscodeCommands.IgnoreCommandId,
     CliScanType.Secret,
     CliIgnoreType.Value,
     (detection as SecretDetection).detectionDetails.detectedValue,
   );
-
-  removePanel(CliScanType.Secret);
 };
 
-const _initPanel = (scanType: CliScanType, panel: vscode.WebviewPanel, context?: vscode.ExtensionContext) => {
-  let subscriptions;
-  if (context) {
-    subscriptions = context.subscriptions;
-  }
-
-  panel.webview.onDidReceiveMessage(_onDidReceiveMessage);
-  panel.webview.html = content(scanType);
-  panel.onDidDispose(
-    () => {
-      removePanel(scanType);
-    },
-    null,
-    subscriptions,
-  );
+const _readyCommandHandler = (onLoadResolve: (value: boolean) => void) => {
+  /*
+   * the webview is ready to receive messages
+   * it works even without it in VS Code, but Theia behaves differently and do not wait until scripts are loaded
+   */
+  onLoadResolve(true);
 };
 
-export const createAndInitPanel = (
+const _getOnDidReceiveMessage = (onLoadResolve: (value: boolean) => void) => {
+  return async (message: Record<string, string>) => {
+    switch (message.command) {
+      case 'ready':
+        _readyCommandHandler(onLoadResolve);
+        break;
+      case 'ignoreSecretByValue':
+        await _ignoreCommandHandler(message);
+        break;
+      default:
+        break;
+    }
+  };
+};
+
+const _initPanel = async (scanType: CliScanType, panel: vscode.WebviewPanel, context?: vscode.ExtensionContext) => {
+  // the promise is resolved when the webview is ready to receive messages
+  await new Promise((resolve) => {
+    let subscriptions;
+    if (context) {
+      subscriptions = context.subscriptions;
+    }
+
+    panel.webview.onDidReceiveMessage(_getOnDidReceiveMessage(resolve));
+    panel.webview.html = content(scanType);
+    panel.onDidDispose(
+      () => {
+        removePanel(scanType);
+      },
+      null,
+      subscriptions,
+    );
+  });
+};
+
+export const createAndInitPanel = async (
   context: vscode.ExtensionContext,
   scanType: CliScanType,
   detection: DetectionBase,
@@ -96,11 +135,11 @@ export const createAndInitPanel = (
     revealPanel(scanType);
   } else {
     panel = createPanel(scanType);
-    _initPanel(scanType, panel, context);
+    await _initPanel(scanType, panel, context); // awaits script loading
   }
 
-  _sendSeverityIconsToRender(scanType, context);
-  _sendDetectionToRender(scanType, detection);
+  await _sendSeverityIconsToRender(scanType, context);
+  await _sendDetectionToRender(scanType, detection);
 
   return panel;
 };

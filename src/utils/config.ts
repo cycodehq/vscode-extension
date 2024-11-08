@@ -50,6 +50,10 @@ export const config = {
     return additionalParams ? additionalParams.split(' ') : [];
   },
   get agentName(): string {
+    if (this.isTheiaIde) {
+      return 'theia_extension';
+    }
+
     return 'vscode_extension';
   },
   get agentVersion(): string {
@@ -57,6 +61,10 @@ export const config = {
       ?.packageJSON.version;
   },
   get envName(): string {
+    if (this.isTheiaIde) {
+      return 'theia';
+    }
+
     return 'vscode';
   },
   get envVersion(): string {
@@ -67,6 +75,9 @@ export const config = {
       .getConfiguration(extensionId)
       .get<boolean>(scanOnSaveProperty);
     return value || false;
+  },
+  get isTheiaIde(): boolean {
+    return !!process.env.THEIA_PARENT_PID;
   },
   get isOnPremiseInstallation(): boolean {
     return !config.cliEnv.CYCODE_API_URL.endsWith(CYCODE_DOMAIN);
