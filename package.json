@@ -259,7 +259,9 @@
     "watch": "webpack --watch",
     "compile": "webpack",
     "package": "webpack --mode production",
-    "vscode:prepublish": "yarn run package"
+    "vscode:prepublish": "yarn run package",
+    "preci": "rm -rf node_modules",
+    "ci": "yarn install --frozen-lockfile"
   },
   "devDependencies": {
     "@eslint/js": "^9.12.0",
