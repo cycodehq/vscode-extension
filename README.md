@@ -14,7 +14,7 @@ open-source packages' vulnerabilities. The extension provides functionalities su
       - Hardcoded Secrets
       - Open-source Threats (SCA)
       - Infrastructure as Code (IaC)
-      - Coming soon: Code Security (SAST).
+      - Code Security (SAST)
     - Files
 - Cycode console features a "View Problem" card that enables in-depth violation analysis with remediation
   recommendations.
@@ -31,8 +31,8 @@ open-source packages' vulnerabilities. The extension provides functionalities su
 To install the Cycode VS Code Extension, follow these steps:
 
 1. Open the editor.
-2. Navigate to the Extensions Section:
-3. Search for "Cycode" in the search bar:
+2. Navigate to the Extensions Section.
+3. Search for "Cycode" in the search bar.
 4. Click on the "Install" button next to the Cycode plugin.
 5. Wait for the installation to complete.
 6. Restart the editor.
@@ -85,9 +85,9 @@ To use the Cycode VS Code extension, follow these steps:
 ## Viewing Scan Results
 
 1. The scan displays a list of security vulnerabilities and code issues found in the application code. The results are
-   displayed in a tree view that's broken down according to the type scan: Hardcoded Secrets, Open-source Threats (SCA),
-   Code Security (SAST), and Infrastructure as Code.
-2. Under each category you'll see vulnerabilities grouped by file (per category).
+   displayed in a tree view broken down according to the type scan: Hardcoded Secrets, Open-source Threats (SCA),
+   Infrastructure as Code (IaC), and Code Security (SAST).
+2. Under each category, you'll see vulnerabilities grouped by file (per category).
 3. You can also see the summary of the total number of vulnerabilities found in each file as well as a breakdown by
    severity.
 4. Expanding the file displays the vulnerabilities sorted by vulnerability severity (with critical at the top).
@@ -107,7 +107,7 @@ To use the Cycode VS Code extension, follow these steps:
 2. Hover over the violation to see the violation summary.
 3. To view the details of the violation, select it in the list.
 4. Next, choose how to address the detected violation(s) by selecting the Quick Fix button.
-5. If the violation is a secret, you can choose to ignore it - either by secret value, secret rule (i.e. secret type) or
+5. If the violation is a secret, you can choose to ignore it — either by secret value, secret rule (i.e., secret type) or
    the specific file. Note that Ignore occurs locally on the developer’s machine.
 6. Go back to viewing the problem in the main window by clicking View problem.
 7. You can also view a summary of all the problems by selecting the Problems tab.
