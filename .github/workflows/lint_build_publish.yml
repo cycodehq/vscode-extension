@@ -63,5 +63,6 @@ jobs:
         uses: svenstaro/upload-release-action@v2
         with:
           file: "*.vsix"
+          file_glob: true
           tag: ${{ github.ref }}
           overwrite: true
