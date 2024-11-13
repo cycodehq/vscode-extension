@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [v1.12.0]
+
+- Add support for Swift Package Manager in SCA
+- Increase default sync scans timeout
+
 ## [v1.11.2]
 
 - Add support for Theia IDE
@@ -114,6 +119,8 @@
 
 The first stable release with the support of Secrets, SCA, TreeView, Violation Card, and more.
 
+[v1.12.0]: https://github.com/cycodehq/vscode-extension/releases/tag/v1.12.0
+
 [v1.11.2]: https://github.com/cycodehq/vscode-extension/releases/tag/v1.11.2
 
 [v1.11.1]: https://github.com/cycodehq/vscode-extension/releases/tag/v1.11.1
@@ -156,4 +163,4 @@ The first stable release with the support of Secrets, SCA, TreeView, Violation C
 
 [v1.0.0]: https://github.com/cycodehq/vscode-extension/releases/tag/v1.0.0
 
-[Unreleased]: https://github.com/cycodehq/vscode-extension/compare/v1.11.2...HEAD
+[Unreleased]: https://github.com/cycodehq/vscode-extension/compare/v1.12.0...HEAD
