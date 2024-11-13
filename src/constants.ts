@@ -42,6 +42,8 @@ const _SCA_CONFIGURATION_SCAN_SUPPORTED_FILES: readonly string[] = [
   'setup.py',
   'mix.exs',
   'mix.lock',
+  'package.swift',
+  'package.resolved',
 ];
 
 // keep in lowercase. based on _SCA_CONFIGURATION_SCAN_SUPPORTED_FILES
@@ -59,6 +61,7 @@ const _SCA_CONFIGURATION_SCAN_LOCK_FILE_TO_PACKAGE_FILE: Record<string, string> 
   'poetry.lock': 'pyproject.toml',
   'pipfile.lock': 'pipfile',
   'mix.lock': 'mix.exs',
+  'package.resolved': 'package.swift',
 };
 
 const _SCA_CONFIGURATION_SCAN_SUPPORTED_LOCK_FILES: readonly string[]
@@ -125,7 +128,7 @@ export const getScanTypeDisplayName = (scanType: string): string => {
   return _SCAN_TYPE_TO_DISPLAY_NAME[scanType];
 };
 
-export const REQUIRED_CLI_VERSION = '1.11.0';
+export const REQUIRED_CLI_VERSION = '2.0.0';
 
 export const CLI_GITHUB = {
   OWNER: 'cycodehq',
