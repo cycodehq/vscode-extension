@@ -3,15 +3,26 @@ import secretRenderer from './renderer/secret';
 import iacRenderer from './renderer/iac';
 import sastRenderer from './renderer/sast';
 import { CliScanType } from '../../../cli/models/cli-scan-type';
+import { container } from 'tsyringe';
+import { IStateService } from '../../../services/state-service';
+import { StateServiceSymbol } from '../../../symbols';
+
+const isAiEnabled = () => {
+  const stateService = container.resolve<IStateService>(StateServiceSymbol);
+  return stateService.globalState.IsAiLargeLanguageModelEnabled;
+};
 
 export default (detectionType: CliScanType) => `
 <script>
     const vscode = acquireVsCodeApi();
     const prevState = vscode.getState();
 
+    const isAiEnabled = ${isAiEnabled()};
+
     let severityIcons = (prevState && prevState.severityIcons) || undefined;
     let detection = (prevState && prevState.detection) || undefined; 
-    let uniqueDetectionId = (prevState && prevState.uniqueDetectionId) || undefined; 
+    let uniqueDetectionId = (prevState && prevState.uniqueDetectionId) || undefined;
+    let aiRemediation = undefined; 
 
     const ge = className => document.getElementsByClassName(className)[0];
 
@@ -54,6 +65,34 @@ export default (detectionType: CliScanType) => `
           return cweCve;
       }
     };
+    
+    const resetAiElements = () => {
+      if (isAiEnabled) {
+        showElement('ai-remediation-btn');
+      } else {
+        hideElement('ai-remediation-btn');
+      }
+
+      hideElement('ai-apply-fix-btn');
+      hideElement('ai-remediation');
+      ge('ai-remediation-text').innerText = 'None';
+    }
+
+    const renderAiRemediation = (remediation, isFixAvailable) => {
+      hideElement('ai-remediation-btn');
+      showElement('ai-remediation');
+      ge('ai-remediation-text').innerHTML = remediation;
+
+      if (isFixAvailable) {
+        showElement('ai-apply-fix-btn');
+      }
+    };
+
+    const registerAiButtonCallbacks = () => {
+      ge('ai-remediation-btn').onclick = () => {
+        vscode.postMessage({ command: 'getAiRemediation', uniqueDetectionId });
+      };
+    }
 </script>
     ${detectionType === CliScanType.Sca ? scaRenderer : ''}
     ${detectionType === CliScanType.Secret ? secretRenderer : ''}
@@ -65,7 +104,7 @@ export default (detectionType: CliScanType) => `
     }
 
     const updateState = () => {
-        vscode.setState({ severityIcons, detection });
+        vscode.setState({ severityIcons, detection, uniqueDetectionId });
     };
 
     const messageHandler = event => {
@@ -74,17 +113,25 @@ export default (detectionType: CliScanType) => `
         if (message.uniqueDetectionId) {
             uniqueDetectionId = message.uniqueDetectionId;
         }
-
         if (message.severityIcons) {
             severityIcons = message.severityIcons;
-            updateState();
-        } else if (message.detection) {
+        }
+        if (message.detection) {
             detection = message.detection;
-            updateState();
+            aiRemediation = undefined;  // reset AI remediation when detection changes
+        }
+        if (message.aiRemediation) {
+            aiRemediation = message.aiRemediation;
         }
 
-        if (severityIcons && detection) {
+        updateState();
+
+        if (renderDetection && severityIcons && detection) {
             renderDetection(detection);
+        }
+
+        if (aiRemediation) {
+            renderAiRemediation(aiRemediation.remediation, aiRemediation.isFixAvailable);
         }
     };
 
