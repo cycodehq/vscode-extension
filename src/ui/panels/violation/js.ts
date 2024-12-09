@@ -79,6 +79,8 @@ export default (detectionType: CliScanType) => `
     }
 
     const renderAiRemediation = (remediation, isFixAvailable) => {
+      isFixAvailable = false;  // disable fix for now; not ready for production
+
       hideElement('ai-remediation-btn');
       showElement('ai-remediation');
       ge('ai-remediation-text').innerHTML = remediation;
