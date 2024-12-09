@@ -3,6 +3,7 @@ import { SastDetectionDetails } from './sast-detection-details';
 import { DetectionBase } from '../detection-base';
 
 export class SastDetection extends DetectionBase {
+  id: string;
   message: string;
   @Type(() => SastDetectionDetails)
   detectionDetails: SastDetectionDetails;

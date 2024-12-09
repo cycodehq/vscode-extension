@@ -1,6 +1,8 @@
 export default `
 <script>
 const _resetDomState = () => {
+  resetAiElements();
+
   hideElement('company-guidelines');
   ge('company-guidelines-text').innerText = 'None';
 
@@ -10,6 +12,7 @@ const _resetDomState = () => {
 
 const renderDetection = detection => {
   _resetDomState();
+  registerAiButtonCallbacks();
 
   ge('severity-icon').src = severityIcons[detection.severity];
 

@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [v1.13.0]
+
+- Add AI remediations for IaC and SAST
+- Add code highlighting for Violation Cards
+
 ## [v1.12.0]
 
 - Add support for Swift Package Manager in SCA
@@ -119,6 +124,8 @@
 
 The first stable release with the support of Secrets, SCA, TreeView, Violation Card, and more.
 
+[v1.13.0]: https://github.com/cycodehq/vscode-extension/releases/tag/v1.13.0
+
 [v1.12.0]: https://github.com/cycodehq/vscode-extension/releases/tag/v1.12.0
 
 [v1.11.2]: https://github.com/cycodehq/vscode-extension/releases/tag/v1.11.2
@@ -163,4 +170,4 @@ The first stable release with the support of Secrets, SCA, TreeView, Violation C
 
 [v1.0.0]: https://github.com/cycodehq/vscode-extension/releases/tag/v1.0.0
 
-[Unreleased]: https://github.com/cycodehq/vscode-extension/compare/v1.12.0...HEAD
+[Unreleased]: https://github.com/cycodehq/vscode-extension/compare/v1.13.0...HEAD

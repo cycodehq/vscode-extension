@@ -3,14 +3,15 @@ import { container } from 'tsyringe';
 import content from './content';
 import { createPanel, getPanel, removePanel, revealPanel } from './panel-manager';
 import { calculateUniqueDetectionId, IScanResultsService } from '../../../services/scan-results-service';
-import { getDetectionForRender } from './rendered-detection';
+import { getDetectionForRender, getMarkdownForRender } from './rendered-detection';
 import { VscodeCommands } from '../../../commands';
-import { LoggerServiceSymbol, ScanResultsServiceSymbol } from '../../../symbols';
+import { CycodeServiceSymbol, LoggerServiceSymbol, ScanResultsServiceSymbol } from '../../../symbols';
 import { DetectionBase } from '../../../cli/models/scan-result/detection-base';
 import { SecretDetection } from '../../../cli/models/scan-result/secret/secret-detection';
 import { CliIgnoreType } from '../../../cli/models/cli-ignore-type';
 import { CliScanType } from '../../../cli/models/cli-scan-type';
 import { ILoggerService } from '../../../services/logger-service';
+import { ICycodeService } from '../../../services/cycode-service';
 
 const _SEVERITY_NAMES: readonly string[] = ['Critical', 'High', 'Medium', 'Low', 'Info'];
 
@@ -90,7 +91,33 @@ const _readyCommandHandler = (onLoadResolve: (value: boolean) => void) => {
   onLoadResolve(true);
 };
 
-const _getOnDidReceiveMessage = (onLoadResolve: (value: boolean) => void) => {
+const _getAiRemediationHandler = async (panel: vscode.WebviewPanel, uniqueDetectionId: string) => {
+  const scanResultsService = container.resolve<IScanResultsService>(ScanResultsServiceSymbol);
+  const detection = scanResultsService.getDetectionById(uniqueDetectionId);
+  if (!detection) {
+    return;
+  }
+
+  const cycodeService = container.resolve<ICycodeService>(CycodeServiceSymbol);
+  const logger = container.resolve<ILoggerService>(LoggerServiceSymbol);
+  const aiRemediation = await cycodeService.getAiRemediation(detection.id);
+  if (!aiRemediation) {
+    logger.error('Failed to get AI remediation');
+    return;
+  }
+
+  const sendRes = await panel.webview.postMessage({
+    aiRemediation: {
+      remediation: getMarkdownForRender(aiRemediation.remediation),
+      isFixAvailable: aiRemediation.isFixAvailable,
+    },
+  });
+  if (!sendRes) {
+    logger.error('Failed to send AI Remediation to render on the violation card');
+  }
+};
+
+const _getOnDidReceiveMessage = (panel: vscode.WebviewPanel, onLoadResolve: (value: boolean) => void) => {
   return async (message: Record<string, string>) => {
     switch (message.command) {
       case 'ready':
@@ -98,6 +125,9 @@ const _getOnDidReceiveMessage = (onLoadResolve: (value: boolean) => void) => {
         break;
       case 'ignoreSecretByValue':
         await _ignoreCommandHandler(message);
+        break;
+      case 'getAiRemediation':
+        await _getAiRemediationHandler(panel, message.uniqueDetectionId);
         break;
       default:
         break;
@@ -113,7 +143,7 @@ const _initPanel = async (scanType: CliScanType, panel: vscode.WebviewPanel, con
       subscriptions = context.subscriptions;
     }
 
-    panel.webview.onDidReceiveMessage(_getOnDidReceiveMessage(resolve));
+    panel.webview.onDidReceiveMessage(_getOnDidReceiveMessage(panel, resolve));
     panel.webview.html = content(scanType);
     panel.onDidDispose(
       () => {

@@ -128,7 +128,7 @@ export const getScanTypeDisplayName = (scanType: string): string => {
   return _SCAN_TYPE_TO_DISPLAY_NAME[scanType];
 };
 
-export const REQUIRED_CLI_VERSION = '2.0.0';
+export const REQUIRED_CLI_VERSION = '2.1.0';
 
 export const CLI_GITHUB = {
   OWNER: 'cycodehq',

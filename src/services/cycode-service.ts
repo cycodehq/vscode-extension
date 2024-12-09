@@ -17,6 +17,7 @@ import { CliIgnoreType } from '../cli/models/cli-ignore-type';
 import { IScanResultsService } from './scan-results-service';
 import { IExtensionService } from './extension-service';
 import { CliScanType } from '../cli/models/cli-scan-type';
+import { AiRemediationResultData } from '../cli/models/ai-remediation-result';
 
 export interface ICycodeService {
   installCliIfNeededAndCheckAuthentication(): Promise<void>;
@@ -24,6 +25,7 @@ export interface ICycodeService {
   startScan(scanType: CliScanType, paths: string[], onDemand: boolean): Promise<void>;
   startScanForCurrentProject(scanType: CliScanType): Promise<void>;
   applyDetectionIgnore(scanType: CliScanType, ignoreType: CliIgnoreType, value: string): Promise<void>;
+  getAiRemediation(detectionId: string): Promise<AiRemediationResultData | null>;
 }
 
 type ProgressBar = vscode.Progress<{ message?: string; increment?: number }>;
@@ -38,17 +40,17 @@ export class CycodeService implements ICycodeService {
     @inject(ExtensionServiceSymbol) private extensionService: IExtensionService,
   ) {}
 
-  private async withProgressBar(
+  private async withProgressBar<T>(
     message: string,
-    fn: (cancellationToken: vscode.CancellationToken) => Promise<void>,
+    fn: (cancellationToken: vscode.CancellationToken) => Promise<T>,
     options: ProgressOptions = { cancellable: true, location: vscode.ProgressLocation.Notification },
-  ): Promise<void> {
-    await vscode.window.withProgress(
+  ): Promise<T> {
+    return vscode.window.withProgress(
       options,
       async (progress: ProgressBar, cancellationToken: vscode.CancellationToken) => {
         try {
           progress.report({ message });
-          await fn(cancellationToken);
+          return await fn(cancellationToken);
         } catch (error: unknown) {
           captureException(error);
           if (error instanceof Error) {
@@ -58,7 +60,7 @@ export class CycodeService implements ICycodeService {
         } finally {
           progress.report({ increment: 100 });
         }
-      });
+      }) as Promise<T>;
   }
 
   public async installCliIfNeededAndCheckAuthentication() {
@@ -66,13 +68,7 @@ export class CycodeService implements ICycodeService {
       'Cycode is loading...',
       async (cancellationToken: vscode.CancellationToken) => {
         await this.cliDownloadService.initCli();
-
-        /*
-         * required to know CLI version.
-         * we don't have a universal command that will cover the auth state and CLI version yet
-         */
-        await this.cliService.healthCheck(cancellationToken);
-        await this.cliService.checkAuth(cancellationToken);
+        await this.cliService.syncStatus(cancellationToken);
       },
       { cancellable: false, location: vscode.ProgressLocation.Window });
   }
@@ -82,7 +78,7 @@ export class CycodeService implements ICycodeService {
       'Authenticating to Cycode...',
       async (cancellationToken: vscode.CancellationToken) => {
         await this.cliService.doAuth(cancellationToken);
-        await this.cliService.checkAuth(cancellationToken);
+        await this.cliService.syncStatus(cancellationToken);
       });
   }
 
@@ -159,6 +155,18 @@ export class CycodeService implements ICycodeService {
       },
       // we do not allow canceling this because we will instantly remove it from the UI
       { cancellable: false, location: vscode.ProgressLocation.Window },
+    );
+  }
+
+  public async getAiRemediation(detectionId: string): Promise<AiRemediationResultData | null> {
+    return await this.withProgressBar(
+      'Cycode is generating AI remediation...',
+      async (cancellationToken: vscode.CancellationToken) => {
+        this.logger.debug(`[AI REMEDIATION] Start generating remediation for ${detectionId}`);
+        const remediation = await this.cliService.getAiRemediation(detectionId, cancellationToken);
+        this.logger.debug(`[AI REMEDIATION] Finish generating remediation for ${detectionId}`);
+        return remediation;
+      },
     );
   }
 }

@@ -9,9 +9,7 @@ import { CliWrapper } from '../cli/cli-wrapper';
 import { CliResult, isCliResultError, isCliResultPanic, isCliResultSuccess } from '../cli/models/cli-result';
 import { ExitCode } from '../cli/exit-code';
 import { ScanResultBase } from '../cli/models/scan-result/scan-result-base';
-import { VersionResult } from '../cli/models/version-result';
 import { CliCommands, CommandParameters } from '../cli/constants';
-import { AuthCheckResult } from '../cli/models/auth-check-result';
 import { AuthResult } from '../cli/models/auth-result';
 import { getScanTypeDisplayName } from '../constants';
 import { ClassConstructor } from 'class-transformer';
@@ -27,11 +25,12 @@ import { IacScanResult } from '../cli/models/scan-result/iac/iac-scan-result';
 import { DetectionBase } from '../cli/models/scan-result/detection-base';
 import { CliIgnoreType } from '../cli/models/cli-ignore-type';
 import { CliScanType } from '../cli/models/cli-scan-type';
+import { StatusResult } from '../cli/models/status-result';
+import { AiRemediationResult, AiRemediationResultData } from '../cli/models/ai-remediation-result';
 
 export interface ICliService {
   getProjectRootDirectory(): string | undefined; // TODO REMOVE
-  healthCheck(cancellationToken?: CancellationToken): Promise<boolean>;
-  checkAuth(cancellationToken?: CancellationToken): Promise<boolean>;
+  syncStatus(cancellationToken?: CancellationToken): Promise<void>;
   doAuth(cancellationToken?: CancellationToken): Promise<boolean>;
   doIgnore(
     scanType: CliScanType, ignoreType: CliIgnoreType, value: string, cancellationToken?: CancellationToken
@@ -40,6 +39,9 @@ export interface ICliService {
   scanPathsSca(paths: string[], onDemand: boolean, cancellationToken: CancellationToken | undefined): Promise<void>;
   scanPathsIac(paths: string[], onDemand: boolean, cancellationToken: CancellationToken | undefined): Promise<void>;
   scanPathsSast(paths: string[], onDemand: boolean, cancellationToken: CancellationToken | undefined): Promise<void>;
+  getAiRemediation(
+    detectionId: string, cancellationToken: CancellationToken | undefined
+  ): Promise<AiRemediationResultData | null>;
 }
 
 @singleton()
@@ -127,48 +129,32 @@ export class CliService implements ICliService {
     this.showScanResultsNotification(scanType, detections.length, onDemand);
   }
 
-  public async healthCheck(cancellationToken?: CancellationToken): Promise<boolean> {
+  public async syncStatus(cancellationToken?: CancellationToken): Promise<void> {
     const result = await this.cli.executeCommand(
-      VersionResult, [CliCommands.Version], cancellationToken,
+      StatusResult, [CliCommands.Status], cancellationToken,
     );
     const processedResult = this.processCliResult(result);
 
-    if (isCliResultSuccess<VersionResult>(processedResult)) {
-      this.state.CliInstalled = true;
-      this.state.CliVer = processedResult.result.version;
-      this.stateService.save();
-      return true;
-    }
-
-    this.resetPluginCLiStateIfNeeded(result);
-    return false;
-  }
-
-  public async checkAuth(cancellationToken?: CancellationToken): Promise<boolean> {
-    const result = await this.cli.executeCommand(
-      AuthCheckResult, [CliCommands.AuthCheck], cancellationToken,
-    );
-    const processedResult = this.processCliResult(result);
-
-    if (!isCliResultSuccess<AuthCheckResult>(processedResult)) {
+    if (!isCliResultSuccess<StatusResult>(processedResult)) {
       this.resetPluginCLiStateIfNeeded(result);
-      return false;
+      return;
     }
 
     this.state.CliInstalled = true;
-    this.state.CliAuthed = processedResult.result.result;
+    this.state.CliVer = processedResult.result.version;
+    this.state.CliAuthed = processedResult.result.isAuthenticated;
+    this.state.IsAiLargeLanguageModelEnabled = processedResult.result.supportedModules.aiLargeLanguageModel;
     this.stateService.save();
 
     if (!this.state.CliAuthed) {
       this.showErrorNotification('You are not authenticated in Cycode. Please authenticate');
+    } else {
+      if (processedResult.result.userId && processedResult.result.tenantId) {
+        setSentryUser(processedResult.result.userId, processedResult.result.tenantId);
+      }
     }
 
-    const sentryData = processedResult.result.data;
-    if (sentryData) {
-      setSentryUser(sentryData.userId, sentryData.tenantId);
-    }
-
-    return this.state.CliAuthed;
+    return;
   }
 
   public async doAuth(cancellationToken?: CancellationToken): Promise<boolean> {
@@ -312,5 +298,27 @@ export class CliService implements ICliService {
     }
 
     await this.processCliScanResult(CliScanType.Sast, results.result.detections, onDemand);
+  }
+
+  public async getAiRemediation(
+    detectionId: string, cancellationToken: CancellationToken | undefined = undefined,
+  ): Promise<AiRemediationResultData | null> {
+    const result = await this.cli.executeCommand(
+      AiRemediationResult, [CliCommands.AiRemediation, detectionId], cancellationToken,
+    );
+    const processedResult = this.processCliResult(result);
+
+    if (!isCliResultSuccess<AiRemediationResult>(processedResult)) {
+      this.logger.warn(`Failed to generate AI remediation for the detection ID ${detectionId}`);
+      return null;
+    }
+
+    if (!processedResult.result.result || processedResult.result.data?.remediation === undefined) {
+      this.logger.warn(`AI remediation result is not available for the detection ID ${detectionId}`);
+      this.showErrorNotification('AI remediation is not available for this detection');
+      return null;
+    }
+
+    return processedResult.result.data;
   }
 }

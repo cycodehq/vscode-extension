@@ -1,6 +1,7 @@
 import { ScanDetectionDetailsBase } from './scan-detection-details-base';
 
 export abstract class DetectionBase {
+  public abstract id: string;
   public abstract severity: string;
   public abstract detectionDetails: ScanDetectionDetailsBase;
 

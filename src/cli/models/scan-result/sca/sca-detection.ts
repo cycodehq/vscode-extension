@@ -3,6 +3,7 @@ import { DetectionBase } from '../detection-base';
 import { Type } from 'class-transformer';
 
 export class ScaDetection extends DetectionBase {
+  id: string;
   message: string;
   @Type(() => ScaDetectionDetails)
   detectionDetails: ScaDetectionDetails;

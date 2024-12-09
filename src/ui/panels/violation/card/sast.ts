@@ -45,5 +45,15 @@ export default `
     <div class="section-header">Cycode Guidelines</div>
     <div class="cycode-guidelines-text">None</div>
   </section>
+
+  <section class="ai-remediation compact">
+    <div class="section-header">AI Remediation</div>
+    <div class="ai-remediation-text">None</div>
+  </section>
+
+  <section class="hr section-footer">
+    <button class="ai-remediation-btn">Generate AI Remediation</button>
+    <button class="ai-apply-fix-btn">Apply AI suggested fix</button>
+  </section>
 </section>
 `;

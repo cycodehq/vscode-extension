@@ -3,6 +3,7 @@ import { Type } from 'class-transformer';
 import { DetectionBase } from '../detection-base';
 
 export class IacDetection extends DetectionBase {
+  id: string;
   message: string;
   @Type(() => IacDetectionDetails)
   detectionDetails: IacDetectionDetails;
