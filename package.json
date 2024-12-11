@@ -1,7 +1,7 @@
 {
   "name": "cycode",
   "displayName": "Cycode",
-  "version": "1.12.0",
+  "version": "1.13.0",
   "publisher": "cycode",
   "description": "Boost security in your dev lifecycle via SAST, SCA, Secrets & IaC scanning.",
   "repository": {
@@ -295,6 +295,7 @@
     "semver": "7.5.4",
     "shelljs": "0.8.5",
     "showdown": "^2.1.0",
+    "showdown-highlight": "^3.1.0",
     "tsyringe": "^4.8.0"
   }
 }

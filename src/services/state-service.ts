@@ -12,6 +12,7 @@ export class GlobalExtensionState {
   public CliHash: string | null = null;
   public CliDirHashes: Record<string, string> | null = null;
   public CliLastUpdateCheckedAt: number | null = null;
+  public IsAiLargeLanguageModelEnabled = false;
 }
 export type GlobalExtensionStateKey = keyof GlobalExtensionState;
 
@@ -159,6 +160,9 @@ export class StateService implements IStateService {
     if (extensionState.CliDirHashes !== undefined) (this._globalState.CliDirHashes = extensionState.CliDirHashes);
     if (extensionState.CliLastUpdateCheckedAt !== undefined) (
       this._globalState.CliLastUpdateCheckedAt = extensionState.CliLastUpdateCheckedAt
+    );
+    if (extensionState.IsAiLargeLanguageModelEnabled !== undefined) (
+      this._globalState.IsAiLargeLanguageModelEnabled = extensionState.IsAiLargeLanguageModelEnabled
     );
   }
 

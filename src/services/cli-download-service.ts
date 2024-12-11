@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import * as decompress from 'decompress';
+import decompress from 'decompress';
 import { config } from '../utils/config';
 import { GitHubRelease, GitHubReleaseAsset, IGithubReleaseService } from './github-release-service';
 import {

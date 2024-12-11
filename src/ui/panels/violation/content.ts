@@ -1,10 +1,20 @@
-import style from './style';
+import * as vscode from 'vscode';
+import mainStyles from './styles/main';
+import hljsGithubLightThemeStyles from './styles/hljs/github-light-default';
+import hljsGithubDarkThemeStyles from './styles/hljs/github-dark-dimmed';
 import scaCard from './card/sca';
 import secretCard from './card/secret';
 import iacCard from './card/iac';
 import sastCard from './card/sast';
 import js from './js';
 import { CliScanType } from '../../../cli/models/cli-scan-type';
+
+let isDarkTheme = vscode.window.activeColorTheme.kind !== vscode.ColorThemeKind.Light;
+
+vscode.window.onDidChangeActiveColorTheme((theme) => {
+  // TODO(MarshalX): rerender panel with new theme. Now it requires to close and open the panel
+  isDarkTheme = theme.kind !== vscode.ColorThemeKind.Light;
+});
 
 export default (scanType: CliScanType) => `
 <!DOCTYPE html>
@@ -15,7 +25,8 @@ export default (scanType: CliScanType) => `
     <title>Cycode: Detection Details</title>
 </head>
 <body>
-    ${style}
+    ${mainStyles}
+    ${isDarkTheme ? hljsGithubDarkThemeStyles : hljsGithubLightThemeStyles}
 
     ${scanType == CliScanType.Sca ? scaCard : ''}
     ${scanType == CliScanType.Secret ? secretCard : ''}

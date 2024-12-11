@@ -4,9 +4,9 @@ export enum CliCommands {
   Path = 'path',
   Scan = 'scan',
   Auth = 'auth',
-  AuthCheck = 'auth check',
   Ignore = 'ignore',
-  Version = 'version',
+  Status = 'status',
+  AiRemediation = 'ai_remediation',
 }
 
 export enum CommandParameters {

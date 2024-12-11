@@ -1,5 +1,6 @@
 import * as path from 'path';
 import { Converter } from 'showdown';
+import showdownHighlight from 'showdown-highlight';
 import { DetectionBase } from '../../../cli/models/scan-result/detection-base';
 import { ScaDetection } from '../../../cli/models/scan-result/sca/sca-detection';
 import { SecretDetection } from '../../../cli/models/scan-result/secret/secret-detection';
@@ -8,7 +9,17 @@ import { SastDetection } from '../../../cli/models/scan-result/sast/sast-detecti
 import { instanceToPlain } from 'class-transformer';
 import { CliScanType } from '../../../cli/models/cli-scan-type';
 
-const _MARKDOWN_CONVERTER = new Converter();
+const _MARKDOWN_CONVERTER = new Converter({
+  extensions: [
+    showdownHighlight({
+      // add the classes to the <pre> tag
+      pre: true,
+      // auto language detection
+      // eslint-disable-next-line camelcase
+      auto_detection: true,
+    }),
+  ],
+});
 // BE not always return markdown/html links, so we need to parse it by ourselves
 _MARKDOWN_CONVERTER.setOption('simplifiedAutoLink', true);
 _MARKDOWN_CONVERTER.setOption('openLinksInNewWindow', true); // make sure that it will open with noreferrer, etc.
@@ -34,6 +45,10 @@ export const getDetectionForRender = (detectionType: CliScanType, detection: Det
   return enrichFunction ? enrichFunction(detection) : detection;
 };
 
+export const getMarkdownForRender = (markdown: string): string => {
+  return _MARKDOWN_CONVERTER.makeHtml(markdown);
+};
+
 const _updateDetectionDetailsFieldWithHtmlIfValid = (plainDetectionDetails: Record<string, string>, field: string) => {
   /*
    * a little bit hacky because of record type
@@ -48,7 +63,7 @@ const _updateDetectionDetailsFieldWithHtmlIfValid = (plainDetectionDetails: Reco
     return;
   }
 
-  plainDetectionDetails[field] = _MARKDOWN_CONVERTER.makeHtml(plainDetectionDetails[field]);
+  plainDetectionDetails[field] = getMarkdownForRender(plainDetectionDetails[field]);
 };
 
 const _getScaDetectionForRender = (detection: ScaDetection): object => {

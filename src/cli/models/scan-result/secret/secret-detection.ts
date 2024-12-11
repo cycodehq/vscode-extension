@@ -5,6 +5,7 @@ import { Type } from 'class-transformer';
 const IDE_ENTRY_LINE_NUMBER = 1;
 
 export class SecretDetection extends DetectionBase {
+  id: string;
   message: string;
 
   @Type(() => SecretDetectionDetails)
