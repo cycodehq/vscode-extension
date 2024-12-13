@@ -76,18 +76,41 @@ export default (detectionType: CliScanType) => `
       hideElement('ai-apply-fix-btn');
       hideElement('ai-remediation');
       ge('ai-remediation-text').innerText = 'None';
+      ge('ai-remediation-diff').innerText = '';
     }
 
-    const renderAiRemediation = (remediation, isFixAvailable) => {
+    const renderAiRemediation = (remediation, unifyDiff, isFixAvailable) => {
       isFixAvailable = false;  // disable fix for now; not ready for production
 
       hideElement('ai-remediation-btn');
-      showElement('ai-remediation');
       ge('ai-remediation-text').innerHTML = remediation;
+      showElement('ai-remediation');
 
       if (isFixAvailable) {
         showElement('ai-apply-fix-btn');
       }
+
+      if (!unifyDiff) {
+        return;
+      }
+
+      const configuration = {
+        drawFileList: false,
+        fileListToggle: false,
+        fileListStartVisible: false,
+        fileContentToggle: false,
+        matching: 'words',
+        outputFormat: 'line-by-line',
+        synchronisedScroll: true,
+        highlight: true,
+        renderNothingWhenEmpty: false,
+        colorScheme: isDarkTheme ? 'dark' : 'light',
+      };
+      const diff2htmlUi = new Diff2HtmlUI(ge('ai-remediation-diff'), unifyDiff, configuration);
+
+      diff2htmlUi.draw();
+      diff2htmlUi.highlightCode();
+      showElement('ai-remediation-diff');
     };
 
     const registerAiButtonCallbacks = () => {
@@ -133,7 +156,7 @@ export default (detectionType: CliScanType) => `
         }
 
         if (aiRemediation) {
-            renderAiRemediation(aiRemediation.remediation, aiRemediation.isFixAvailable);
+            renderAiRemediation(aiRemediation.remediation, aiRemediation.unifyDiff, aiRemediation.isFixAvailable);
         }
     };
 

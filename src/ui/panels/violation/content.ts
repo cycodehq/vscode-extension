@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import mainStyles from './styles/main';
+import diff2htmlStyles from './styles/diff2html/diff2html';
 import hljsGithubLightThemeStyles from './styles/hljs/github-light-default';
 import hljsGithubDarkThemeStyles from './styles/hljs/github-dark-dimmed';
 import scaCard from './card/sca';
@@ -23,10 +24,18 @@ export default (scanType: CliScanType) => `
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cycode: Detection Details</title>
+
+    <script 
+      type="text/javascript" 
+      src="https://cdn.jsdelivr.net/npm/diff2html/bundles/js/diff2html-ui.min.js"
+    ></script>
 </head>
 <body>
+    <script>const isDarkTheme = ${isDarkTheme};</script>
+
     ${mainStyles}
     ${isDarkTheme ? hljsGithubDarkThemeStyles : hljsGithubLightThemeStyles}
+    ${diff2htmlStyles}
 
     ${scanType == CliScanType.Sca ? scaCard : ''}
     ${scanType == CliScanType.Secret ? secretCard : ''}

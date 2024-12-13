@@ -41,6 +41,7 @@ export default `
   <section class="ai-remediation compact">
     <div class="section-header">AI Remediation</div>
     <div class="ai-remediation-text">None</div>
+    <div class="ai-remediation-diff">None</div>
   </section>
 
   <section class="hr section-footer">

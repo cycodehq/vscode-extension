@@ -91,6 +91,27 @@ const _readyCommandHandler = (onLoadResolve: (value: boolean) => void) => {
   onLoadResolve(true);
 };
 
+const _extractAiRemediationParts = (remediation: string) => {
+  // this function was burn during quick win, it is not perfect and may fail in some cases
+
+  const regex = /^([\s\S]*?)```\s*diff([\s\S]*?)```$/m;
+  const matches = regex.exec(remediation);
+
+  if (matches) {
+    // Group 1: Remediation markdown
+    const remediationMarkdown = matches[1].trim();
+    // Group 2: unify diff
+    const unifyDiff = matches[2].trim();
+
+    return {
+      remediationMarkdown,
+      unifyDiff,
+    };
+  }
+
+  return undefined;
+};
+
 const _getAiRemediationHandler = async (panel: vscode.WebviewPanel, uniqueDetectionId: string) => {
   const scanResultsService = container.resolve<IScanResultsService>(ScanResultsServiceSymbol);
   const detection = scanResultsService.getDetectionById(uniqueDetectionId);
@@ -106,9 +127,19 @@ const _getAiRemediationHandler = async (panel: vscode.WebviewPanel, uniqueDetect
     return;
   }
 
+  let remediationMarkdown = aiRemediation.remediation;
+  let unifyDiff = undefined;
+
+  const remediationParts = _extractAiRemediationParts(aiRemediation.remediation);
+  if (remediationParts) {
+    remediationMarkdown = remediationParts.remediationMarkdown;
+    unifyDiff = remediationParts.unifyDiff;
+  }
+
   const sendRes = await panel.webview.postMessage({
     aiRemediation: {
-      remediation: getMarkdownForRender(aiRemediation.remediation),
+      remediation: getMarkdownForRender(remediationMarkdown),
+      unifyDiff: unifyDiff,
       isFixAvailable: aiRemediation.isFixAvailable,
     },
   });
