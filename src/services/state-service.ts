@@ -118,6 +118,15 @@ export class StateService implements IStateService {
   load(): void {
     this.loadGlobalState();
     this.loadLocalState();
+
+    /*
+     * TODO(MarshalX): should not be persistent state
+     * reset the state to the default values on every extension initialization
+     */
+    this.globalState.CliInstalled = false;
+    this.globalState.CliAuthed = false;
+    this.globalState.IsAiLargeLanguageModelEnabled = false;
+    this.saveGlobalState();
   }
 
   private saveGlobalState(): void {

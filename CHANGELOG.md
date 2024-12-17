@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [v1.13.1]
+
+- Improve suggested AI fix rendering in violation cards
+- Fix extension state on startup
+- Fix Code Actions creation
+
 ## [v1.13.0]
 
 - Add AI remediations for IaC and SAST
@@ -124,6 +130,8 @@
 
 The first stable release with the support of Secrets, SCA, TreeView, Violation Card, and more.
 
+[v1.13.1]: https://github.com/cycodehq/vscode-extension/releases/tag/v1.13.1
+
 [v1.13.0]: https://github.com/cycodehq/vscode-extension/releases/tag/v1.13.0
 
 [v1.12.0]: https://github.com/cycodehq/vscode-extension/releases/tag/v1.12.0
@@ -170,4 +178,4 @@ The first stable release with the support of Secrets, SCA, TreeView, Violation C
 
 [v1.0.0]: https://github.com/cycodehq/vscode-extension/releases/tag/v1.0.0
 
-[Unreleased]: https://github.com/cycodehq/vscode-extension/compare/v1.13.0...HEAD
+[Unreleased]: https://github.com/cycodehq/vscode-extension/compare/v1.13.1...HEAD
