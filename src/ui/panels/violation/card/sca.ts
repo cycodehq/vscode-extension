@@ -51,5 +51,9 @@ export default `
     <div class="section-header">Cycode Guidelines</div>
     <div class="cycode-guidelines-text">None</div>
   </section>
+
+  <section class="hr section-footer">
+    <button class="ignore-btn">Ignore this violation</button>
+  </section>
 </section>
 `;

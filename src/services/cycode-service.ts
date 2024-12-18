@@ -54,7 +54,7 @@ export class CycodeService implements ICycodeService {
         } catch (error: unknown) {
           captureException(error);
           if (error instanceof Error) {
-            this.logger.error(`Error during progress: ${error.message}`);
+            this.logger.error(`Error during progress: ${error.message}. FN: ${fn}`);
             vscode.window.showErrorMessage(`Cycode error: ${error.message}`);
           }
         } finally {

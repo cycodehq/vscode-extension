@@ -12,6 +12,7 @@ export enum CliCommands {
 export enum CommandParameters {
   OutputFormatJson = '--output=json',
   ByRule = '--by-rule',
+  ByCve = '--by-cve',
   ByValue = '--by-value',
   ByPath = '--by-path',
   UserAgent = '--user-agent',

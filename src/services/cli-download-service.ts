@@ -237,7 +237,7 @@ export class CliDownloadService implements ICliDownloadService {
 
   async getExecutableAsset(): Promise<GitHubReleaseAsset | undefined> {
     const releaseInfo = await this.getGitHubLatestRelease();
-    if (releaseInfo == undefined) {
+    if (releaseInfo?.assets == undefined) {
       this.logger.warn('Failed to get latest release info');
       return undefined;
     }
@@ -304,7 +304,7 @@ export class CliDownloadService implements ICliDownloadService {
 
   async getRemoteChecksumFile(forceRefresh = false): Promise<string | undefined> {
     const releaseInfo = await this.getGitHubLatestRelease(forceRefresh);
-    if (releaseInfo == undefined) {
+    if (releaseInfo?.assets == undefined) {
       this.logger.warn('Failed to get latest release info');
       return undefined;
     }

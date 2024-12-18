@@ -12,6 +12,7 @@ import { CliIgnoreType } from '../../../cli/models/cli-ignore-type';
 import { CliScanType } from '../../../cli/models/cli-scan-type';
 import { ILoggerService } from '../../../services/logger-service';
 import { ICycodeService } from '../../../services/cycode-service';
+import { ScaDetection } from '../../../cli/models/scan-result/sca/sca-detection';
 
 const _SEVERITY_NAMES: readonly string[] = ['Critical', 'High', 'Medium', 'Low', 'Info'];
 
@@ -61,9 +62,29 @@ const _sendDetectionToRender = async (scanType: CliScanType, detection: Detectio
   }
 };
 
+interface _CommandMappingAction {
+  scanType: CliScanType;
+  ignoreType: CliIgnoreType;
+  getIgnoreValue: (detection: DetectionBase) => string | undefined;
+}
+
+const _ignoreCommandMapping: Record<string, _CommandMappingAction> = {
+  ignoreSecretByValue: {
+    scanType: CliScanType.Secret,
+    ignoreType: CliIgnoreType.Value,
+    getIgnoreValue: (detection: DetectionBase) => (detection as SecretDetection).detectionDetails.detectedValue,
+  },
+  ignoreScaByCve: {
+    scanType: CliScanType.Sca,
+    ignoreType: CliIgnoreType.Cve,
+    getIgnoreValue: (detection: DetectionBase) => (detection as ScaDetection).detectionDetails.alert?.cveIdentifier,
+  },
+};
+
 const _ignoreCommandHandler = async (message: Record<string, string>) => {
-  if (message.command !== 'ignoreSecretByValue' || !message.uniqueDetectionId) {
-    // TODO(MarshalX): implement other ignore commands
+  const logger = container.resolve<ILoggerService>(LoggerServiceSymbol);
+  if (!message.uniqueDetectionId) {
+    logger.error('Unique detection id is missing in ignore command');
     return;
   }
 
@@ -73,13 +94,15 @@ const _ignoreCommandHandler = async (message: Record<string, string>) => {
     return;
   }
 
-  removePanel(CliScanType.Secret);
+  const commandInfo = _ignoreCommandMapping[message.command];
+  if (!commandInfo) {
+    logger.error('Unknown ignore command');
+    return;
+  }
 
+  removePanel(commandInfo.scanType);
   await vscode.commands.executeCommand(
-    VscodeCommands.IgnoreCommandId,
-    CliScanType.Secret,
-    CliIgnoreType.Value,
-    (detection as SecretDetection).detectionDetails.detectedValue,
+    VscodeCommands.IgnoreCommandId, commandInfo.scanType, commandInfo.ignoreType, commandInfo.getIgnoreValue(detection),
   );
 };
 
@@ -150,18 +173,16 @@ const _getAiRemediationHandler = async (panel: vscode.WebviewPanel, uniqueDetect
 
 const _getOnDidReceiveMessage = (panel: vscode.WebviewPanel, onLoadResolve: (value: boolean) => void) => {
   return async (message: Record<string, string>) => {
-    switch (message.command) {
-      case 'ready':
-        _readyCommandHandler(onLoadResolve);
-        break;
-      case 'ignoreSecretByValue':
-        await _ignoreCommandHandler(message);
-        break;
-      case 'getAiRemediation':
-        await _getAiRemediationHandler(panel, message.uniqueDetectionId);
-        break;
-      default:
-        break;
+    if (!message.command) {
+      return;
+    }
+
+    if (message.command == 'getAiRemediation') {
+      await _getAiRemediationHandler(panel, message.uniqueDetectionId);
+    } else if (message.command == 'ready') {
+      _readyCommandHandler(onLoadResolve);
+    } else if (message.command.startsWith('ignore')) {
+      await _ignoreCommandHandler(message);
     }
   };
 };

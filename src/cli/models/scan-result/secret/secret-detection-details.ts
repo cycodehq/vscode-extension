@@ -17,7 +17,7 @@ export class SecretDetectionDetails extends ScanDetectionDetailsBase {
   customRemediationGuidelines?: string;
   policyDisplayName?: string;
   @Exclude({ toPlainOnly: true })
-  detectedValue?: string | null; // this field is used and exist only in IDE
+  detectedValue?: string; // this field is used and exist only in IDE
 
   public getFilepath(): string {
     return `${this.filePath}${this.fileName}`;

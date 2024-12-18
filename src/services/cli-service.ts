@@ -185,6 +185,8 @@ export class CliService implements ICliService {
         return CommandParameters.ByPath;
       case CliIgnoreType.Path:
         return CommandParameters.ByRule;
+      case CliIgnoreType.Cve:
+        return CommandParameters.ByCve;
       default:
         throw new Error('Invalid CliIgnoreType');
     }
