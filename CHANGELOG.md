@@ -5,6 +5,7 @@
 ## [v1.14.0]
 
 - Add the "Ignore this violation" button for violation card of SCA
+- Add support of `.gitignore` files for a file excluding from scans
 
 ## [v1.13.1]
 
