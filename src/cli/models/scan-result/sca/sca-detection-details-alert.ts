@@ -4,4 +4,5 @@ export class ScaDetectionDetailsAlert {
   description: string;
   vulnerableRequirements?: string;
   firstPatchedVersion?: string;
+  cveIdentifier?: string;
 }

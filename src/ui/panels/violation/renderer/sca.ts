@@ -15,10 +15,16 @@ const _resetDomState = () => {
 
   hideElement('cycode-guidelines');
   ge('cycode-guidelines-text').innerText = 'None';
+
+  hideElement('ignore-btn');
 };
 
 const renderDetection = detection => {
   _resetDomState();
+
+  ge('ignore-btn').onclick = () => {
+    vscode.postMessage({ command: 'ignoreScaByCve', uniqueDetectionId });
+  };
 
   ge('severity-icon').src = severityIcons[detection.severity];
   ge('package').innerText = detection.detectionDetails.packageName;
@@ -28,7 +34,11 @@ const renderDetection = detection => {
   if (detection.detectionDetails.alert) {
     // if package vulnerability
     ge('title').innerText = detection.detectionDetails.alert.summary;
-    
+
+    if (detection.detectionDetails.alert.cveIdentifier) {
+      showElement('ignore-btn');
+    }
+
     const cwe = renderCweCveLink(detection.detectionDetails.vulnerabilityId);
     const severity = detection.severity;
     ge('short-details').innerHTML = severity + ' | ' + cwe;

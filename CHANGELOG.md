@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [v1.14.0]
+
+- Add the "Ignore this violation" button for violation card of SCA
+- Add support of `.gitignore` files for a file excluding from scans
+
 ## [v1.13.1]
 
 - Improve suggested AI fix rendering in violation cards
@@ -130,6 +135,8 @@
 
 The first stable release with the support of Secrets, SCA, TreeView, Violation Card, and more.
 
+[v1.14.0]: https://github.com/cycodehq/vscode-extension/releases/tag/v1.14.0
+
 [v1.13.1]: https://github.com/cycodehq/vscode-extension/releases/tag/v1.13.1
 
 [v1.13.0]: https://github.com/cycodehq/vscode-extension/releases/tag/v1.13.0
@@ -178,4 +185,4 @@ The first stable release with the support of Secrets, SCA, TreeView, Violation C
 
 [v1.0.0]: https://github.com/cycodehq/vscode-extension/releases/tag/v1.0.0
 
-[Unreleased]: https://github.com/cycodehq/vscode-extension/compare/v1.13.1...HEAD
+[Unreleased]: https://github.com/cycodehq/vscode-extension/compare/v1.14.0...HEAD
