@@ -3,7 +3,7 @@ import * as fs from 'node:fs';
 import { setSentryUser } from '../sentry';
 import { inject, singleton } from 'tsyringe';
 import { ExtensionServiceSymbol, LoggerServiceSymbol, ScanResultsServiceSymbol, StateServiceSymbol } from '../symbols';
-import { GlobalExtensionState, IStateService } from './state-service';
+import { GlobalExtensionState, IStateService, TemporaryExtensionState } from './state-service';
 import { ILoggerService } from './logger-service';
 import { CliWrapper } from '../cli/cli-wrapper';
 import { CliResult, isCliResultError, isCliResultPanic, isCliResultSuccess } from '../cli/models/cli-result';
@@ -27,6 +27,7 @@ import { CliIgnoreType } from '../cli/models/cli-ignore-type';
 import { CliScanType } from '../cli/models/cli-scan-type';
 import { StatusResult } from '../cli/models/status-result';
 import { AiRemediationResult, AiRemediationResultData } from '../cli/models/ai-remediation-result';
+import statusBar from '../utils/status-bar';
 
 export interface ICliService {
   getProjectRootDirectory(): string | undefined; // TODO REMOVE
@@ -47,6 +48,7 @@ export interface ICliService {
 @singleton()
 export class CliService implements ICliService {
   private state: GlobalExtensionState;
+  private tempState: TemporaryExtensionState;
   private cli: CliWrapper;
 
   constructor(@inject(StateServiceSymbol) private stateService: IStateService,
@@ -55,6 +57,7 @@ export class CliService implements ICliService {
     @inject(ExtensionServiceSymbol) private extensionService: IExtensionService,
   ) {
     this.state = this.stateService.globalState;
+    this.tempState = this.stateService.tempState;
     this.cli = new CliWrapper(this.getProjectRootDirectory());
   }
 
@@ -72,7 +75,7 @@ export class CliService implements ICliService {
       return null;
     }
 
-    this.state.CliInstalled = false;
+    this.tempState.CliInstalled = false;
     this.state.CliVer = null;
     this.stateService.save();
   }
@@ -140,15 +143,19 @@ export class CliService implements ICliService {
       return;
     }
 
-    this.state.CliInstalled = true;
+    this.tempState.CliInstalled = true;
+    this.tempState.CliAuthed = processedResult.result.isAuthenticated;
+    this.tempState.CliStatus = processedResult.result;
+
     this.state.CliVer = processedResult.result.version;
-    this.state.CliAuthed = processedResult.result.isAuthenticated;
-    this.state.IsAiLargeLanguageModelEnabled = processedResult.result.supportedModules.aiLargeLanguageModel;
+
     this.stateService.save();
 
-    if (!this.state.CliAuthed) {
+    if (!this.tempState.CliAuthed) {
+      statusBar.showAuthIsRequired();
       this.showErrorNotification('You are not authenticated in Cycode. Please authenticate');
     } else {
+      statusBar.showDefault();
       if (processedResult.result.userId && processedResult.result.tenantId) {
         setSentryUser(processedResult.result.userId, processedResult.result.tenantId);
       }
@@ -167,14 +174,14 @@ export class CliService implements ICliService {
       return false;
     }
 
-    this.state.CliAuthed = processedResult.result.result;
+    this.tempState.CliAuthed = processedResult.result.result;
     this.stateService.save();
 
-    if (!this.state.CliAuthed) {
+    if (!this.tempState.CliAuthed) {
       this.showErrorNotification('Authentication failed. Please try again');
     }
 
-    return this.state.CliAuthed;
+    return this.tempState.CliAuthed;
   }
 
   private mapIgnoreTypeToOptionName(ignoreType: CliIgnoreType): string {

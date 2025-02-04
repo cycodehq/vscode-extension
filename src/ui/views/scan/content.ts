@@ -11,13 +11,13 @@ const getBtnText = (scanType: CliScanType, inProgress = false) => {
 
 const body = `
 <p>Ready to scan.</p>
-<button id="scan-secrets-button">${getBtnText(CliScanType.Secret)}</button>
+<button disabled id="scan-secrets-button">${getBtnText(CliScanType.Secret)}</button>
 <br />
-<button id="scan-sca-button">${getBtnText(CliScanType.Sca)}</button>
+<button disabled id="scan-sca-button">${getBtnText(CliScanType.Sca)}</button>
 <br />
-<button id="scan-sast-button">${getBtnText(CliScanType.Sast)}</button>
+<button disabled id="scan-sast-button">${getBtnText(CliScanType.Sast)}</button>
 <br />
-<button id="scan-iac-button">${getBtnText(CliScanType.Iac)}</button>
+<button disabled id="scan-iac-button">${getBtnText(CliScanType.Iac)}</button>
 
 <p>
   To easily scan your files, enable Scan On Save in
@@ -47,6 +47,16 @@ registerButton(
   'scan-iac-button', '${VscodeCommands.IacScanForProjectCommandId}', '${getBtnText(CliScanType.Iac, true)}'
 );
 registerButton('open-cycode-settings', '${VscodeCommands.OpenSettingsCommandId}');
+
+window.addEventListener('message', event => {
+    if (event.data.command === 'supportedModules' && event.data.modules) {
+      const modules = event.data.modules;
+      ge('scan-secrets-button').disabled = !modules.secretEnabled;
+      ge('scan-sca-button').disabled = !modules.scaEnabled;
+      ge('scan-sast-button').disabled = !modules.sastEnabled;
+      ge('scan-iac-button').disabled = !modules.iacEnabled;
+    }
+});
 </script>
 `;
 

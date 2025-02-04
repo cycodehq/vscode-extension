@@ -62,21 +62,18 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(extensionStatusBar);
   // end refactor
 
-  if (!stateService.globalState.CliAuthed) {
-    statusBar.showAuthIsRequired();
-  }
-
   if (config.isTheiaIde) {
     stateService.globalState.EnvVsCode = false;
     stateService.save();
   }
 
   registerCommands(context);
-  registerActivityBar(context);
   registerCodeLensProvider(context);
   registerCodeActionsProvider(context);
   registerOnDidSaveTextDocument(context);
   registerOnDidChangeActiveTextEditor(context);
+
+  stateService.tempState.ActivityBar = registerActivityBar(context);
 
   // do not await because it blocks loading of the extension like views rendering
   void postActivate().then(() => {

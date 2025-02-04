@@ -65,39 +65,39 @@
       "view/item/context": [
         {
           "command": "cycode.secretScanForProject",
-          "when": "viewItem == secretScanTypeNode",
+          "when": "viewItem == secretScanTypeNode && cycode:modules.isSecretScanningEnabled",
           "group": "inline"
         },
         {
           "command": "cycode.scaScan",
-          "when": "viewItem == scaScanTypeNode",
+          "when": "viewItem == scaScanTypeNode && cycode:modules.isScaScanningEnabled",
           "group": "inline"
         },
         {
           "command": "cycode.iacScanForProject",
-          "when": "viewItem == iacScanTypeNode",
+          "when": "viewItem == iacScanTypeNode && cycode:modules.isIacScanningEnabled",
           "group": "inline"
         },
         {
           "command": "cycode.sastScanForProject",
-          "when": "viewItem == sastScanTypeNode",
+          "when": "viewItem == sastScanTypeNode && cycode:modules.isSastScanningEnabled",
           "group": "inline"
         },
         {
           "command": "cycode.secretScanForProject",
-          "when": "view == cycode.view.tree && viewItem == secretScanTypeNode"
+          "when": "view == cycode.view.tree && viewItem == secretScanTypeNode && cycode:modules.isSecretScanningEnabled"
         },
         {
           "command": "cycode.scaScan",
-          "when": "view == cycode.view.tree && viewItem == scaScanTypeNode"
+          "when": "view == cycode.view.tree && viewItem == scaScanTypeNode && cycode:modules.isScaScanningEnabled"
         },
         {
           "command": "cycode.iacScanForProject",
-          "when": "view == cycode.view.tree && viewItem == iacScanTypeNode"
+          "when": "view == cycode.view.tree && viewItem == iacScanTypeNode && cycode:modules.isIacScanningEnabled"
         },
         {
           "command": "cycode.sastScanForProject",
-          "when": "view == cycode.view.tree && viewItem == sastScanTypeNode"
+          "when": "view == cycode.view.tree && viewItem == sastScanTypeNode && cycode:modules.isSastScanningEnabled"
         }
       ]
     },

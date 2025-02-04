@@ -18,7 +18,7 @@ export const OnDidSaveTextDocument = (document: vscode.TextDocument) => {
   }
 
   const stateService = container.resolve<IStateService>(StateServiceSymbol);
-  if (!stateService.globalState.CliAuthed) {
+  if (!stateService.tempState.CliAuthed) {
     return;
   }
 
@@ -35,16 +35,18 @@ export const OnDidSaveTextDocument = (document: vscode.TextDocument) => {
 
   const cycodeService = container.resolve<ICycodeService>(CycodeService);
 
-  if (isSupportedPackageFile(document.fileName)) {
+  if (stateService.tempState.IsScaScanningEnabled && isSupportedPackageFile(document.fileName)) {
     void cycodeService.startScan(CliScanType.Sca, [fileFsPath], false);
   }
 
-  if (isSupportedIacFile(document.fileName)) {
+  if (stateService.tempState.IsIacScanningEnabled && isSupportedIacFile(document.fileName)) {
     void cycodeService.startScan(CliScanType.Iac, [fileFsPath], false);
   }
 
   // run Secrets scan on any saved file. CLI will exclude irrelevant files
-  void cycodeService.startScan(CliScanType.Secret, [fileFsPath], false);
+  if (stateService.tempState.IsSecretScanningEnabled) {
+    void cycodeService.startScan(CliScanType.Secret, [fileFsPath], false);
+  }
 };
 
 export const registerOnDidSaveTextDocument = (context: vscode.ExtensionContext) => {

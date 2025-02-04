@@ -3,6 +3,7 @@ import { VscodeCommands } from '../../commands';
 
 export abstract class CycodeView implements vscode.WebviewViewProvider {
   protected _view?: vscode.WebviewView;
+  private _messageQueue: unknown[] = [];
 
   private readonly htmlContent: string;
 
@@ -13,6 +14,7 @@ export abstract class CycodeView implements vscode.WebviewViewProvider {
   public resolveWebviewView(webviewView: vscode.WebviewView): void {
     this._view = webviewView;
     this.updateView();
+    this.flushMessageQueue();
   }
 
   private updateView() {
@@ -27,10 +29,25 @@ export abstract class CycodeView implements vscode.WebviewViewProvider {
       if (Object.values(VscodeCommands).includes(command)) {
         // send command back after executing to unblock disabled buttons
         vscode.commands.executeCommand(command).then(
-          () => this._view?.webview.postMessage({ command, finished: true, success: true }),
-          () => this._view?.webview.postMessage({ command, finished: true, success: false }),
+          () => this.postMessage({ command, finished: true, success: true }),
+          () => this.postMessage({ command, finished: true, success: false }),
         );
       }
     });
+  }
+
+  public postMessage(message: unknown): Thenable<boolean> {
+    if (!this._view) {
+      this._messageQueue.push(message);
+      return Promise.resolve(true);
+    }
+
+    return this._view?.webview.postMessage(message);
+  }
+
+  private flushMessageQueue(): void {
+    while (this._messageQueue.length > 0) {
+      this._view?.webview.postMessage(this._messageQueue.shift());
+    }
   }
 }
