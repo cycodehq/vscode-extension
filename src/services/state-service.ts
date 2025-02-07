@@ -29,6 +29,12 @@ export class TemporaryExtensionState {
 
   public ActivityBar: ActivityBar | null = null;
 
+  public IsTreeViewFilterByCriticalSeverityEnabled = false;
+  public IsTreeViewFilterByHighSeverityEnabled = false;
+  public IsTreeViewFilterByMediumSeverityEnabled = false;
+  public IsTreeViewFilterByLowSeverityEnabled = false;
+  public IsTreeViewFilterByInfoSeverityEnabled = false;
+
   public get CliStatus(): StatusResult | null {
     return this._cliStatus;
   }
@@ -77,6 +83,12 @@ enum VscodeStates {
   IsIacScanningEnabled = 'modules.isIacScanningEnabled',
   IsSastScanningEnabled = 'modules.isSastScanningEnabled',
   IsAiLargeLanguageModelEnabled = 'modules.isAiLargeLanguageModelEnabled',
+  // tree view severity filter:
+  IsTreeViewFilterByCriticalSeverityEnabled = 'filter.severity.isCriticalEnabled',
+  IsTreeViewFilterByHighSeverityEnabled = 'filter.severity.isHighEnabled',
+  IsTreeViewFilterByMediumSeverityEnabled = 'filter.severity.isMediumEnabled',
+  IsTreeViewFilterByLowSeverityEnabled = 'filter.severity.isLowEnabled',
+  IsTreeViewFilterByInfoSeverityEnabled = 'filter.severity.isInfoEnabled',
 }
 
 const _CONTEXT_EXPORTED_GLOBAL_STATE_KEYS: Record<string, string> = {
@@ -98,6 +110,12 @@ const _CONTEXT_EXPORTED_TEMP_STATE_KEYS: Record<string, string> = {
   IsIacScanningEnabled: VscodeStates.IsIacScanningEnabled,
   IsSastScanningEnabled: VscodeStates.IsSastScanningEnabled,
   IsAiLargeLanguageModelEnabled: VscodeStates.IsAiLargeLanguageModelEnabled,
+  // tree view severity filter:
+  IsTreeViewFilterByCriticalSeverityEnabled: VscodeStates.IsTreeViewFilterByCriticalSeverityEnabled,
+  IsTreeViewFilterByHighSeverityEnabled: VscodeStates.IsTreeViewFilterByHighSeverityEnabled,
+  IsTreeViewFilterByMediumSeverityEnabled: VscodeStates.IsTreeViewFilterByMediumSeverityEnabled,
+  IsTreeViewFilterByLowSeverityEnabled: VscodeStates.IsTreeViewFilterByLowSeverityEnabled,
+  IsTreeViewFilterByInfoSeverityEnabled: VscodeStates.IsTreeViewFilterByInfoSeverityEnabled,
 };
 
 export interface IStateService {

@@ -64,6 +64,56 @@
       ],
       "view/item/context": [
         {
+          "command": "cycode.enableFilterByCriticalSeverity",
+          "when": "viewItem == FilterNode && !cycode:filter.severity.isCriticalEnabled",
+          "group": "inline@1"
+        },
+        {
+          "command": "cycode.disableFilterByCriticalSeverity",
+          "when": "viewItem == FilterNode && cycode:filter.severity.isCriticalEnabled",
+          "group": "inline@1"
+        },
+        {
+          "command": "cycode.enableFilterByHighSeverity",
+          "when": "viewItem == FilterNode && !cycode:filter.severity.isHighEnabled",
+          "group": "inline@2"
+        },
+        {
+          "command": "cycode.disableFilterByHighSeverity",
+          "when": "viewItem == FilterNode && cycode:filter.severity.isHighEnabled",
+          "group": "inline@2"
+        },
+        {
+          "command": "cycode.enableFilterByMediumSeverity",
+          "when": "viewItem == FilterNode && !cycode:filter.severity.isMediumEnabled",
+          "group": "inline@3"
+        },
+        {
+          "command": "cycode.disableFilterByMediumSeverity",
+          "when": "viewItem == FilterNode && cycode:filter.severity.isMediumEnabled",
+          "group": "inline@3"
+        },
+        {
+          "command": "cycode.enableFilterByLowSeverity",
+          "when": "viewItem == FilterNode && !cycode:filter.severity.isLowEnabled",
+          "group": "inline@4"
+        },
+        {
+          "command": "cycode.disableFilterByLowSeverity",
+          "when": "viewItem == FilterNode && cycode:filter.severity.isLowEnabled",
+          "group": "inline@4"
+        },
+        {
+          "command": "cycode.enableFilterByInfoSeverity",
+          "when": "viewItem == FilterNode && !cycode:filter.severity.isInfoEnabled",
+          "group": "inline@5"
+        },
+        {
+          "command": "cycode.disableFilterByInfoSeverity",
+          "when": "viewItem == FilterNode && cycode:filter.severity.isInfoEnabled",
+          "group": "inline@5"
+        },
+        {
           "command": "cycode.secretScanForProject",
           "when": "viewItem == secretScanTypeNode && cycode:modules.isSecretScanningEnabled",
           "group": "inline"
@@ -98,6 +148,64 @@
         {
           "command": "cycode.sastScanForProject",
           "when": "view == cycode.view.tree && viewItem == sastScanTypeNode && cycode:modules.isSastScanningEnabled"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "cycode.secretScanForProject",
+          "when": "cycode:modules.isSecretScanningEnabled"
+        },
+        {
+          "command": "cycode.iacScanForProject",
+          "when": "cycode:modules.isIacScanningEnabled"
+        },
+        {
+          "command": "cycode.sastScanForProject",
+          "when": "cycode:modules.isSastScanningEnabled"
+        },
+        {
+          "command": "cycode.scaScan",
+          "when": "cycode:modules.isScaScanningEnabled"
+        },
+        {
+          "command": "cycode.enableFilterByCriticalSeverity",
+          "when": "false"
+        },
+        {
+          "command": "cycode.enableFilterByHighSeverity",
+          "when": "false"
+        },
+        {
+          "command": "cycode.enableFilterByMediumSeverity",
+          "when": "false"
+        },
+        {
+          "command": "cycode.enableFilterByLowSeverity",
+          "when": "false"
+        },
+        {
+          "command": "cycode.enableFilterByInfoSeverity",
+          "when": "false"
+        },
+        {
+          "command": "cycode.disableFilterByCriticalSeverity",
+          "when": "false"
+        },
+        {
+          "command": "cycode.disableFilterByHighSeverity",
+          "when": "false"
+        },
+        {
+          "command": "cycode.disableFilterByMediumSeverity",
+          "when": "false"
+        },
+        {
+          "command": "cycode.disableFilterByLowSeverity",
+          "when": "false"
+        },
+        {
+          "command": "cycode.disableFilterByInfoSeverity",
+          "when": "false"
         }
       ]
     },
@@ -198,6 +306,96 @@
       {
         "command": "cycode.auth",
         "title": "Authenticate with service"
+      },
+      {
+        "command": "cycode.enableFilterByCriticalSeverity",
+        "category": "Cycode",
+        "title": "Enable filter by Critical severity",
+        "icon": {
+          "light": "resources/severity/Critical.png",
+          "dark": "resources/severity/Critical.png"
+        }
+      },
+      {
+        "command": "cycode.enableFilterByHighSeverity",
+        "category": "Cycode",
+        "title": "Enable filter by High severity",
+        "icon": {
+          "light": "resources/severity/High.png",
+          "dark": "resources/severity/High.png"
+        }
+      },
+      {
+        "command": "cycode.enableFilterByMediumSeverity",
+        "category": "Cycode",
+        "title": "Enable filter by Medium severity",
+        "icon": {
+          "light": "resources/severity/Medium.png",
+          "dark": "resources/severity/Medium.png"
+        }
+      },
+      {
+        "command": "cycode.enableFilterByLowSeverity",
+        "category": "Cycode",
+        "title": "Enable filter by Low severity",
+        "icon": {
+          "light": "resources/severity/Low.png",
+          "dark": "resources/severity/Low.png"
+        }
+      },
+      {
+        "command": "cycode.enableFilterByInfoSeverity",
+        "category": "Cycode",
+        "title": "Enable filter by Info severity",
+        "icon": {
+          "light": "resources/severity/Info.png",
+          "dark": "resources/severity/Info.png"
+        }
+      },
+      {
+        "command": "cycode.disableFilterByCriticalSeverity",
+        "category": "Cycode",
+        "title": "Disable filter by Critical severity",
+        "icon": {
+          "light": "resources/severity/outline/Critical.png",
+          "dark": "resources/severity/outline/Critical.png"
+        }
+      },
+      {
+        "command": "cycode.disableFilterByHighSeverity",
+        "category": "Cycode",
+        "title": "Disable filter by High severity",
+        "icon": {
+          "light": "resources/severity/outline/High.png",
+          "dark": "resources/severity/outline/High.png"
+        }
+      },
+      {
+        "command": "cycode.disableFilterByMediumSeverity",
+        "category": "Cycode",
+        "title": "Disable filter by Medium severity",
+        "icon": {
+          "light": "resources/severity/outline/Medium.png",
+          "dark": "resources/severity/outline/Medium.png"
+        }
+      },
+      {
+        "command": "cycode.disableFilterByLowSeverity",
+        "category": "Cycode",
+        "title": "Disable filter by Low severity",
+        "icon": {
+          "light": "resources/severity/outline/Low.png",
+          "dark": "resources/severity/outline/Low.png"
+        }
+      },
+      {
+        "command": "cycode.disableFilterByInfoSeverity",
+        "category": "Cycode",
+        "title": "Disable filter by Info severity",
+        "icon": {
+          "light": "resources/severity/outline/Info.png",
+          "dark": "resources/severity/outline/Info.png"
+        }
       }
     ],
     "viewsContainers": {
@@ -246,7 +444,7 @@
     },
     "icons": {
       "cycode-logo": {
-        "description": "Cycode icon",
+        "description": "Cycode Logo",
         "default": {
           "fontPath": "./resources/cycode.woff",
           "fontCharacter": "\\E800"
