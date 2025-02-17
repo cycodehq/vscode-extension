@@ -70,7 +70,7 @@ export class CodelensProvider implements vscode.CodeLensProvider {
 
         return codeLens;
       })
-      .filter((codeLens) => codeLens !== null) as vscode.CodeLens[];
+      .filter((codeLens) => codeLens !== null);
   }
 
   public resolveCodeLens(
