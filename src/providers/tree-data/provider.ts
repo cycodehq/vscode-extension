@@ -6,9 +6,11 @@ import { FileNode } from './nodes/file-node';
 import { DetectionNode } from './nodes/detection-node';
 import { container } from 'tsyringe';
 import { IScanResultsService } from '../../services/scan-results-service';
-import { ScanResultsServiceSymbol } from '../../symbols';
+import { ScanResultsServiceSymbol, StateServiceSymbol } from '../../symbols';
 import { DetectionBase } from '../../cli/models/scan-result/detection-base';
 import { VscodeCommands } from '../../commands';
+import { FilterNode } from './nodes/filter-node';
+import { IStateService } from '../../services/state-service';
 
 export class TreeDataProvider implements vscode.TreeDataProvider<BaseNode> {
   public static readonly viewType = 'cycode.view.tree';
@@ -18,7 +20,7 @@ export class TreeDataProvider implements vscode.TreeDataProvider<BaseNode> {
   private _onDidChangeTreeData: vscode.EventEmitter<void> = new vscode.EventEmitter<void>();
   readonly onDidChangeTreeData: vscode.Event<void> = this._onDidChangeTreeData.event;
 
-  private _createdRootNodes: ScanTypeNode[] = [];
+  private _createdRootNodes: BaseNode[] = [];
   private _createdNodesToChildren = new Map<BaseNode, BaseNode[]>();
   private _createdChildToParentNode = new Map<BaseNode, BaseNode>();
 
@@ -52,6 +54,30 @@ export class TreeDataProvider implements vscode.TreeDataProvider<BaseNode> {
     return severityWeights[severity.toLowerCase()] || 0;
   }
 
+  private getEnabledSeverityFilters(): Set<string> {
+    const stateService = container.resolve<IStateService>(StateServiceSymbol);
+    const tempState = stateService.tempState;
+
+    const enabledSeverityFilters = new Set<string>();
+    if (tempState.IsTreeViewFilterByCriticalSeverityEnabled) {
+      enabledSeverityFilters.add('critical');
+    }
+    if (tempState.IsTreeViewFilterByHighSeverityEnabled) {
+      enabledSeverityFilters.add('high');
+    }
+    if (tempState.IsTreeViewFilterByMediumSeverityEnabled) {
+      enabledSeverityFilters.add('medium');
+    }
+    if (tempState.IsTreeViewFilterByLowSeverityEnabled) {
+      enabledSeverityFilters.add('low');
+    }
+    if (tempState.IsTreeViewFilterByInfoSeverityEnabled) {
+      enabledSeverityFilters.add('info');
+    }
+
+    return enabledSeverityFilters;
+  }
+
   private getScanTypeNodeSummary(sortedDetections: DetectionBase[]): string {
     // detections must be sorted by severity
     const groupedBySeverity = sortedDetections.reduce<Map<string, DetectionBase[]>>((acc, detection) => {
@@ -72,9 +98,15 @@ export class TreeDataProvider implements vscode.TreeDataProvider<BaseNode> {
     const scanResultsService = container.resolve<IScanResultsService>(ScanResultsServiceSymbol);
     const detections = scanResultsService.getDetections(scanType);
 
-    const severitySortedDetections = detections.sort((a, b) => {
+    const enabledSeverityFilters = this.getEnabledSeverityFilters();
+    const severityFilteredDetections = detections.filter((detection) => {
+      return !enabledSeverityFilters.has(detection.severity.toLowerCase());
+    });
+
+    const severitySortedDetections = severityFilteredDetections.sort((a, b) => {
       return this.getSeverityWeight(b.severity) - this.getSeverityWeight(a.severity);
     });
+
     const groupedByFilepathDetection = severitySortedDetections
       .reduce<Map<string, DetectionBase[]>>((acc, detection) => {
         const filepath = detection.detectionDetails.getFilepath();
@@ -104,7 +136,7 @@ export class TreeDataProvider implements vscode.TreeDataProvider<BaseNode> {
   }
 
   public refresh(): void {
-    this._createdRootNodes = [];
+    this._createdRootNodes = [new FilterNode()];
     this._createdNodesToChildren.clear();
     this._createdChildToParentNode.clear();
 

@@ -13,7 +13,7 @@ export const onProjectOpen = () => {
    */
 
   const stateService = container.resolve<IStateService>(StateServiceSymbol);
-  if (!stateService.globalState.CliAuthed) {
+  if (!stateService.tempState.CliAuthed) {
     return;
   }
 

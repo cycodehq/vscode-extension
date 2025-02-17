@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+- Add proper support for disabled modules
+- Add tree view filtering by severity
+- Fix auth required state of status bar
+
 ## [v1.14.0]
 
 - Add the "Ignore this violation" button for violation card of SCA

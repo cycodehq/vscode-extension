@@ -9,7 +9,7 @@ import { StateServiceSymbol } from '../../../symbols';
 
 const isAiEnabled = () => {
   const stateService = container.resolve<IStateService>(StateServiceSymbol);
-  return stateService.globalState.IsAiLargeLanguageModelEnabled;
+  return stateService.tempState.IsAiLargeLanguageModelEnabled;
 };
 
 export default (detectionType: CliScanType) => `

@@ -11,7 +11,7 @@ export const getCommonCommand = (command: (...args: never[]) => void | Promise<v
     }
 
     const stateService = container.resolve<IStateService>(StateServiceSymbol);
-    if (requiredAuth && !stateService.globalState.CliAuthed) {
+    if (requiredAuth && !stateService.tempState.CliAuthed) {
       vscode.window.showErrorMessage('Please authenticate with Cycode first');
       return;
     }
