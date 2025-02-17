@@ -486,7 +486,7 @@
     "webpack-cli": "5.0.1"
   },
   "dependencies": {
-    "@sentry/node": "^8.20.0",
+    "@sentry/node": "^8.49.0",
     "class-transformer": "^0.5.1",
     "decompress": "^4.2.1",
     "reflect-metadata": "^0.2.2",
