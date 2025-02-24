@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [v1.15.0]
+
 - Add proper support for disabled modules
 - Add tree view filtering by severity
 - Fix auth required state of status bar
@@ -139,6 +141,8 @@
 
 The first stable release with the support of Secrets, SCA, TreeView, Violation Card, and more.
 
+[v1.15.0]: https://github.com/cycodehq/vscode-extension/releases/tag/v1.15.0
+
 [v1.14.0]: https://github.com/cycodehq/vscode-extension/releases/tag/v1.14.0
 
 [v1.13.1]: https://github.com/cycodehq/vscode-extension/releases/tag/v1.13.1
@@ -189,4 +193,4 @@ The first stable release with the support of Secrets, SCA, TreeView, Violation C
 
 [v1.0.0]: https://github.com/cycodehq/vscode-extension/releases/tag/v1.0.0
 
-[Unreleased]: https://github.com/cycodehq/vscode-extension/compare/v1.14.0...HEAD
+[Unreleased]: https://github.com/cycodehq/vscode-extension/compare/v1.15.0...HEAD
