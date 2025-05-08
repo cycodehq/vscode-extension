@@ -25,4 +25,8 @@ export class ScaDetectionDetails extends ScanDetectionDetailsBase {
   getFilepath(): string {
     return this.fileName;
   }
+
+  getLineInFile(): number {
+    return this.lineInFile;
+  }
 }

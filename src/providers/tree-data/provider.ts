@@ -103,11 +103,7 @@ export class TreeDataProvider implements vscode.TreeDataProvider<BaseNode> {
       return !enabledSeverityFilters.has(detection.severity.toLowerCase());
     });
 
-    const severitySortedDetections = severityFilteredDetections.sort((a, b) => {
-      return this.getSeverityWeight(b.severity) - this.getSeverityWeight(a.severity);
-    });
-
-    const groupedByFilepathDetection = severitySortedDetections
+    const groupedByFilepathDetection = severityFilteredDetections
       .reduce<Map<string, DetectionBase[]>>((acc, detection) => {
         const filepath = detection.detectionDetails.getFilepath();
         if (!acc.has(filepath)) {
@@ -117,7 +113,7 @@ export class TreeDataProvider implements vscode.TreeDataProvider<BaseNode> {
         return acc;
       }, new Map());
 
-    const scanTypeNode = new ScanTypeNode(scanType, this.getScanTypeNodeSummary(severitySortedDetections));
+    const scanTypeNode = new ScanTypeNode(scanType, this.getScanTypeNodeSummary(severityFilteredDetections));
     this._createdRootNodes.push(scanTypeNode);
     this._createdNodesToChildren.set(scanTypeNode, []);
 
@@ -127,7 +123,13 @@ export class TreeDataProvider implements vscode.TreeDataProvider<BaseNode> {
       this._createdNodesToChildren.set(fileNode, []);
       this._createdChildToParentNode.set(fileNode, scanTypeNode);
 
-      for (const detection of detections) {
+      const sortedDetections = detections.sort((a, b) => {
+        const severityDiff = this.getSeverityWeight(b.severity) - this.getSeverityWeight(a.severity);
+        const lineDiff = a.detectionDetails.getLineInFile() - b.detectionDetails.getLineInFile();
+        return severityDiff !== 0 ? severityDiff : lineDiff;
+      });
+
+      for (const detection of sortedDetections) {
         const detectionNode = new DetectionNode(scanType, detection);
         this._createdNodesToChildren.get(fileNode)?.push(detectionNode);
         this._createdChildToParentNode.set(detectionNode, fileNode);

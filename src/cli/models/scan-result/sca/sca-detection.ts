@@ -23,6 +23,6 @@ export class ScaDetection extends DetectionBase {
   }
 
   getFormattedNodeTitle(): string {
-    return `line ${this.detectionDetails.lineInFile}: ${this.getFormattedTitle()}`;
+    return `line ${this.detectionDetails.getLineInFile()}: ${this.getFormattedTitle()}`;
   }
 }

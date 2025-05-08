@@ -32,7 +32,7 @@ export const createDiagnostics = async (
 
     const diagnostic = new vscode.Diagnostic(
       // BE of SCA counts lines from 1, while VSCode counts from 0
-      document.lineAt(detectionDetails.lineInFile - 1).range,
+      document.lineAt(detectionDetails.getLineInFile() - 1).range,
       message,
       vscode.DiagnosticSeverity.Error,
     );

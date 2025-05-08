@@ -17,4 +17,8 @@ export class IacDetectionDetails extends ScanDetectionDetailsBase {
   getFilepath(): string {
     return this.fileName;
   }
+
+  getLineInFile(): number {
+    return this.lineInFile;
+  }
 }
