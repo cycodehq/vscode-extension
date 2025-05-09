@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## [v1.16.0]
+
+- Add detection sorting by line number in addition to severity
+
 ## [v1.15.0]
 
 - Add proper support for disabled modules
@@ -140,6 +144,8 @@
 ## [v1.0.0]
 
 The first stable release with the support of Secrets, SCA, TreeView, Violation Card, and more.
+
+[v1.16.0]: https://github.com/cycodehq/vscode-extension/releases/tag/v1.16.0
 
 [v1.15.0]: https://github.com/cycodehq/vscode-extension/releases/tag/v1.15.0
 

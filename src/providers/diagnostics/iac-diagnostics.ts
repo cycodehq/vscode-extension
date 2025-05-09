@@ -27,7 +27,7 @@ export const createDiagnostics = async (
     message += `In file: ${fileName}\n`;
 
     const diagnostic = new vscode.Diagnostic(
-      document.lineAt(detectionDetails.lineInFile - 1).range,
+      document.lineAt(detectionDetails.getLineInFile() - 1).range,
       message,
       vscode.DiagnosticSeverity.Error,
     );

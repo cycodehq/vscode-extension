@@ -22,6 +22,6 @@ export class IacDetection extends DetectionBase {
   }
 
   getFormattedNodeTitle(): string {
-    return `line ${this.detectionDetails.lineInFile + 1}: ${this.getFormattedMessage()}`;
+    return `line ${this.detectionDetails.getLineInFile()}: ${this.getFormattedMessage()}`;
   }
 }

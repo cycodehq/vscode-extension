@@ -1,6 +1,8 @@
 import { Exclude } from 'class-transformer';
 import { ScanDetectionDetailsBase } from '../scan-detection-details-base';
 
+const IDE_ENTRY_LINE_NUMBER = 1;
+
 export class SecretDetectionDetails extends ScanDetectionDetailsBase {
   sha512: string;
   provider: string;
@@ -21,5 +23,9 @@ export class SecretDetectionDetails extends ScanDetectionDetailsBase {
 
   public getFilepath(): string {
     return `${this.filePath}${this.fileName}`;
+  }
+
+  public getLineInFile(): number {
+    return this.line + IDE_ENTRY_LINE_NUMBER;
   }
 }

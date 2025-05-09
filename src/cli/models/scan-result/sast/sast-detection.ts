@@ -22,6 +22,6 @@ export class SastDetection extends DetectionBase {
   }
 
   getFormattedNodeTitle(): string {
-    return `line ${this.detectionDetails.lineInFile}: ${this.getFormattedMessage()}`;
+    return `line ${this.detectionDetails.getLineInFile()}: ${this.getFormattedMessage()}`;
   }
 }

@@ -19,4 +19,8 @@ export class SastDetectionDetails extends ScanDetectionDetailsBase {
   getFilepath(): string {
     return this.filePath.startsWith('/') ? this.filePath : `/${this.filePath}`;
   }
+
+  getLineInFile(): number {
+    return this.lineInFile;
+  }
 }

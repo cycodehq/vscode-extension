@@ -2,8 +2,6 @@ import { SecretDetectionDetails } from './secret-detection-details';
 import { DetectionBase } from '../detection-base';
 import { Type } from 'class-transformer';
 
-const IDE_ENTRY_LINE_NUMBER = 1;
-
 export class SecretDetection extends DetectionBase {
   id: string;
   message: string;
@@ -25,6 +23,6 @@ export class SecretDetection extends DetectionBase {
   }
 
   public getFormattedNodeTitle(): string {
-    return `line ${this.detectionDetails.line + IDE_ENTRY_LINE_NUMBER}: a hardcoded ${this.type} is used`;
+    return `line ${this.detectionDetails.getLineInFile()}: a hardcoded ${this.type} is used`;
   }
 }
