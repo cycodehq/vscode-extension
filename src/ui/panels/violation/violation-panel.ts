@@ -135,39 +135,85 @@ const _extractAiRemediationParts = (remediation: string) => {
   return undefined;
 };
 
+const _sendCommandCompletionMessage = async (panel: vscode.WebviewPanel, command: string, success: boolean) => {
+  const logger = container.resolve<ILoggerService>(LoggerServiceSymbol);
+  const sendRes = await panel.webview.postMessage({
+    command: command,
+    finished: success,
+  });
+  if (!sendRes) {
+    logger.error(`Failed to send command completion message for ${command}`);
+  }
+};
+
 const _getAiRemediationHandler = async (panel: vscode.WebviewPanel, uniqueDetectionId: string) => {
   const scanResultsService = container.resolve<IScanResultsService>(ScanResultsServiceSymbol);
   const detection = scanResultsService.getDetectionById(uniqueDetectionId);
   if (!detection) {
+    await _sendCommandCompletionMessage(panel, 'getAiRemediation', false);
     return;
   }
 
   const cycodeService = container.resolve<ICycodeService>(CycodeServiceSymbol);
   const logger = container.resolve<ILoggerService>(LoggerServiceSymbol);
-  const aiRemediation = await cycodeService.getAiRemediation(detection.id);
-  if (!aiRemediation) {
-    logger.error('Failed to get AI remediation');
-    return;
+
+  try {
+    const aiRemediation = await cycodeService.getAiRemediation(detection.id);
+    if (!aiRemediation) {
+      logger.error('Failed to get AI remediation');
+      await _sendCommandCompletionMessage(panel, 'getAiRemediation', false);
+      return;
+    }
+
+    let remediationMarkdown = aiRemediation.remediation;
+    let unifyDiff = undefined;
+
+    const remediationParts = _extractAiRemediationParts(aiRemediation.remediation);
+    if (remediationParts) {
+      remediationMarkdown = remediationParts.remediationMarkdown;
+      unifyDiff = remediationParts.unifyDiff;
+    }
+
+    const sendRes = await panel.webview.postMessage({
+      command: 'getAiRemediation',
+      finished: true,
+      aiRemediation: {
+        remediation: getMarkdownForRender(remediationMarkdown),
+        unifyDiff: unifyDiff,
+        isFixAvailable: aiRemediation.isFixAvailable,
+      },
+    });
+
+    if (!sendRes) {
+      logger.error('Failed to send AI Remediation to render on the violation card');
+    }
+  } catch (error) {
+    logger.error(`Error in AI remediation handler: ${error}`);
+    await _sendCommandCompletionMessage(panel, 'getAiRemediation', false);
   }
+};
 
-  let remediationMarkdown = aiRemediation.remediation;
-  let unifyDiff = undefined;
+const _applyAiSuggestedFixHandler = async (panel: vscode.WebviewPanel, uniqueDetectionId: string) => {
+  const logger = container.resolve<ILoggerService>(LoggerServiceSymbol);
 
-  const remediationParts = _extractAiRemediationParts(aiRemediation.remediation);
-  if (remediationParts) {
-    remediationMarkdown = remediationParts.remediationMarkdown;
-    unifyDiff = remediationParts.unifyDiff;
-  }
+  try {
+    /*
+     * TODO: Implement actual AI fix application when CLI command is ready
+     * For now, simulate the operation with a delay
+     */
+    logger.debug(`[AI FIX] Start applying AI suggested fix for ${uniqueDetectionId}`);
 
-  const sendRes = await panel.webview.postMessage({
-    aiRemediation: {
-      remediation: getMarkdownForRender(remediationMarkdown),
-      unifyDiff: unifyDiff,
-      isFixAvailable: aiRemediation.isFixAvailable,
-    },
-  });
-  if (!sendRes) {
-    logger.error('Failed to send AI Remediation to render on the violation card');
+    // Simulate processing time
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
+    // For now, just log that the fix would be applied
+    logger.debug(`[AI FIX] Finish applying AI suggested fix for ${uniqueDetectionId}`);
+
+    // Send the success completion message
+    await _sendCommandCompletionMessage(panel, 'applyAiSuggestedFix', true);
+  } catch (error) {
+    logger.error(`Error in AI fix handler: ${error}`);
+    await _sendCommandCompletionMessage(panel, 'applyAiSuggestedFix', false);
   }
 };
 
@@ -179,6 +225,8 @@ const _getOnDidReceiveMessage = (panel: vscode.WebviewPanel, onLoadResolve: (val
 
     if (message.command == 'getAiRemediation') {
       await _getAiRemediationHandler(panel, message.uniqueDetectionId);
+    } else if (message.command == 'applyAiSuggestedFix') {
+      await _applyAiSuggestedFixHandler(panel, message.uniqueDetectionId);
     } else if (message.command == 'ready') {
       _readyCommandHandler(onLoadResolve);
     } else if (message.command.startsWith('ignore')) {
