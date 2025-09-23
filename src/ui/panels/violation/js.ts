@@ -69,19 +69,20 @@ export default (detectionType: CliScanType) => `
     const resetAiElements = () => {
       if (isAiEnabled) {
         showElement('ai-remediation-btn');
+        resetButton('ai-remediation-btn');
       } else {
         hideElement('ai-remediation-btn');
       }
 
       hideElement('ai-apply-fix-btn');
+      resetButton('ai-apply-fix-btn');
+
       hideElement('ai-remediation');
       ge('ai-remediation-text').innerText = 'None';
       ge('ai-remediation-diff').innerText = '';
     }
 
     const renderAiRemediation = (remediation, unifyDiff, isFixAvailable) => {
-      isFixAvailable = false;  // disable fix for now; not ready for production
-
       hideElement('ai-remediation-btn');
       ge('ai-remediation-text').innerHTML = remediation;
       showElement('ai-remediation');
@@ -113,10 +114,52 @@ export default (detectionType: CliScanType) => `
       showElement('ai-remediation-diff');
     };
 
-    const registerAiButtonCallbacks = () => {
-      ge('ai-remediation-btn').onclick = () => {
-        vscode.postMessage({ command: 'getAiRemediation', uniqueDetectionId });
+    const resetButton = (buttonClassName) => {
+      const button = ge(buttonClassName);
+      if (button && button._originalText !== undefined) {
+        button.disabled = button._originalDisabled;
+        button.innerText = button._originalText;
+      }
+    };
+
+    const registerButton = (buttonClassName, commandId, inProgressText, additionalData = {}) => {
+      const button = ge(buttonClassName);
+      if (!button) return;
+      
+      // Store the original state in private fields for later restoration
+      button._originalText = button.innerText;
+      button._originalDisabled = button.disabled;
+
+      button.onclick = () => {
+        button.disabled = true;
+        if (inProgressText !== undefined) {
+          button.innerText = inProgressText;
+        }
+        
+        const messageData = { command: commandId, ...additionalData };
+        if (uniqueDetectionId) {
+          messageData.uniqueDetectionId = uniqueDetectionId;
+        }
+        
+        vscode.postMessage(messageData);
       };
+
+      const messageHandler = event => {
+        if (event.data.command === commandId && event.data.finished !== undefined) {
+          button.disabled = button._originalDisabled;
+          button.innerText = button._originalText;
+        }
+      };
+      window.addEventListener('message', messageHandler);
+
+      button._cleanupHandler = () => {
+        window.removeEventListener('message', messageHandler);
+      };
+    };
+
+    const registerAiButtonCallbacks = () => {
+      registerButton('ai-remediation-btn', 'getAiRemediation', 'Generating...');
+      registerButton('ai-apply-fix-btn', 'applyAiSuggestedFix', 'Applying...');
     }
 </script>
     ${detectionType === CliScanType.Sca ? scaRenderer : ''}
