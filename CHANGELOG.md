@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## [v1.17.0]
+
+- Increase required CLI version to 3.6.0
+
 ## [v1.16.0]
 
 - Add detection sorting by line number in addition to severity
@@ -144,6 +148,8 @@
 ## [v1.0.0]
 
 The first stable release with the support of Secrets, SCA, TreeView, Violation Card, and more.
+
+[v1.17.0]: https://github.com/cycodehq/vscode-extension/releases/tag/v1.17.0
 
 [v1.16.0]: https://github.com/cycodehq/vscode-extension/releases/tag/v1.16.0
 
