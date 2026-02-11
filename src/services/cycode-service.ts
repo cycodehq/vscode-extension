@@ -12,7 +12,6 @@ import { ProgressOptions } from 'vscode';
 import { ILoggerService } from './logger-service';
 import { getScanTypeDisplayName } from '../constants';
 import statusBar from '../utils/status-bar';
-import { captureException } from '../sentry';
 import { CliIgnoreType } from '../cli/models/cli-ignore-type';
 import { IScanResultsService } from './scan-results-service';
 import { IExtensionService } from './extension-service';
@@ -52,7 +51,6 @@ export class CycodeService implements ICycodeService {
           progress.report({ message });
           return await fn(cancellationToken);
         } catch (error: unknown) {
-          captureException(error);
           if (error instanceof Error) {
             this.logger.error(`Error during progress: ${error.message}. FN: ${fn}`);
             vscode.window.showErrorMessage(`Cycode error: ${error.message}`);

@@ -12,7 +12,6 @@ import { CliError, isCliError } from './models/cli-error';
 import { ExitCode } from './exit-code';
 import { CommandParameters } from './constants';
 import { getUserAgentArg } from './user-agent';
-import { captureException } from '../sentry';
 
 export class CliWrapper {
   public workDirectory?: string;
@@ -35,8 +34,7 @@ export class CliWrapper {
     let camelCasedObj;
     try {
       camelCasedObj = JSON_.parse(out);
-    } catch (e) {
-      captureException(e);
+    } catch {
       this.logger.debug('Failed to parse output as JSON. Returning CliResultPanic');
       return new CliResultPanic(exitCode, out);
     }

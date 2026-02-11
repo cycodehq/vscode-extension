@@ -1,6 +1,5 @@
 import * as vscode from 'vscode';
 import * as fs from 'node:fs';
-import { setSentryUser } from '../sentry';
 import { inject, singleton } from 'tsyringe';
 import { ExtensionServiceSymbol, LoggerServiceSymbol, ScanResultsServiceSymbol, StateServiceSymbol } from '../symbols';
 import { GlobalExtensionState, IStateService, TemporaryExtensionState } from './state-service';
@@ -156,9 +155,6 @@ export class CliService implements ICliService {
       this.showErrorNotification('You are not authenticated in Cycode. Please authenticate');
     } else {
       statusBar.showDefault();
-      if (processedResult.result.userId && processedResult.result.tenantId) {
-        setSentryUser(processedResult.result.userId, processedResult.result.tenantId);
-      }
     }
 
     return;

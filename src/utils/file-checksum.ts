@@ -1,7 +1,6 @@
 import * as fs from 'fs';
 import * as crypto from 'crypto';
 import * as path from 'path';
-import { captureException } from '../sentry';
 import { container } from 'tsyringe';
 import { ILoggerService } from '../services/logger-service';
 import { LoggerServiceSymbol } from '../symbols';
@@ -24,7 +23,6 @@ export const verifyFileChecksum = (filePath: string, checksum: string): boolean 
   try {
     return getFileShaHash(filePath).toLowerCase() === checksum.toLowerCase();
   } catch (error) {
-    captureException(error);
     logger.error(`Failed to verify file checksum ${error}`);
   }
 

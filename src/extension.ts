@@ -8,7 +8,6 @@ import * as vscode from 'vscode';
 import { extensionName } from './utils/texts';
 import statusBar from './utils/status-bar';
 import { config } from './utils/config';
-import { captureException, initSentry } from './sentry';
 import { container } from 'tsyringe';
 import { ICycodeService } from './services/cycode-service';
 import {
@@ -33,8 +32,6 @@ import { registerOnDidChangeActiveTextEditor } from './listeners/on-did-change-a
 import { showCliInstallFailed } from './utils/tray-notifications';
 
 export function activate(context: vscode.ExtensionContext) {
-  initSentry();
-
   const logger = container.resolve<ILoggerService>(LoggerServiceSymbol);
   logger.initLogger();
   logger.info('Cycode extension is now active');
@@ -88,7 +85,6 @@ const postActivate = async () => {
     const cycode = container.resolve<ICycodeService>(CycodeServiceSymbol);
     await cycode.installCliIfNeededAndCheckAuthentication();
   } catch (error) {
-    captureException(error);
     logger.error(`Cycode CLI is not installed: ${error}`);
     showCliInstallFailed();
   }
