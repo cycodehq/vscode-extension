@@ -463,7 +463,6 @@
   },
   "devDependencies": {
     "@eslint/js": "9.20.0",
-    "@sentry/webpack-plugin": "3.1.2",
     "@stylistic/eslint-plugin": "3.1.0",
     "@types/decompress": "4.2.7",
     "@types/eslint__js": "8.42.3",
@@ -486,7 +485,6 @@
     "webpack-cli": "6.0.1"
   },
   "dependencies": {
-    "@sentry/node": "8.49.0",
     "class-transformer": "0.5.1",
     "decompress": "4.2.1",
     "reflect-metadata": "0.2.2",
