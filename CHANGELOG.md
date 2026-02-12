@@ -2,8 +2,10 @@
 
 ## [Unreleased]
 
+## [v1.17.1]
+
 - Remove Sentry integration
-- Increase required CLI version to 3.9.2
+- Increase required CLI version to 3.9.3
 
 ## [v1.17.0]
 
@@ -152,6 +154,8 @@
 
 The first stable release with the support of Secrets, SCA, TreeView, Violation Card, and more.
 
+[v1.17.1]: https://github.com/cycodehq/vscode-extension/releases/tag/v1.17.1
+
 [v1.17.0]: https://github.com/cycodehq/vscode-extension/releases/tag/v1.17.0
 
 [v1.16.0]: https://github.com/cycodehq/vscode-extension/releases/tag/v1.16.0
@@ -208,4 +212,4 @@ The first stable release with the support of Secrets, SCA, TreeView, Violation C
 
 [v1.0.0]: https://github.com/cycodehq/vscode-extension/releases/tag/v1.0.0
 
-[Unreleased]: https://github.com/cycodehq/vscode-extension/compare/v1.15.0...HEAD
+[Unreleased]: https://github.com/cycodehq/vscode-extension/compare/v1.17.1...HEAD
