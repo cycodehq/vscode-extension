@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## [v1.17.3]
+
+- Increase required CLI version to 3.12.0
+
 ## [v1.17.2]
 
 - Increase required CLI version to 3.11.1
