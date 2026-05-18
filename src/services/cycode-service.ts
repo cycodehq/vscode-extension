@@ -23,6 +23,7 @@ export interface ICycodeService {
   startAuth(): Promise<void>;
   startScan(scanType: CliScanType, paths: string[], onDemand: boolean): Promise<void>;
   startScanForCurrentProject(scanType: CliScanType): Promise<void>;
+  startAllScansForCurrentProject(scanTypes: CliScanType[]): Promise<void>;
   applyDetectionIgnore(scanType: CliScanType, ignoreType: CliIgnoreType, value: string): Promise<void>;
   getAiRemediation(detectionId: string): Promise<AiRemediationResultData | null>;
 }
@@ -99,17 +100,22 @@ export class CycodeService implements ICycodeService {
     await this.startScan(scanType, [projectRoot], true); // onDemand = true
   }
 
-  public async startScan(scanType: CliScanType, paths: string[], onDemand = false) {
-    const scanMethods = {
-      [CliScanType.Secret]: (
-        token: vscode.CancellationToken,
-      ) => this.cliService.scanPathsSecrets(paths, onDemand, token),
-      [CliScanType.Sca]: (token: vscode.CancellationToken) => this.cliService.scanPathsSca(paths, onDemand, token),
-      [CliScanType.Iac]: (token: vscode.CancellationToken) => this.cliService.scanPathsIac(paths, onDemand, token),
-      [CliScanType.Sast]: (token: vscode.CancellationToken) => this.cliService.scanPathsSast(paths, onDemand, token),
+  private getScanMethod(
+    scanType: CliScanType,
+    paths: string[],
+    onDemand: boolean,
+  ): ((token: vscode.CancellationToken) => Promise<void>) | undefined {
+    const scanMethods: Record<CliScanType, (token: vscode.CancellationToken) => Promise<void>> = {
+      [CliScanType.Secret]: (token) => this.cliService.scanPathsSecrets(paths, onDemand, token),
+      [CliScanType.Sca]: (token) => this.cliService.scanPathsSca(paths, onDemand, token),
+      [CliScanType.Iac]: (token) => this.cliService.scanPathsIac(paths, onDemand, token),
+      [CliScanType.Sast]: (token) => this.cliService.scanPathsSast(paths, onDemand, token),
     };
+    return scanMethods[scanType];
+  }
 
-    const scanMethod = scanMethods[scanType];
+  public async startScan(scanType: CliScanType, paths: string[], onDemand = false) {
+    const scanMethod = this.getScanMethod(scanType, paths, onDemand);
     if (!scanMethod) {
       this.logger.error(`Unknown scan type: ${scanType}`);
       return;
@@ -125,6 +131,37 @@ export class CycodeService implements ICycodeService {
         this.logger.debug(`[${scanType}] Finish scanning paths: ${paths}`);
       },
       this.getScanProgressBarOptions(onDemand),
+    );
+  }
+
+  public async startAllScansForCurrentProject(scanTypes: CliScanType[]) {
+    const projectRoot = this.cliService.getProjectRootDirectory();
+    if (!projectRoot) {
+      vscode.window.showErrorMessage(
+        'Cycode scans the project that is currently opened. Please open a project and try again',
+      );
+      return;
+    }
+
+    await this.withProgressBar(
+      'Cycode is scanning files...',
+      async (cancellationToken: vscode.CancellationToken) => {
+        this.logger.debug(`[RunAll] Start scanning paths: ${projectRoot}`);
+        statusBar.showScanningInProgress();
+        await Promise.all(
+          scanTypes.map((scanType) => {
+            const scanMethod = this.getScanMethod(scanType, [projectRoot], true);
+            if (!scanMethod) {
+              this.logger.error(`Unknown scan type: ${scanType}`);
+              return Promise.resolve();
+            }
+            return scanMethod(cancellationToken);
+          }),
+        );
+        statusBar.showScanComplete();
+        this.logger.debug(`[RunAll] Finish scanning paths: ${projectRoot}`);
+      },
+      { cancellable: true, location: vscode.ProgressLocation.Notification },
     );
   }
 

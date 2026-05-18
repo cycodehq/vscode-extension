@@ -9,20 +9,12 @@ export default getCommonCommand(async () => {
   const cycodeService = container.resolve<ICycodeService>(CycodeService);
   const stateService = container.resolve<IStateService>(StateServiceSymbol);
 
-  const scanPromises = [];
+  const enabledScanTypes: CliScanType[] = [];
 
-  if (stateService.tempState.IsSecretScanningEnabled) {
-    scanPromises.push(cycodeService.startScanForCurrentProject(CliScanType.Secret));
-  }
-  if (stateService.tempState.IsScaScanningEnabled) {
-    scanPromises.push(cycodeService.startScanForCurrentProject(CliScanType.Sca));
-  }
-  if (stateService.tempState.IsIacScanningEnabled) {
-    scanPromises.push(cycodeService.startScanForCurrentProject(CliScanType.Iac));
-  }
-  if (stateService.tempState.IsSastScanningEnabled) {
-    scanPromises.push(cycodeService.startScanForCurrentProject(CliScanType.Sast));
-  }
+  if (stateService.tempState.IsSecretScanningEnabled) enabledScanTypes.push(CliScanType.Secret);
+  if (stateService.tempState.IsScaScanningEnabled) enabledScanTypes.push(CliScanType.Sca);
+  if (stateService.tempState.IsIacScanningEnabled) enabledScanTypes.push(CliScanType.Iac);
+  if (stateService.tempState.IsSastScanningEnabled) enabledScanTypes.push(CliScanType.Sast);
 
-  await Promise.all(scanPromises);
+  await cycodeService.startAllScansForCurrentProject(enabledScanTypes);
 });
