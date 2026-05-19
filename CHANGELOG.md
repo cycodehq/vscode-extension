@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## [v1.17.5]
+
+- When performing a scan for all scan types, one notification will be shown instead of one per scanner 
+
 ## [v1.17.4]
 
 - Increase required CLI version to 3.12.2
