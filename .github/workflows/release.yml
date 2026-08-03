@@ -1,0 +1,80 @@
+name: Build and Publish release
+
+on:
+  release:
+    types: [ created ]
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Run Cimon
+        uses: cycodelabs/cimon-action@a0870cc3d9e3bf3cedd28bdb67bf3fd3281e5941 # v1.0.1
+        with:
+          client-id: ${{ secrets.CIMON_CLIENT_ID }}
+          secret: ${{ secrets.CIMON_SECRET }}
+          prevent: true
+          allowed-hosts: >
+            registry.npmjs.org
+            marketplace.visualstudio.com
+            update.code.visualstudio.com
+            open-vsx.org
+            api.github.com
+            uploads.github.com
+
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.release.tag_name }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
+
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Verify version matches release tag
+        env:
+          TAG_NAME: ${{ github.event.release.tag_name }}
+        run: |
+          PACKAGE_VERSION=$(node -p "require('./package.json').version")
+          TAG_VERSION="${TAG_NAME#v}"
+          echo "::debug::Package version: $PACKAGE_VERSION. Tag version: $TAG_VERSION"
+          if [ "$PACKAGE_VERSION" != "$TAG_VERSION" ]; then
+            echo "::error::package.json version ($PACKAGE_VERSION) doesn't match the release tag ($TAG_NAME)"
+            exit 1
+          fi
+
+      - name: Build extension
+        id: build
+        run: |
+          pnpm dlx @vscode/vsce package --no-dependencies
+          echo "vsix=$(ls *.vsix)" >> $GITHUB_OUTPUT
+
+      - name: Publish extension to Visual Studio Marketplace
+        env:
+          VSCE_PAT: ${{ secrets.VSCODE_MARKETPLACE_TOKEN }}
+        run: pnpm dlx @vscode/vsce publish --packagePath "${{ steps.build.outputs.vsix }}"
+
+      - name: Publish extension to Open VSX
+        env:
+          OVSX_PAT: ${{ secrets.OPEN_VSX_MARKETPLACE_TOKEN }}
+        run: pnpm dlx ovsx publish "${{ steps.build.outputs.vsix }}"
+
+      - name: Upload extension package to release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release upload "${{ github.event.release.tag_name }}" "${{ steps.build.outputs.vsix }}" --clobber

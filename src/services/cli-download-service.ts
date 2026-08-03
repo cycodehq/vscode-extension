@@ -1,6 +1,5 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import decompress from 'decompress';
 import { config } from '../utils/config';
 import { GitHubRelease, GitHubReleaseAsset, IGithubReleaseService } from './github-release-service';
 import {
@@ -11,6 +10,7 @@ import {
   REQUIRED_CLI_VERSION,
 } from '../constants';
 import { parseOnedirChecksumDb, verifyDirContentChecksums, verifyFileChecksum } from '../utils/file-checksum';
+import { unzip } from '../utils/unzip';
 import { inject, injectable } from 'tsyringe';
 import {
   DownloadServiceSymbol,
@@ -187,7 +187,7 @@ export class CliDownloadService implements ICliDownloadService {
 
     const pathToCliDir = path.dirname(cliExecutableFile);
     this.logger.info(`Decompressing ${pathToZip} to ${pathToCliDir}`);
-    await decompress(pathToZip, pathToCliDir);
+    await unzip(pathToZip, pathToCliDir);
 
     this.logger.info(`Removing ${pathToZip}`);
     fs.unlinkSync(pathToZip);

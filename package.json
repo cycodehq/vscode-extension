@@ -457,14 +457,17 @@
     "watch": "webpack --watch",
     "compile": "webpack",
     "package": "webpack --mode production",
-    "vscode:prepublish": "yarn run package",
-    "preci": "rm -rf node_modules",
-    "ci": "yarn install --frozen-lockfile"
+    "vscode:prepublish": "pnpm run package"
+  },
+  "packageManager": "pnpm@10.33.0",
+  "pnpm": {
+    "overrides": {
+      "serialize-javascript": "^7.0.7"
+    }
   },
   "devDependencies": {
-    "@eslint/js": "9.20.0",
+    "@eslint/js": "9.39.5",
     "@stylistic/eslint-plugin": "3.1.0",
-    "@types/decompress": "4.2.7",
     "@types/eslint__js": "8.42.3",
     "@types/glob": "8.1.0",
     "@types/mocha": "10.0.10",
@@ -474,7 +477,7 @@
     "@types/vscode": "1.63.0",
     "@typescript-eslint/eslint-plugin": "8.24.0",
     "@typescript-eslint/parser": "8.24.0",
-    "eslint": "9.20.1",
+    "eslint": "9.39.5",
     "glob": "8.1.0",
     "mocha": "11.1.0",
     "prettier": "3.5.1",
@@ -486,7 +489,6 @@
   },
   "dependencies": {
     "class-transformer": "0.5.1",
-    "decompress": "4.2.1",
     "reflect-metadata": "0.2.2",
     "semver": "7.5.4",
     "shelljs": "0.8.5",

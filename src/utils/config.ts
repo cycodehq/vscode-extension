@@ -19,7 +19,8 @@ export const config = {
     const value = vscode.workspace
       .getConfiguration(extensionId)
       .get<boolean>('cliAutoManaged');
-    return value || true; // enabled by default
+    // "??" and not "||" because we must respect the explicitly disabled setting
+    return value ?? true; // enabled by default
   },
   get cliEnv(): Record<string, string> {
     let CYCODE_API_URL = vscode.workspace
