@@ -119,7 +119,7 @@ export class CliService implements ICliService {
       return null;
     }
 
-    this.logger.error('[processCliResult] CLI success');
+    this.logger.info('[processCliResult] CLI success');
     return result;
   }
 
