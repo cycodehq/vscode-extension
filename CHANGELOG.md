@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+- Moved from yarn v1 to pnpm v10
+- Bumped `@eslint/js` to version 9.39.5
+- Bumped `eslint` to version 9.39.5
+- Removed `decompress`
+- Removed `@types/decompress`
+
 ## [v1.17.5]
 
 - When performing a scan for all scan types, one notification will be shown instead of one per scanner 
