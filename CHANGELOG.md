@@ -8,6 +8,10 @@
 - Removed `decompress`
 - Removed `@types/decompress`
 
+## [v1.17.6]
+
+- Increase required CLI version to 3.21.0
+
 ## [v1.17.5]
 
 - When performing a scan for all scan types, one notification will be shown instead of one per scanner 
