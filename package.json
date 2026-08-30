@@ -476,7 +476,7 @@
     "@types/showdown": "2.0.6",
     "@types/vscode": "1.63.0",
     "@typescript-eslint/eslint-plugin": "8.24.0",
-    "@typescript-eslint/parser": "8.24.0",
+    "@typescript-eslint/parser": "8.67.0",
     "eslint": "9.39.5",
     "glob": "8.1.0",
     "mocha": "11.1.0",
