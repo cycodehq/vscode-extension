@@ -472,7 +472,7 @@
     "@types/glob": "8.1.0",
     "@types/mocha": "10.0.10",
     "@types/node": "16.x",
-    "@types/shelljs": "0.8.11",
+    "@types/shelljs": "0.10.0",
     "@types/showdown": "2.0.6",
     "@types/vscode": "1.63.0",
     "@typescript-eslint/eslint-plugin": "8.24.0",
@@ -491,7 +491,7 @@
     "class-transformer": "0.5.1",
     "reflect-metadata": "0.2.2",
     "semver": "7.5.4",
-    "shelljs": "0.8.5",
+    "shelljs": "0.10.0",
     "showdown": "2.1.0",
     "showdown-highlight": "3.1.0",
     "tsyringe": "4.8.0"
