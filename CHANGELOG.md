@@ -5,8 +5,19 @@
 - Moved from yarn v1 to pnpm v10
 - Bumped `@eslint/js` to version 9.39.5
 - Bumped `eslint` to version 9.39.5
+- Bumped `@typescript-eslint/parser` to version 8.67.0
+- Bumped `typescript-eslint` to version 8.67.0
+- Bumped `@types/node` to version 26.2.0
+- Bumped `mocha` to version 11.8.0
+- Bundled `diff2html` locally (v3.4.56) instead of loading it from CDN
 - Removed `decompress`
 - Removed `@types/decompress`
+- Change automatic scanning for untrusted workspaces: Scan On Save is disabled in Restricted Mode
+- CLI related settings (`cliPath`, `cliAutoManaged`, `additionalParameters`, `apiUrl`, `appUrl`) can be set only in user settings, not in workspace settings
+- Added sanitization of rendered detection details
+- Verify downloaded CLI files on macOS before first use
+- Fixed swapped ignore by rule/path options
+- Removed unused `shelljs`, `@types/shelljs` and `semver`
 
 ## [v1.17.6]
 

@@ -1,6 +1,7 @@
 import * as path from 'path';
 import { Converter } from 'showdown';
 import showdownHighlight from 'showdown-highlight';
+import sanitizeHtml from 'sanitize-html';
 import { DetectionBase } from '../../../cli/models/scan-result/detection-base';
 import { ScaDetection } from '../../../cli/models/scan-result/sca/sca-detection';
 import { SecretDetection } from '../../../cli/models/scan-result/secret/secret-detection';
@@ -45,8 +46,24 @@ export const getDetectionForRender = (detectionType: CliScanType, detection: Det
   return enrichFunction ? enrichFunction(detection) : detection;
 };
 
+// markdown comes from BE/LLM and is rendered with innerHTML, so strip anything that could execute
+const _SANITIZE_OPTIONS: sanitizeHtml.IOptions = {
+  allowedTags: [...sanitizeHtml.defaults.allowedTags, 'img'],
+  allowedAttributes: {
+    a: ['href', 'target', 'rel'],
+    img: ['src', 'alt', 'title'],
+    pre: ['class'],
+    code: ['class'],
+    span: ['class'],
+  },
+  allowedSchemes: ['http', 'https', 'mailto'],
+  transformTags: {
+    a: sanitizeHtml.simpleTransform('a', { target: '_blank', rel: 'noopener noreferrer' }),
+  },
+};
+
 export const getMarkdownForRender = (markdown: string): string => {
-  return _MARKDOWN_CONVERTER.makeHtml(markdown);
+  return sanitizeHtml(_MARKDOWN_CONVERTER.makeHtml(markdown), _SANITIZE_OPTIONS);
 };
 
 const _updateDetectionDetailsFieldWithHtmlIfValid = (plainDetectionDetails: Record<string, string>, field: string) => {

@@ -192,10 +192,18 @@ export class CliDownloadService implements ICliDownloadService {
     this.logger.info(`Removing ${pathToZip}`);
     fs.unlinkSync(pathToZip);
 
+    // verify extracted files before making anything executable
+    const cliDirHashes = parseOnedirChecksumDb(assetAndFileChecksum.expectedChecksum);
+    if (Object.keys(cliDirHashes).length === 0 || !verifyDirContentChecksums(getPluginPath(), cliDirHashes)) {
+      this.logger.error('Downloaded CLI checksum verification failed. Removing downloaded files');
+      fs.rmSync(pathToCliDir, { recursive: true, force: true });
+      throw new Error('Downloaded CLI checksum verification failed');
+    }
+
     // set executable permissions
     fs.chmodSync(cliExecutableFile, '755');
 
-    this.state.CliDirHashes = parseOnedirChecksumDb(assetAndFileChecksum.expectedChecksum);
+    this.state.CliDirHashes = cliDirHashes;
     this.stateService.save();
   }
 

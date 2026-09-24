@@ -17,7 +17,6 @@ export const getUserAgentArg = () => {
     envVersion: config.envVersion,
   };
 
-  // escape double quotes
-  const userAgentString = JSON_.stringify(userAgent).replace(/"/g, '\\"');
-  return `${CommandParameters.UserAgent}="${userAgentString}"`;
+  // passed as a single argv entry (no shell), so no quoting or escaping is needed
+  return `${CommandParameters.UserAgent}=${JSON_.stringify(userAgent)}`;
 };

@@ -41,7 +41,7 @@ const renderDetection = detection => {
 
     const cwe = renderCweCveLink(detection.detectionDetails.vulnerabilityId);
     const severity = detection.severity;
-    ge('short-details').innerHTML = severity + ' | ' + cwe;
+    ge('short-details').innerHTML = escapeHtml(severity) + ' | ' + cwe;
 
     showElement('first-patched-version');
     ge('first-patched-version-value').innerText = detection.detectionDetails.alert.firstPatchedVersion;

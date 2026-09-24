@@ -22,6 +22,19 @@
     "node": ">=18.0.0",
     "vscode": "^1.63.0"
   },
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": "limited",
+      "description": "Scan on save is disabled in untrusted workspaces. Cycode CLI settings are taken from user settings only.",
+      "restrictedConfigurations": [
+        "cycode.cliPath",
+        "cycode.cliAutoManaged",
+        "cycode.additionalParameters",
+        "cycode.apiUrl",
+        "cycode.appUrl"
+      ]
+    }
+  },
   "activationEvents": [
     "onStartupFinished"
   ],
@@ -214,12 +227,14 @@
       "id": "cycode",
       "properties": {
         "cycode.cliAutoManaged": {
+          "scope": "machine",
           "type": "boolean",
           "default": true,
           "description": "Enable executable auto-management. If enabled, the extension will automatically download and manage the Cycode CLI. If disabled, you must provide the path to the Cycode CLI.",
           "markdownDescription": "Enable executable auto-management. If enabled, the extension will automatically download and manage the Cycode CLI. If disabled, you must provide the path to the Cycode CLI."
         },
         "cycode.cliPath": {
+          "scope": "machine",
           "type": "string",
           "default": "",
           "description": "Path to self-managed Cycode CLI executable.",
@@ -232,16 +247,19 @@
           "markdownDescription": "Scan your files upon save (excluding Code Security). If auto-scan disabled you can still trigger scans manually from the command palette or activity bar."
         },
         "cycode.additionalParameters": {
+          "scope": "machine",
           "type": "string",
           "default": "",
           "markdownDescription": "Additional parameters to pass to the Cycode CLI. See the [Cycode CLI documentation](https://github.com/cycodehq/cycode-cli#install-cycode-cli)."
         },
         "cycode.apiUrl": {
+          "scope": "machine",
           "type": "string",
           "default": "",
           "markdownDescription": "Changes the API URL when running CLI."
         },
         "cycode.appUrl": {
+          "scope": "machine",
           "type": "string",
           "default": "",
           "markdownDescription": "Changes the APP URL when running CLI."
@@ -471,27 +489,27 @@
     "@types/eslint__js": "8.42.3",
     "@types/glob": "8.1.0",
     "@types/mocha": "10.0.10",
-    "@types/node": "16.x",
-    "@types/shelljs": "0.8.11",
+    "@types/node": "~26.2.0",
+    "@types/sanitize-html": "2.16.1",
     "@types/showdown": "2.0.6",
     "@types/vscode": "1.63.0",
     "@typescript-eslint/eslint-plugin": "8.24.0",
-    "@typescript-eslint/parser": "8.24.0",
+    "@typescript-eslint/parser": "8.67.0",
+    "diff2html": "3.4.56",
     "eslint": "9.39.5",
     "glob": "8.1.0",
-    "mocha": "11.1.0",
+    "mocha": "11.8.0",
     "prettier": "3.5.1",
     "ts-loader": "9.5.2",
     "typescript": "5.7.3",
-    "typescript-eslint": "8.24.0",
+    "typescript-eslint": "8.67.0",
     "webpack": "5.104.1",
     "webpack-cli": "6.0.1"
   },
   "dependencies": {
     "class-transformer": "0.5.1",
     "reflect-metadata": "0.2.2",
-    "semver": "7.5.4",
-    "shelljs": "0.8.5",
+    "sanitize-html": "2.17.7",
     "showdown": "2.1.0",
     "showdown-highlight": "3.1.0",
     "tsyringe": "4.8.0"

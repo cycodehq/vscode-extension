@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { VscodeCommands } from '../../commands';
+import { applyWebviewCsp } from '../../utils/webview';
 
 export abstract class CycodeView implements vscode.WebviewViewProvider {
   protected _view?: vscode.WebviewView;
@@ -22,8 +23,8 @@ export abstract class CycodeView implements vscode.WebviewViewProvider {
       return;
     }
 
-    this._view.webview.options = { enableScripts: true };
-    this._view.webview.html = this.htmlContent;
+    this._view.webview.options = { enableScripts: true, localResourceRoots: [] };
+    this._view.webview.html = applyWebviewCsp(this.htmlContent, this._view.webview);
     this._view.webview.onDidReceiveMessage((message) => {
       const command = message?.command;
       if (Object.values(VscodeCommands).includes(command)) {
