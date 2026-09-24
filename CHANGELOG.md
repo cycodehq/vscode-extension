@@ -2,16 +2,15 @@
 
 ## [Unreleased]
 
-## [v1.17.7]
+## [v1.18.0]
 
-- Moved from yarn v1 to pnpm v10
 - Bumped `@eslint/js` to version 9.39.5
 - Bumped `eslint` to version 9.39.5
-- Bumped `@typescript-eslint/parser` to version 8.67.0
-- Bumped `@typescript-eslint/eslint-plugin` to version 8.67.0
-- Bumped `typescript-eslint` to version 8.67.0
-- Bumped `@types/node` to version 26.2.0
-- Bumped `mocha` to version 11.8.0
+- Bumped `@typescript-eslint/parser` to version 8.70.0
+- Bumped `@typescript-eslint/eslint-plugin` to version 8.70.0
+- Bumped `typescript-eslint` to version 8.70.0
+- Bumped `@types/node` to version 26.5.1
+- Bumped `mocha` to version 12.0.1
 - Bundled `diff2html` locally (v3.4.56) instead of loading it from CDN
 - Removed `decompress`
 - Removed `@types/decompress`
