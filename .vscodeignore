@@ -9,6 +9,7 @@ src/**
 .eslintignore
 .npmrc
 pnpm-lock.yaml
+pnpm-workspace.yaml
 webpack.config.js
 *.md
 **/tsconfig.json

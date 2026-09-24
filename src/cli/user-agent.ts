@@ -17,6 +17,5 @@ export const getUserAgentArg = () => {
     envVersion: config.envVersion,
   };
 
-  // passed as a single argv entry (no shell), so no quoting or escaping is needed
   return `${CommandParameters.UserAgent}=${JSON_.stringify(userAgent)}`;
 };

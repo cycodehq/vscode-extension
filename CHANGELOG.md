@@ -18,6 +18,9 @@
 - CLI related settings (`cliPath`, `cliAutoManaged`, `additionalParameters`, `apiUrl`, `appUrl`) can be set only in user settings, not in workspace settings
 - Added sanitization of rendered detection details
 - Verify downloaded CLI files on macOS before first use
+- Reject downloaded macOS CLI archives that contain files not listed in the checksum file
+- Increase minimal VS Code version to 1.66.0
+- Added a 7-day cooldown for new package versions (pnpm `minimumReleaseAge`)
 - Fixed swapped ignore by rule/path options
 - Removed unused `shelljs`, `@types/shelljs` and `semver`
 

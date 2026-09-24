@@ -45,6 +45,31 @@ export const verifyDirContentChecksums = (dirPath: string, checksums: Record<str
   return true;
 };
 
+/*
+ * returns paths of all files inside dirPath, relative to rootPath (the same format as in the checksum db).
+ * returns null if the directory contains anything except regular files and directories (e.g. symlinks)
+ */
+export const listDirFiles = (rootPath: string, dirPath: string): string[] | null => {
+  const files: string[] = [];
+  for (const entry of fs.readdirSync(dirPath, { withFileTypes: true })) {
+    const entryPath = path.join(dirPath, entry.name);
+    if (entry.isDirectory()) {
+      const nestedFiles = listDirFiles(rootPath, entryPath);
+      if (nestedFiles === null) {
+        return null;
+      }
+
+      files.push(...nestedFiles);
+    } else if (entry.isFile()) {
+      files.push(path.relative(rootPath, entryPath));
+    } else {
+      return null;
+    }
+  }
+
+  return files;
+};
+
 export const parseOnedirChecksumDb = (rawChecksumDb: string): Record<string, string> => {
   const checksums: Record<string, string> = {};
   for (const line of rawChecksumDb.split('\n')) {

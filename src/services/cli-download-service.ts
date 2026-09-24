@@ -9,7 +9,12 @@ import {
   getPluginPath,
   REQUIRED_CLI_VERSION,
 } from '../constants';
-import { parseOnedirChecksumDb, verifyDirContentChecksums, verifyFileChecksum } from '../utils/file-checksum';
+import {
+  listDirFiles,
+  parseOnedirChecksumDb,
+  verifyDirContentChecksums,
+  verifyFileChecksum,
+} from '../utils/file-checksum';
 import { unzip } from '../utils/unzip';
 import { inject, injectable } from 'tsyringe';
 import {
@@ -186,6 +191,10 @@ export class CliDownloadService implements ICliDownloadService {
     const cliExecutableFile = getDefaultCliPath();
 
     const pathToCliDir = path.dirname(cliExecutableFile);
+
+    // remove the previous CLI version, so only files from the new archive are left in the directory
+    fs.rmSync(pathToCliDir, { recursive: true, force: true });
+
     this.logger.info(`Decompressing ${pathToZip} to ${pathToCliDir}`);
     await unzip(pathToZip, pathToCliDir);
 
@@ -194,7 +203,7 @@ export class CliDownloadService implements ICliDownloadService {
 
     // verify extracted files before making anything executable
     const cliDirHashes = parseOnedirChecksumDb(assetAndFileChecksum.expectedChecksum);
-    if (Object.keys(cliDirHashes).length === 0 || !verifyDirContentChecksums(getPluginPath(), cliDirHashes)) {
+    if (!this.isOnedirCliContentValid(pathToCliDir, cliDirHashes)) {
       this.logger.error('Downloaded CLI checksum verification failed. Removing downloaded files');
       fs.rmSync(pathToCliDir, { recursive: true, force: true });
       throw new Error('Downloaded CLI checksum verification failed');
@@ -205,6 +214,21 @@ export class CliDownloadService implements ICliDownloadService {
 
     this.state.CliDirHashes = cliDirHashes;
     this.stateService.save();
+  }
+
+  private isOnedirCliContentValid(pathToCliDir: string, cliDirHashes: Record<string, string>): boolean {
+    const expectedFiles = new Set(Object.keys(cliDirHashes));
+    if (expectedFiles.size === 0) {
+      return false;
+    }
+
+    // the directory must contain exactly the files listed in the checksum db, nothing more
+    const extractedFiles = listDirFiles(getPluginPath(), pathToCliDir);
+    if (extractedFiles?.length !== expectedFiles.size || !extractedFiles.every((file) => expectedFiles.has(file))) {
+      return false;
+    }
+
+    return verifyDirContentChecksums(getPluginPath(), cliDirHashes);
   }
 
   async downloadSingleCliExecutable(): Promise<void> {

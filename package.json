@@ -19,8 +19,8 @@
     "Other"
   ],
   "engines": {
-    "node": ">=18.0.0",
-    "vscode": "^1.63.0"
+    "node": ">=22.12.0",
+    "vscode": "^1.66.0"
   },
   "capabilities": {
     "untrustedWorkspaces": {

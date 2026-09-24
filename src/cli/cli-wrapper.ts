@@ -65,7 +65,6 @@ export class CliWrapper {
     const defaultCliArgs = [CommandParameters.OutputFormatJson, getUserAgentArg()];
     const commandParams = [...config.additionalParams, ...defaultCliArgs, ...args];
 
-    // log only the command itself; the rest of args may contain sensitive values (e.g. ignored secret)
     const executedCommand = `${config.cliPath} ${[...defaultCliArgs, ...args.slice(0, 3)].join(' ')} ...`;
     this.logger.debug(`Running command: "${executedCommand}"`);
 
@@ -110,7 +109,6 @@ export class CliWrapper {
       });
 
       childProcess.stdout.on('data', (data) => {
-        // do not log stdout content: it contains detected secret values
         this.logger.debug(`Command stdout: received ${data.length} bytes`);
 
         if (!data) {
