@@ -89,13 +89,12 @@ const _getScaDetectionForRender = (detection: ScaDetection): object => {
   renderedDetection.detectionDetails.description
       = detection.detectionDetails.alert?.description || detection.detectionDetails.description;
   _updateDetectionDetailsFieldWithHtmlIfValid(renderedDetection.detectionDetails, 'description');
+  _updateDetectionDetailsFieldWithHtmlIfValid(renderedDetection.detectionDetails, 'customRemediationGuidelines');
+  _updateDetectionDetailsFieldWithHtmlIfValid(renderedDetection.detectionDetails, 'remediationGuidelines');
 
   if (!detection.detectionDetails.alert) {
     return renderedDetection;
   }
-
-  _updateDetectionDetailsFieldWithHtmlIfValid(renderedDetection.detectionDetails, 'customRemediationGuidelines');
-  _updateDetectionDetailsFieldWithHtmlIfValid(renderedDetection.detectionDetails, 'remediationGuidelines');
 
   if (!detection.detectionDetails.alert.firstPatchedVersion) {
     renderedDetection.detectionDetails.alert.firstPatchedVersion = 'Not fixed';

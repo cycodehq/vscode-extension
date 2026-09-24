@@ -55,7 +55,7 @@ export class CycodeService implements ICycodeService {
           return await fn(cancellationToken);
         } catch (error: unknown) {
           if (error instanceof Error) {
-            this.logger.error(`Error during progress: ${error.message}. FN: ${fn}`);
+            this.logger.error(`Error during progress: ${error.message}`);
             vscode.window.showErrorMessage(`Cycode error: ${error.message}`);
           }
         } finally {

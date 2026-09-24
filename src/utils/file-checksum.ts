@@ -30,8 +30,14 @@ export const verifyFileChecksum = (filePath: string, checksum: string): boolean 
 };
 
 export const verifyDirContentChecksums = (dirPath: string, checksums: Record<string, string>): boolean => {
+  const rootPath = path.resolve(dirPath);
   for (const [file, checksum] of Object.entries(checksums)) {
-    if (!verifyFileChecksum(path.join(dirPath, file), checksum)) {
+    const filePath = path.resolve(rootPath, file);
+    if (!filePath.startsWith(rootPath + path.sep)) {
+      return false;
+    }
+
+    if (!verifyFileChecksum(filePath, checksum)) {
       return false;
     }
   }

@@ -91,7 +91,7 @@ export const validateConfig = () => {
       return null;
     }
 
-    if (!url.startsWith('https')) {
+    if (!url.startsWith('https://')) {
       const message = `URLs must start with https: ${url}`;
       showSettingsError(message);
 
