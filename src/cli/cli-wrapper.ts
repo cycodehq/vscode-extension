@@ -119,7 +119,7 @@ export class CliWrapper {
       });
 
       childProcess.stderr.on('data', (data) => {
-        this.logger.debug(`Command stderr: ${data.toString()}`);
+        this.logger.debug(`Command stderr: received ${data.length} bytes`);
 
         if (!data) {
           return;

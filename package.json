@@ -472,6 +472,8 @@
   },
   "scripts": {
     "lint": "eslint src",
+    "compile-tests": "tsc -p . --outDir out",
+    "test": "pnpm run compile-tests && mocha --ui tdd --require out/test/setup.js \"out/test/**/*.test.js\"",
     "watch": "webpack --watch",
     "compile": "webpack",
     "package": "webpack --mode production",
@@ -493,7 +495,7 @@
     "@types/sanitize-html": "2.16.1",
     "@types/showdown": "2.0.6",
     "@types/vscode": "1.63.0",
-    "@typescript-eslint/eslint-plugin": "8.24.0",
+    "@typescript-eslint/eslint-plugin": "8.67.0",
     "@typescript-eslint/parser": "8.67.0",
     "diff2html": "3.4.56",
     "eslint": "9.39.5",

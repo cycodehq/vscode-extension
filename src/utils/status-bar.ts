@@ -96,7 +96,7 @@ export const showCliPathError = () => {
   });
 };
 
-const module = {
+const statusBarModule = {
   create: getStatusBar,
   update,
   showDefault,
@@ -111,4 +111,4 @@ const module = {
   },
 };
 
-export default module;
+export default statusBarModule;

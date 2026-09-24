@@ -5,6 +5,7 @@ import { ExtensionServiceSymbol, LoggerServiceSymbol, ScanResultsServiceSymbol, 
 import { GlobalExtensionState, IStateService, TemporaryExtensionState } from './state-service';
 import { ILoggerService } from './logger-service';
 import { CliWrapper } from '../cli/cli-wrapper';
+import { isPathInsideAnyRoot } from '../utils/path-containment';
 import { CliResult, isCliResultError, isCliResultPanic, isCliResultSuccess } from '../cli/models/cli-result';
 import { ExitCode } from '../cli/exit-code';
 import { ScanResultBase } from '../cli/models/scan-result/scan-result-base';
@@ -124,11 +125,26 @@ export class CliService implements ICliService {
   }
 
   private async processCliScanResult(
-    scanType: CliScanType, detections: DetectionBase[], onDemand: boolean,
+    scanType: CliScanType, detections: DetectionBase[], scannedPaths: string[], onDemand: boolean,
   ): Promise<void> {
-    this.scanResultsService.setDetections(scanType, detections);
+    /*
+     * detections are used to open and read files (e.g. to get the detected value for ignoring).
+     * accept only detections of the files that we asked to scan.
+     * it also rejects symlinks which point outside of the scanned paths
+     */
+    const acceptedDetections = detections.filter((detection) => {
+      return isPathInsideAnyRoot(detection.detectionDetails.getFilepath(), scannedPaths);
+    });
+    if (acceptedDetections.length !== detections.length) {
+      this.logger.warn(
+        `[processCliScanResult] Skipped ${detections.length - acceptedDetections.length} detections `
+        + 'with file paths outside of the scanned paths',
+      );
+    }
+
+    this.scanResultsService.setDetections(scanType, acceptedDetections);
     await this.extensionService.refreshProviders();
-    this.showScanResultsNotification(scanType, detections.length, onDemand);
+    this.showScanResultsNotification(scanType, acceptedDetections.length, onDemand);
   }
 
   public async syncStatus(cancellationToken?: CancellationToken): Promise<void> {
@@ -256,7 +272,7 @@ export class CliService implements ICliService {
       return;
     }
 
-    await this.processCliScanResult(CliScanType.Secret, results.result.detections, onDemand);
+    await this.processCliScanResult(CliScanType.Secret, results.result.detections, paths, onDemand);
   }
 
   public async scanPathsSca(
@@ -268,7 +284,7 @@ export class CliService implements ICliService {
       return;
     }
 
-    await this.processCliScanResult(CliScanType.Sca, results.result.detections, onDemand);
+    await this.processCliScanResult(CliScanType.Sca, results.result.detections, paths, onDemand);
   }
 
   public async scanPathsIac(
@@ -289,7 +305,7 @@ export class CliService implements ICliService {
       return fs.existsSync(detection.detectionDetails.fileName);
     });
 
-    await this.processCliScanResult(CliScanType.Iac, results.result.detections, onDemand);
+    await this.processCliScanResult(CliScanType.Iac, results.result.detections, paths, onDemand);
   }
 
   public async scanPathsSast(
@@ -301,7 +317,7 @@ export class CliService implements ICliService {
       return;
     }
 
-    await this.processCliScanResult(CliScanType.Sast, results.result.detections, onDemand);
+    await this.processCliScanResult(CliScanType.Sast, results.result.detections, paths, onDemand);
   }
 
   public async getAiRemediation(

@@ -1,4 +1,4 @@
-name: Lint and build
+name: Lint, build, test
 
 on:
   push:
@@ -45,6 +45,9 @@ jobs:
 
       - name: Run linter check
         run: pnpm lint
+
+      - name: Run tests
+        run: pnpm test
 
       - name: Build extension
         run: pnpm dlx @vscode/vsce package --no-dependencies

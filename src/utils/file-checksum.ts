@@ -80,3 +80,23 @@ export const parseOnedirChecksumDb = (rawChecksumDb: string): Record<string, str
   }
   return checksums;
 };
+
+/*
+ * checks that dirPath contains exactly the files listed in the checksum db (nothing more, nothing less)
+ * and that all of them have the expected checksum. paths in the checksum db are relative to rootPath
+ */
+export const verifyDirContentExactly = (
+  rootPath: string, dirPath: string, checksums: Record<string, string>,
+): boolean => {
+  const expectedFiles = new Set(Object.keys(checksums));
+  if (expectedFiles.size === 0) {
+    return false;
+  }
+
+  const actualFiles = listDirFiles(rootPath, dirPath);
+  if (actualFiles?.length !== expectedFiles.size || !actualFiles.every((file) => expectedFiles.has(file))) {
+    return false;
+  }
+
+  return verifyDirContentChecksums(rootPath, checksums);
+};
