@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [v1.17.7]
+
 - Moved from yarn v1 to pnpm v10
 - Bumped `@eslint/js` to version 9.39.5
 - Bumped `eslint` to version 9.39.5
