@@ -491,7 +491,7 @@
     "@types/eslint__js": "8.42.3",
     "@types/glob": "8.1.0",
     "@types/mocha": "10.0.10",
-    "@types/node": "~26.2.0",
+    "@types/node": "~26.5.1",
     "@types/sanitize-html": "2.16.1",
     "@types/showdown": "2.0.6",
     "@types/vscode": "1.63.0",
