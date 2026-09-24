@@ -5,6 +5,7 @@ import { ExtensionServiceSymbol, LoggerServiceSymbol, ScanResultsServiceSymbol, 
 import { GlobalExtensionState, IStateService, TemporaryExtensionState } from './state-service';
 import { ILoggerService } from './logger-service';
 import { CliWrapper } from '../cli/cli-wrapper';
+import { isPathInsideAnyRoot } from '../utils/path-containment';
 import { CliResult, isCliResultError, isCliResultPanic, isCliResultSuccess } from '../cli/models/cli-result';
 import { ExitCode } from '../cli/exit-code';
 import { ScanResultBase } from '../cli/models/scan-result/scan-result-base';
@@ -124,11 +125,26 @@ export class CliService implements ICliService {
   }
 
   private async processCliScanResult(
-    scanType: CliScanType, detections: DetectionBase[], onDemand: boolean,
+    scanType: CliScanType, detections: DetectionBase[], scannedPaths: string[], onDemand: boolean,
   ): Promise<void> {
-    this.scanResultsService.setDetections(scanType, detections);
+    /*
+     * detections are used to open and read files (e.g. to get the detected value for ignoring).
+     * accept only detections of the files that we asked to scan.
+     * it also rejects symlinks which point outside of the scanned paths
+     */
+    const acceptedDetections = detections.filter((detection) => {
+      return isPathInsideAnyRoot(detection.detectionDetails.getFilepath(), scannedPaths);
+    });
+    if (acceptedDetections.length !== detections.length) {
+      this.logger.warn(
+        `[processCliScanResult] Skipped ${detections.length - acceptedDetections.length} detections `
+        + 'with file paths outside of the scanned paths',
+      );
+    }
+
+    this.scanResultsService.setDetections(scanType, acceptedDetections);
     await this.extensionService.refreshProviders();
-    this.showScanResultsNotification(scanType, detections.length, onDemand);
+    this.showScanResultsNotification(scanType, acceptedDetections.length, onDemand);
   }
 
   public async syncStatus(cancellationToken?: CancellationToken): Promise<void> {
@@ -185,9 +201,9 @@ export class CliService implements ICliService {
       case CliIgnoreType.Value:
         return CommandParameters.ByValue;
       case CliIgnoreType.Rule:
-        return CommandParameters.ByPath;
-      case CliIgnoreType.Path:
         return CommandParameters.ByRule;
+      case CliIgnoreType.Path:
+        return CommandParameters.ByPath;
       case CliIgnoreType.Cve:
         return CommandParameters.ByCve;
       default:
@@ -221,9 +237,8 @@ export class CliService implements ICliService {
   private async scanPaths<T extends ClassConstructor<unknown>>(
     classConst: T, paths: string[], scanType: CliScanType, cancellationToken?: CancellationToken,
   ): Promise<CliResult<T> | null> {
-    const isolatedPaths: string[] = paths.map((path) => `"${path}"`);
     const scanOptions = this.getCliScanOptions(scanType);
-    const args = [CliCommands.Scan, '-t', scanType.toLowerCase(), ...scanOptions, CliCommands.Path, ...isolatedPaths];
+    const args = [CliCommands.Scan, '-t', scanType.toLowerCase(), ...scanOptions, CliCommands.Path, ...paths];
     return this.processCliResult(await this.cli.executeCommand(classConst, args, cancellationToken));
   }
 
@@ -249,7 +264,7 @@ export class CliService implements ICliService {
   }
 
   public async scanPathsSecrets(
-    paths: string[], onDemand = false, cancellationToken: CancellationToken | undefined = undefined,
+    paths: string[], onDemand = false, cancellationToken?: CancellationToken,
   ): Promise<void> {
     const results = await this.scanPaths(SecretScanResult, paths, CliScanType.Secret, cancellationToken);
     if (!isCliResultSuccess<SecretScanResult>(results)) {
@@ -257,11 +272,11 @@ export class CliService implements ICliService {
       return;
     }
 
-    await this.processCliScanResult(CliScanType.Secret, results.result.detections, onDemand);
+    await this.processCliScanResult(CliScanType.Secret, results.result.detections, paths, onDemand);
   }
 
   public async scanPathsSca(
-    paths: string[], onDemand = false, cancellationToken: CancellationToken | undefined = undefined,
+    paths: string[], onDemand = false, cancellationToken?: CancellationToken,
   ): Promise<void> {
     const results = await this.scanPaths(ScaScanResult, paths, CliScanType.Sca, cancellationToken);
     if (!isCliResultSuccess<ScaScanResult>(results)) {
@@ -269,11 +284,11 @@ export class CliService implements ICliService {
       return;
     }
 
-    await this.processCliScanResult(CliScanType.Sca, results.result.detections, onDemand);
+    await this.processCliScanResult(CliScanType.Sca, results.result.detections, paths, onDemand);
   }
 
   public async scanPathsIac(
-    paths: string[], onDemand = false, cancellationToken: CancellationToken | undefined = undefined,
+    paths: string[], onDemand = false, cancellationToken?: CancellationToken,
   ): Promise<void> {
     const results = await this.scanPaths(IacScanResult, paths, CliScanType.Iac, cancellationToken);
     if (!isCliResultSuccess<IacScanResult>(results)) {
@@ -290,11 +305,11 @@ export class CliService implements ICliService {
       return fs.existsSync(detection.detectionDetails.fileName);
     });
 
-    await this.processCliScanResult(CliScanType.Iac, results.result.detections, onDemand);
+    await this.processCliScanResult(CliScanType.Iac, results.result.detections, paths, onDemand);
   }
 
   public async scanPathsSast(
-    paths: string[], onDemand = false, cancellationToken: CancellationToken | undefined = undefined,
+    paths: string[], onDemand = false, cancellationToken?: CancellationToken,
   ): Promise<void> {
     const results = await this.scanPaths(SastScanResult, paths, CliScanType.Sast, cancellationToken);
     if (!isCliResultSuccess<SastScanResult>(results)) {
@@ -302,11 +317,11 @@ export class CliService implements ICliService {
       return;
     }
 
-    await this.processCliScanResult(CliScanType.Sast, results.result.detections, onDemand);
+    await this.processCliScanResult(CliScanType.Sast, results.result.detections, paths, onDemand);
   }
 
   public async getAiRemediation(
-    detectionId: string, cancellationToken: CancellationToken | undefined = undefined,
+    detectionId: string, cancellationToken?: CancellationToken,
   ): Promise<AiRemediationResultData | null> {
     const result = await this.cli.executeCommand(
       AiRemediationResult, [CliCommands.AiRemediation, detectionId], cancellationToken,

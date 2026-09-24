@@ -2,11 +2,30 @@
 
 ## [Unreleased]
 
+## [v1.17.7]
+
 - Moved from yarn v1 to pnpm v10
 - Bumped `@eslint/js` to version 9.39.5
 - Bumped `eslint` to version 9.39.5
+- Bumped `@typescript-eslint/parser` to version 8.67.0
+- Bumped `@typescript-eslint/eslint-plugin` to version 8.67.0
+- Bumped `typescript-eslint` to version 8.67.0
+- Bumped `@types/node` to version 26.2.0
+- Bumped `mocha` to version 11.8.0
+- Bundled `diff2html` locally (v3.4.56) instead of loading it from CDN
 - Removed `decompress`
 - Removed `@types/decompress`
+- Change automatic scanning for untrusted workspaces: Scan On Save is disabled in Restricted Mode
+- CLI related settings (`cliPath`, `cliAutoManaged`, `additionalParameters`, `apiUrl`, `appUrl`) can be set only in user settings, not in workspace settings
+- Added sanitization of rendered detection details
+- Verify downloaded CLI files on macOS before first use
+- Reject downloaded macOS CLI archives that contain files not listed in the checksum file
+- Replace the macOS CLI only after the new version is extracted and verified, so a failed update keeps the previous CLI
+- Increase minimal VS Code version to 1.66.0 (the extension host must provide Node.js 16.9+, VS Code 1.65 and older use Node.js 14). Building the extension requires Node.js 22.12+
+- Added unit tests
+- Added a 7-day cooldown for new package versions (pnpm `minimumReleaseAge`)
+- Fixed swapped ignore by rule/path options
+- Removed unused `shelljs`, `@types/shelljs` and `semver`
 
 ## [v1.17.6]
 

@@ -9,7 +9,12 @@ import {
   getPluginPath,
   REQUIRED_CLI_VERSION,
 } from '../constants';
-import { parseOnedirChecksumDb, verifyDirContentChecksums, verifyFileChecksum } from '../utils/file-checksum';
+import {
+  parseOnedirChecksumDb,
+  verifyDirContentChecksums,
+  verifyDirContentExactly,
+  verifyFileChecksum,
+} from '../utils/file-checksum';
 import { unzip } from '../utils/unzip';
 import { inject, injectable } from 'tsyringe';
 import {
@@ -183,20 +188,67 @@ export class CliDownloadService implements ICliDownloadService {
      */
     await this.downloadService.downloadFile(assetAndFileChecksum.asset.browser_download_url, undefined, pathToZip);
 
-    const cliExecutableFile = getDefaultCliPath();
+    const pathToCliDir = path.dirname(getDefaultCliPath());
+    const cliDirHashes = parseOnedirChecksumDb(assetAndFileChecksum.expectedChecksum);
 
-    const pathToCliDir = path.dirname(cliExecutableFile);
-    this.logger.info(`Decompressing ${pathToZip} to ${pathToCliDir}`);
-    await unzip(pathToZip, pathToCliDir);
+    /*
+     * the new CLI is extracted and verified in a staging directory first.
+     * the active CLI directory is replaced only after the verification succeeds,
+     * so a failed download or extraction keeps the previous working CLI.
+     * the staging directory keeps the same layout (<root>/cycode-cli/...) as paths in the checksum db
+     */
+    const pathToStagingRoot = path.join(getPluginPath(), 'cycode-cli-staging');
+    const pathToStagingCliDir = path.join(pathToStagingRoot, path.basename(pathToCliDir));
+    fs.rmSync(pathToStagingRoot, { recursive: true, force: true });
 
-    this.logger.info(`Removing ${pathToZip}`);
-    fs.unlinkSync(pathToZip);
+    try {
+      try {
+        this.logger.info(`Decompressing ${pathToZip} to ${pathToStagingCliDir}`);
+        await unzip(pathToZip, pathToStagingCliDir);
+      } finally {
+        this.logger.info(`Removing ${pathToZip}`);
+        fs.rmSync(pathToZip, { force: true });
+      }
 
-    // set executable permissions
-    fs.chmodSync(cliExecutableFile, '755');
+      // verify extracted files before making anything executable
+      if (!verifyDirContentExactly(pathToStagingRoot, pathToStagingCliDir, cliDirHashes)) {
+        this.logger.error('Downloaded CLI checksum verification failed. Keeping the previous CLI');
+        throw new Error('Downloaded CLI checksum verification failed');
+      }
 
-    this.state.CliDirHashes = parseOnedirChecksumDb(assetAndFileChecksum.expectedChecksum);
+      // set executable permissions
+      fs.chmodSync(path.join(pathToStagingCliDir, path.basename(getDefaultCliPath())), '755');
+
+      this.replaceDir(pathToCliDir, pathToStagingCliDir);
+    } finally {
+      fs.rmSync(pathToStagingRoot, { recursive: true, force: true });
+    }
+
+    this.state.CliDirHashes = cliDirHashes;
     this.stateService.save();
+  }
+
+  private replaceDir(pathToActiveDir: string, pathToNewDir: string): void {
+    const pathToPreviousDir = `${pathToActiveDir}-previous`;
+    fs.rmSync(pathToPreviousDir, { recursive: true, force: true });
+
+    const hasActiveDir = fs.existsSync(pathToActiveDir);
+    if (hasActiveDir) {
+      fs.renameSync(pathToActiveDir, pathToPreviousDir);
+    }
+
+    try {
+      fs.renameSync(pathToNewDir, pathToActiveDir);
+    } catch (error) {
+      if (hasActiveDir) {
+        // restore the previous CLI
+        fs.renameSync(pathToPreviousDir, pathToActiveDir);
+      }
+
+      throw error;
+    }
+
+    fs.rmSync(pathToPreviousDir, { recursive: true, force: true });
   }
 
   async downloadSingleCliExecutable(): Promise<void> {

@@ -45,6 +45,8 @@ export class CycodeService implements ICycodeService {
     fn: (cancellationToken: vscode.CancellationToken) => Promise<T>,
     options: ProgressOptions = { cancellable: true, location: vscode.ProgressLocation.Notification },
   ): Promise<T> {
+    // the cast is required by tsc because the catch block returns undefined
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
     return vscode.window.withProgress(
       options,
       async (progress: ProgressBar, cancellationToken: vscode.CancellationToken) => {
@@ -53,7 +55,7 @@ export class CycodeService implements ICycodeService {
           return await fn(cancellationToken);
         } catch (error: unknown) {
           if (error instanceof Error) {
-            this.logger.error(`Error during progress: ${error.message}. FN: ${fn}`);
+            this.logger.error(`Error during progress: ${error.message}`);
             vscode.window.showErrorMessage(`Cycode error: ${error.message}`);
           }
         } finally {

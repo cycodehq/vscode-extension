@@ -13,6 +13,7 @@ import { CliScanType } from '../../../cli/models/cli-scan-type';
 import { ILoggerService } from '../../../services/logger-service';
 import { ICycodeService } from '../../../services/cycode-service';
 import { ScaDetection } from '../../../cli/models/scan-result/sca/sca-detection';
+import { applyWebviewCsp } from '../../../utils/webview';
 
 const _SEVERITY_NAMES: readonly string[] = ['Critical', 'High', 'Medium', 'Low', 'Info'];
 
@@ -187,22 +188,22 @@ const _getOnDidReceiveMessage = (panel: vscode.WebviewPanel, onLoadResolve: (val
   };
 };
 
-const _initPanel = async (scanType: CliScanType, panel: vscode.WebviewPanel, context?: vscode.ExtensionContext) => {
+const _getDiff2htmlScriptUri = (context: vscode.ExtensionContext, panel: vscode.WebviewPanel): string => {
+  const onDiskPath = vscode.Uri.joinPath(context.extensionUri, 'resources', 'webview', 'diff2html-ui.min.js');
+  return panel.webview.asWebviewUri(onDiskPath).toString();
+};
+
+const _initPanel = async (scanType: CliScanType, panel: vscode.WebviewPanel, context: vscode.ExtensionContext) => {
   // the promise is resolved when the webview is ready to receive messages
   await new Promise((resolve) => {
-    let subscriptions;
-    if (context) {
-      subscriptions = context.subscriptions;
-    }
-
     panel.webview.onDidReceiveMessage(_getOnDidReceiveMessage(panel, resolve));
-    panel.webview.html = content(scanType);
+    panel.webview.html = applyWebviewCsp(content(scanType, _getDiff2htmlScriptUri(context, panel)), panel.webview);
     panel.onDidDispose(
       () => {
         removePanel(scanType);
       },
       null,
-      subscriptions,
+      context.subscriptions,
     );
   });
 };
@@ -216,7 +217,7 @@ export const createAndInitPanel = async (
   if (panel) {
     revealPanel(scanType);
   } else {
-    panel = createPanel(scanType);
+    panel = createPanel(scanType, context.extensionUri);
     await _initPanel(scanType, panel, context); // awaits script loading
   }
 
