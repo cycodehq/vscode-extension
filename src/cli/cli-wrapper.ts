@@ -28,7 +28,7 @@ export class CliWrapper {
     if (classConst == null) {
       // in case when we do not expect any output and want just call command like "ignore" command
       this.logger.debug('No classConst provided. Returning CliResultSuccess(null)');
-      return new CliResultSuccess(null);
+      return new CliResultSuccess(null as unknown as T);
     }
 
     let camelCasedObj;
