@@ -514,6 +514,6 @@
     "sanitize-html": "2.17.7",
     "showdown": "2.1.0",
     "showdown-highlight": "3.1.0",
-    "tsyringe": "4.8.0"
+    "tsyringe": "4.10.0"
   }
 }
