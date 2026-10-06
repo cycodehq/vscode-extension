@@ -46,8 +46,8 @@ importers:
         specifier: 10.0.10
         version: 10.0.10
       '@types/node':
-        specifier: ~26.5.1
-        version: 26.5.1
+        specifier: ~26.6.3
+        version: 26.6.3
       '@types/sanitize-html':
         specifier: 2.16.1
         version: 2.16.1
@@ -208,8 +208,8 @@ packages:
   '@types/mocha@10.0.10':
     resolution: {integrity: sha512-xPyYSz1cMPnJQhl0CLMH68j3gprKZaTjG3s5Vi+fDgx+uhG9NOXwbVt52eFS8ECyXhyKcjDLCBEqBExKuiZb7Q==}
 
-  '@types/node@26.5.1':
-    resolution: {integrity: sha512-CzNm2FezW4VR/LjG6yUdiEgLE/rAQ9Slj5gCu/C2VrdcW7I0ahNZ8DRbHT7zOZ6r3ONgd/bsQIeSaoDGrd1C6g==}
+  '@types/node@26.6.3':
+    resolution: {integrity: sha512-dsqMQQoeTLqu9wynDD00q573mNzso3IdQOAfHRJqLCcmCFPoGo9A1bDpUcv/9tnKpErQWv9uKeGfl37EIS02Yg==}
 
   '@types/sanitize-html@2.16.1':
     resolution: {integrity: sha512-n9wjs8bCOTyN/ynwD8s/nTcTreIHB1vf31vhLMGqUPNHaweKC4/fAl4Dj+hUlCTKYgm4P3k83fmiFfzkZ6sgMA==}
@@ -1493,7 +1493,7 @@ snapshots:
   '@types/glob@8.1.0':
     dependencies:
       '@types/minimatch': 5.1.2
-      '@types/node': 26.5.1
+      '@types/node': 26.6.3
 
   '@types/json-schema@7.0.15': {}
 
@@ -1501,7 +1501,7 @@ snapshots:
 
   '@types/mocha@10.0.10': {}
 
-  '@types/node@26.5.1':
+  '@types/node@26.6.3':
     dependencies:
       undici-types: 8.9.0
 
@@ -2189,7 +2189,7 @@ snapshots:
 
   jest-worker@27.5.1:
     dependencies:
-      '@types/node': 26.5.1
+      '@types/node': 26.6.3
       merge-stream: 2.0.0
       supports-color: 8.1.1
 
