@@ -2,6 +2,8 @@ import { CliScanType } from './models/cli-scan-type';
 
 export enum CliCommands {
   Path = 'path',
+  CommitHistory = 'commit-history',
+  PreCommit = 'pre-commit',
   Scan = 'scan',
   Auth = 'auth',
   Ignore = 'ignore',
@@ -17,7 +19,15 @@ export enum CommandParameters {
   ByPath = '--by-path',
   UserAgent = '--user-agent',
   scanType = '--scan-type',
+  CommitRange = '--commit-range',
+  // "local diff" scanning (IDE use case) is `pre-commit --include-unstaged`, not its own command
+  BaseRef = '--base-ref',
+  IncludeUnstaged = '--include-unstaged',
+  Path = '--path',
 }
+
+// minimum Cycode CLI version that supports the Diff scan scope (commit-history/pre-commit --include-unstaged)
+export const MIN_CLI_VERSION_FOR_DIFF_SCAN = '3.25.0';
 
 const SCAN_TYPE_TO_SCAN_TYPE_CLI_FLAG_VALUE = {
   [CliScanType.Secret]: 'secret',

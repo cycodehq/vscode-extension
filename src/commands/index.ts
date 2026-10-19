@@ -17,6 +17,7 @@ import treeViewCollapseAllCommand from './tree-view-collapse-all-command';
 import runAllScansCommand from './run-all-scans-command';
 import clearAllScanResultsCommand from './clear-all-scan-results-command';
 import registerTreeViewSeverityFilterCommands from './tree-view-filter-by-severity-command';
+import registerScanScopeCommands from './set-scan-scope-command';
 
 export enum VscodeCommands {
   SecretScanCommandId = 'cycode.secretScan',
@@ -27,6 +28,12 @@ export enum VscodeCommands {
   SastScanCommandId = 'cycode.sastScan',
   SastScanForProjectCommandId = 'cycode.sastScanForProject',
   RunAllScansCommandId = 'cycode.runAllScans',
+
+  SetScanScopeProjectCommandId = 'cycode.setScanScopeProject',
+  SetScanScopeDiffCommandId = 'cycode.setScanScopeDiff',
+  SetScanScopeFileCommandId = 'cycode.setScanScopeFile',
+  SetScanDiffFromRefCommandId = 'cycode.setScanDiffFromRef',
+  SetScanDiffToRefCommandId = 'cycode.setScanDiffToRef',
 
   AuthCommandId = 'cycode.auth',
   IgnoreCommandId = 'cycode.ignore',
@@ -77,4 +84,5 @@ export const registerCommands = (context: vscode.ExtensionContext): void => {
   }
 
   registerTreeViewSeverityFilterCommands(context);
+  registerScanScopeCommands(context);
 };

@@ -1,0 +1,186 @@
+import { execFile, ExecFileException } from 'node:child_process';
+import { inject, singleton } from 'tsyringe';
+import { LoggerServiceSymbol } from '../symbols';
+import { ILoggerService } from './logger-service';
+
+export interface GitRefOption {
+  value: string;
+  label: string;
+}
+
+export interface IGitService {
+  /**
+   * Lists branches, tags and recent commits. `pinnedRefs` (e.g. the user's stored selection) that are not
+   * part of that list but still resolve to a commit are included too, described like the recent commits.
+   */
+  getAvailableRefs(cwd: string, pinnedRefs?: string[]): Promise<GitRefOption[]>;
+}
+
+const MAX_RECENT_COMMITS = 20;
+const MAX_BRANCHES_AND_TAGS = 20;
+const COMMIT_HASH_REGEX = /^[0-9a-f]{4,40}$/i;
+
+@singleton()
+export class GitService implements IGitService {
+  constructor(@inject(LoggerServiceSymbol) private logger: ILoggerService) {}
+
+  private runGit(args: string[], cwd: string): Promise<string> {
+    return new Promise((resolve, reject) => {
+      // execFile does not spawn a shell, so args are passed as an argv array rather than interpolated
+      execFile('git', args, { cwd }, (error, stdout) => {
+        if (error) {
+          reject(error);
+          return;
+        }
+
+        resolve(stdout);
+      });
+    });
+  }
+
+  private async getCurrentBranch(cwd: string): Promise<string | null> {
+    const stdout = await this.runGit(['rev-parse', '--abbrev-ref', 'HEAD'], cwd);
+    const branch = stdout.trim();
+
+    // "HEAD" means we are in detached HEAD state, i.e. not actually on a branch
+    return branch && branch !== 'HEAD' ? branch : null;
+  }
+
+  private buildHeadOption(currentBranch: string | null): GitRefOption {
+    return { value: 'HEAD', label: currentBranch ? `${currentBranch} (HEAD)` : 'HEAD' };
+  }
+
+  private async getBranchesAndTags(cwd: string): Promise<{ refs: GitRefOption[]; tipHashes: Set<string> }> {
+    const stdout = await this.runGit(
+      [
+        'for-each-ref', '--sort=-committerdate', `--count=${MAX_BRANCHES_AND_TAGS}`,
+        '--format=%(refname:short)\t%(objectname:short)', 'refs/heads', 'refs/tags',
+      ],
+      cwd,
+    );
+
+    const refs: GitRefOption[] = [];
+    const tipHashes = new Set<string>();
+    for (const line of stdout.split('\n')) {
+      const [name, hash] = line.trim().split('\t');
+      if (!name) {
+        continue;
+      }
+
+      refs.push({ value: name, label: name });
+      if (hash) {
+        tipHashes.add(hash);
+      }
+    }
+
+    return { refs, tipHashes };
+  }
+
+  // recent commits come from `git log` on the currently checked-out ref, so that ref is their branch
+  private buildCommitLabel(currentBranch: string | null, hash: string, subject?: string): string {
+    return [currentBranch, hash, subject].filter(Boolean).join(' │ ');
+  }
+
+  // `git log <unknown revision>` exits with 128; spawn failures carry a string code (e.g. ENOENT) instead
+  private isBadRevisionError(error: unknown): boolean {
+    return error instanceof Error && (error as ExecFileException).code === 128;
+  }
+
+  private async isAncestorOfHead(cwd: string, ref: string): Promise<boolean> {
+    try {
+      await this.runGit(['merge-base', '--is-ancestor', ref, 'HEAD'], cwd);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  private async describePinnedRefs(
+    cwd: string, pinnedRefs: string[], listedValues: Set<string>, currentBranch: string | null,
+  ): Promise<GitRefOption[]> {
+    const unlisted = [...new Set(pinnedRefs)].filter((ref) => !listedValues.has(ref));
+
+    const options = await Promise.all(unlisted.map(async (ref): Promise<GitRefOption | null> => {
+      // a leading '-' would be read by git as an option rather than a revision
+      if (!ref || ref.startsWith('-')) {
+        return null;
+      }
+
+      try {
+        const stdout = await this.runGit(['log', '-1', '--pretty=%h\t%s', ref, '--'], cwd);
+        const [hash, subject] = stdout.trim().split('\t');
+        if (!hash) {
+          return null;
+        }
+
+        // the branch prefix is only accurate for commits that are actually part of the current branch
+        const branch = currentBranch && await this.isAncestorOfHead(cwd, ref) ? currentBranch : null;
+        /*
+         * keep the stored value as the option value so the existing selection keeps matching it;
+         * a branch or tag that fell outside the cap is labelled by its name, a commit by branch/hash/subject
+         */
+        const label = COMMIT_HASH_REGEX.test(ref) ? this.buildCommitLabel(branch, hash, subject) : ref;
+        return { value: ref, label };
+      } catch (error: unknown) {
+        if (this.isBadRevisionError(error)) {
+          this.logger.debug(`Pinned git ref does not exist in this repository: ${ref}`);
+          return null;
+        }
+
+        // anything else (git missing, killed, ...) says nothing about the ref, so let the caller decide
+        throw error;
+      }
+    }));
+
+    return options.filter((option): option is GitRefOption => option !== null);
+  }
+
+  private async getRecentCommits(cwd: string, currentBranch: string | null): Promise<GitRefOption[]> {
+    const stdout = await this.runGit(
+      ['log', `--pretty=%h\t%s`, `-n`, `${MAX_RECENT_COMMITS}`],
+      cwd,
+    );
+
+    return stdout
+      .split('\n')
+      .map((line) => line.trim())
+      .filter(Boolean)
+      .map((line) => {
+        const [hash, subject] = line.split('\t');
+        return { value: hash, label: this.buildCommitLabel(currentBranch, hash, subject) };
+      });
+  }
+
+  public async getAvailableRefs(cwd: string, pinnedRefs: string[] = []): Promise<GitRefOption[]> {
+    try {
+      const currentBranch = await this.getCurrentBranch(cwd).catch((error: unknown) => {
+        if (error instanceof Error) {
+          this.logger.warn(`Failed to resolve current branch: ${error.message}`);
+        }
+
+        return null;
+      });
+      const headOption = this.buildHeadOption(currentBranch);
+
+      const [{ refs: branchesAndTags, tipHashes }, recentCommits] = await Promise.all([
+        this.getBranchesAndTags(cwd),
+        this.getRecentCommits(cwd, currentBranch),
+      ]);
+
+      // a recent commit that is also the tip of a branch/tag is already listed under that ref's name
+      const uniqueRecentCommits = recentCommits.filter((ref) => !tipHashes.has(ref.value));
+
+      const listed = [headOption, ...branchesAndTags, ...uniqueRecentCommits];
+      const listedValues = new Set(listed.map((ref) => ref.value));
+      const pinned = await this.describePinnedRefs(cwd, pinnedRefs, listedValues, currentBranch);
+
+      return [...listed, ...pinned];
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        this.logger.warn(`Failed to list git refs; the Diff dropdowns will only offer HEAD: ${error.message}`);
+      }
+
+      return [];
+    }
+  }
+}

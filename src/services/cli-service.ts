@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import * as fs from 'node:fs';
 import { inject, singleton } from 'tsyringe';
 import { ExtensionServiceSymbol, LoggerServiceSymbol, ScanResultsServiceSymbol, StateServiceSymbol } from '../symbols';
-import { GlobalExtensionState, IStateService, TemporaryExtensionState } from './state-service';
+import { GlobalExtensionState, IStateService, ScanScope, TemporaryExtensionState } from './state-service';
 import { ILoggerService } from './logger-service';
 import { CliWrapper } from '../cli/cli-wrapper';
 import { CliResult, isCliResultError, isCliResultPanic, isCliResultSuccess } from '../cli/models/cli-result';
@@ -27,6 +27,7 @@ import { CliScanType } from '../cli/models/cli-scan-type';
 import { StatusResult } from '../cli/models/status-result';
 import { AiRemediationResult, AiRemediationResultData } from '../cli/models/ai-remediation-result';
 import statusBar from '../utils/status-bar';
+import { assertSafeArg, quotePathArg } from '../utils/shell-arg';
 
 export interface ICliService {
   getProjectRootDirectory(): string | undefined; // TODO REMOVE
@@ -39,6 +40,30 @@ export interface ICliService {
   scanPathsSca(paths: string[], onDemand: boolean, cancellationToken: CancellationToken | undefined): Promise<void>;
   scanPathsIac(paths: string[], onDemand: boolean, cancellationToken: CancellationToken | undefined): Promise<void>;
   scanPathsSast(paths: string[], onDemand: boolean, cancellationToken: CancellationToken | undefined): Promise<void>;
+  scanCommitRangeSecrets(
+    commitRange: string, path: string, onDemand: boolean, cancellationToken: CancellationToken | undefined
+  ): Promise<void>;
+  scanCommitRangeSca(
+    commitRange: string, path: string, onDemand: boolean, cancellationToken: CancellationToken | undefined
+  ): Promise<void>;
+  scanCommitRangeIac(
+    commitRange: string, path: string, onDemand: boolean, cancellationToken: CancellationToken | undefined
+  ): Promise<void>;
+  scanCommitRangeSast(
+    commitRange: string, path: string, onDemand: boolean, cancellationToken: CancellationToken | undefined
+  ): Promise<void>;
+  scanLocalDiffSecrets(
+    commit: string, path: string, onDemand: boolean, cancellationToken: CancellationToken | undefined
+  ): Promise<void>;
+  scanLocalDiffSca(
+    commit: string, path: string, onDemand: boolean, cancellationToken: CancellationToken | undefined
+  ): Promise<void>;
+  scanLocalDiffIac(
+    commit: string, path: string, onDemand: boolean, cancellationToken: CancellationToken | undefined
+  ): Promise<void>;
+  scanLocalDiffSast(
+    commit: string, path: string, onDemand: boolean, cancellationToken: CancellationToken | undefined
+  ): Promise<void>;
   getAiRemediation(
     detectionId: string, cancellationToken: CancellationToken | undefined
   ): Promise<AiRemediationResultData | null>;
@@ -148,7 +173,15 @@ export class CliService implements ICliService {
 
     this.state.CliVer = processedResult.result.version;
 
+    if (!this.tempState.IsDiffScanScopeSupported && this.state.ScanScope === ScanScope.Diff) {
+      this.logger.debug('Diff scan scope requires a newer Cycode CLI version; resetting scope to Project');
+      this.state.ScanScope = ScanScope.Project;
+    }
+
     this.stateService.save();
+    this.tempState.ActivityBar?.ScanView.postScanScope(
+      this.state.ScanScope, this.state.ScanDiffFromRef, this.state.ScanDiffToRef,
+    );
 
     if (!this.tempState.CliAuthed) {
       statusBar.showAuthIsRequired();
@@ -221,10 +254,69 @@ export class CliService implements ICliService {
   private async scanPaths<T extends ClassConstructor<unknown>>(
     classConst: T, paths: string[], scanType: CliScanType, cancellationToken?: CancellationToken,
   ): Promise<CliResult<T> | null> {
-    const isolatedPaths: string[] = paths.map((path) => `"${path}"`);
+    const isolatedPaths: string[] = paths.map((path) => quotePathArg(path));
     const scanOptions = this.getCliScanOptions(scanType);
     const args = [CliCommands.Scan, '-t', scanType.toLowerCase(), ...scanOptions, CliCommands.Path, ...isolatedPaths];
     return this.processCliResult(await this.cli.executeCommand(classConst, args, cancellationToken));
+  }
+
+  private async scanCommitRange<T extends ClassConstructor<unknown>>(
+    classConst: T, commitRange: string, path: string, scanType: CliScanType, cancellationToken?: CancellationToken,
+  ): Promise<CliResult<T> | null> {
+    const scanOptions = this.getCliScanOptions(scanType);
+    const args = [
+      CliCommands.Scan, '-t', scanType.toLowerCase(), ...scanOptions,
+      CliCommands.CommitHistory, CommandParameters.CommitRange, assertSafeArg(commitRange), quotePathArg(path),
+    ];
+    return this.processCliResult(await this.cli.executeCommand(classConst, args, cancellationToken));
+  }
+
+  /**
+   * "Local diff" scanning (the IDE use case: working directory, including unstaged edits, against
+   * a base ref) isn't its own CLI command - it's `pre-commit --include-unstaged --base-ref <ref>`.
+   * The plain `pre-commit` command (no flags) is also what the git pre-commit hook itself runs.
+   */
+  private async scanLocalDiff<T extends ClassConstructor<unknown>>(
+    classConst: T, commit: string, path: string, scanType: CliScanType, cancellationToken?: CancellationToken,
+  ): Promise<CliResult<T> | null> {
+    const scanOptions = this.getCliScanOptions(scanType);
+    const args = [
+      CliCommands.Scan, '-t', scanType.toLowerCase(), ...scanOptions,
+      CliCommands.PreCommit, CommandParameters.IncludeUnstaged,
+      CommandParameters.BaseRef, assertSafeArg(commit),
+      CommandParameters.Path, quotePathArg(path),
+    ];
+    return this.processCliResult(await this.cli.executeCommand(classConst, args, cancellationToken));
+  }
+
+  private filterOutVirtualIacFiles(detections: DetectionBase[]): DetectionBase[] {
+    return detections.filter((detection) => {
+      /*
+       * TF plans are virtual files that do not exist in the file system
+       * "file_name": "1711298252-/Users/ilyasiamionau/projects/cycode/ilya-siamionau-payloads/tfplan.tf",
+       * skip such detections
+       */
+      return fs.existsSync(detection.detectionDetails.getFilepath());
+    });
+  }
+
+  private async runScanAndProcessResults<T extends ScanResultBase>(
+    scanType: CliScanType,
+    onDemand: boolean,
+    runScan: () => Promise<CliResult<unknown> | null>,
+    postProcessDetections?: (detections: DetectionBase[]) => DetectionBase[],
+  ): Promise<void> {
+    const results = await runScan();
+    if (!isCliResultSuccess<T>(results)) {
+      this.logger.warn(`Failed to scan ${scanType}`);
+      return;
+    }
+
+    const detections = postProcessDetections
+      ? postProcessDetections(results.result.detections)
+      : results.result.detections;
+
+    await this.processCliScanResult(scanType, detections, onDemand);
   }
 
   private showScanResultsNotification(scanType: CliScanType, detectionsCount: number, onDemand: boolean): void {
@@ -251,58 +343,112 @@ export class CliService implements ICliService {
   public async scanPathsSecrets(
     paths: string[], onDemand = false, cancellationToken: CancellationToken | undefined = undefined,
   ): Promise<void> {
-    const results = await this.scanPaths(SecretScanResult, paths, CliScanType.Secret, cancellationToken);
-    if (!isCliResultSuccess<SecretScanResult>(results)) {
-      this.logger.warn(`Failed to scan Secret paths: ${paths}`);
-      return;
-    }
+    await this.runScanAndProcessResults<SecretScanResult>(
+      CliScanType.Secret, onDemand,
+      () => this.scanPaths(SecretScanResult, paths, CliScanType.Secret, cancellationToken),
+    );
+  }
 
-    await this.processCliScanResult(CliScanType.Secret, results.result.detections, onDemand);
+  public async scanCommitRangeSecrets(
+    commitRange: string, path: string, onDemand = false, cancellationToken: CancellationToken | undefined = undefined,
+  ): Promise<void> {
+    await this.runScanAndProcessResults<SecretScanResult>(
+      CliScanType.Secret, onDemand,
+      () => this.scanCommitRange(SecretScanResult, commitRange, path, CliScanType.Secret, cancellationToken),
+    );
+  }
+
+  public async scanLocalDiffSecrets(
+    commit: string, path: string, onDemand = false, cancellationToken: CancellationToken | undefined = undefined,
+  ): Promise<void> {
+    await this.runScanAndProcessResults<SecretScanResult>(
+      CliScanType.Secret, onDemand,
+      () => this.scanLocalDiff(SecretScanResult, commit, path, CliScanType.Secret, cancellationToken),
+    );
   }
 
   public async scanPathsSca(
     paths: string[], onDemand = false, cancellationToken: CancellationToken | undefined = undefined,
   ): Promise<void> {
-    const results = await this.scanPaths(ScaScanResult, paths, CliScanType.Sca, cancellationToken);
-    if (!isCliResultSuccess<ScaScanResult>(results)) {
-      this.logger.warn(`Failed to scan SCA paths: ${paths}`);
-      return;
-    }
+    await this.runScanAndProcessResults<ScaScanResult>(
+      CliScanType.Sca, onDemand,
+      () => this.scanPaths(ScaScanResult, paths, CliScanType.Sca, cancellationToken),
+    );
+  }
 
-    await this.processCliScanResult(CliScanType.Sca, results.result.detections, onDemand);
+  public async scanCommitRangeSca(
+    commitRange: string, path: string, onDemand = false, cancellationToken: CancellationToken | undefined = undefined,
+  ): Promise<void> {
+    await this.runScanAndProcessResults<ScaScanResult>(
+      CliScanType.Sca, onDemand,
+      () => this.scanCommitRange(ScaScanResult, commitRange, path, CliScanType.Sca, cancellationToken),
+    );
+  }
+
+  public async scanLocalDiffSca(
+    commit: string, path: string, onDemand = false, cancellationToken: CancellationToken | undefined = undefined,
+  ): Promise<void> {
+    await this.runScanAndProcessResults<ScaScanResult>(
+      CliScanType.Sca, onDemand,
+      () => this.scanLocalDiff(ScaScanResult, commit, path, CliScanType.Sca, cancellationToken),
+    );
   }
 
   public async scanPathsIac(
     paths: string[], onDemand = false, cancellationToken: CancellationToken | undefined = undefined,
   ): Promise<void> {
-    const results = await this.scanPaths(IacScanResult, paths, CliScanType.Iac, cancellationToken);
-    if (!isCliResultSuccess<IacScanResult>(results)) {
-      this.logger.warn(`Failed to scan IaC paths: ${paths}`);
-      return;
-    }
+    await this.runScanAndProcessResults<IacScanResult>(
+      CliScanType.Iac, onDemand,
+      () => this.scanPaths(IacScanResult, paths, CliScanType.Iac, cancellationToken),
+      (detections) => this.filterOutVirtualIacFiles(detections),
+    );
+  }
 
-    results.result.detections = results.result.detections.filter((detection) => {
-      /*
-       * TF plans are virtual files what is not exist in the file system
-       * "file_name": "1711298252-/Users/ilyasiamionau/projects/cycode/ilya-siamionau-payloads/tfplan.tf",
-       * skip such detections
-       */
-      return fs.existsSync(detection.detectionDetails.fileName);
-    });
+  public async scanCommitRangeIac(
+    commitRange: string, path: string, onDemand = false, cancellationToken: CancellationToken | undefined = undefined,
+  ): Promise<void> {
+    await this.runScanAndProcessResults<IacScanResult>(
+      CliScanType.Iac, onDemand,
+      () => this.scanCommitRange(IacScanResult, commitRange, path, CliScanType.Iac, cancellationToken),
+      (detections) => this.filterOutVirtualIacFiles(detections),
+    );
+  }
 
-    await this.processCliScanResult(CliScanType.Iac, results.result.detections, onDemand);
+  public async scanLocalDiffIac(
+    commit: string, path: string, onDemand = false, cancellationToken: CancellationToken | undefined = undefined,
+  ): Promise<void> {
+    await this.runScanAndProcessResults<IacScanResult>(
+      CliScanType.Iac, onDemand,
+      () => this.scanLocalDiff(IacScanResult, commit, path, CliScanType.Iac, cancellationToken),
+      (detections) => this.filterOutVirtualIacFiles(detections),
+    );
   }
 
   public async scanPathsSast(
     paths: string[], onDemand = false, cancellationToken: CancellationToken | undefined = undefined,
   ): Promise<void> {
-    const results = await this.scanPaths(SastScanResult, paths, CliScanType.Sast, cancellationToken);
-    if (!isCliResultSuccess<SastScanResult>(results)) {
-      this.logger.warn(`Failed to scan SAST paths: ${paths}`);
-      return;
-    }
+    await this.runScanAndProcessResults<SastScanResult>(
+      CliScanType.Sast, onDemand,
+      () => this.scanPaths(SastScanResult, paths, CliScanType.Sast, cancellationToken),
+    );
+  }
 
-    await this.processCliScanResult(CliScanType.Sast, results.result.detections, onDemand);
+  public async scanCommitRangeSast(
+    commitRange: string, path: string, onDemand = false, cancellationToken: CancellationToken | undefined = undefined,
+  ): Promise<void> {
+    await this.runScanAndProcessResults<SastScanResult>(
+      CliScanType.Sast, onDemand,
+      () => this.scanCommitRange(SastScanResult, commitRange, path, CliScanType.Sast, cancellationToken),
+    );
+  }
+
+  public async scanLocalDiffSast(
+    commit: string, path: string, onDemand = false, cancellationToken: CancellationToken | undefined = undefined,
+  ): Promise<void> {
+    await this.runScanAndProcessResults<SastScanResult>(
+      CliScanType.Sast, onDemand,
+      () => this.scanLocalDiff(SastScanResult, commit, path, CliScanType.Sast, cancellationToken),
+    );
   }
 
   public async getAiRemediation(

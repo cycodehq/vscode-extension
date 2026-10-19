@@ -5,6 +5,21 @@ import { ILoggerService } from './logger-service';
 import { GlobalKeyValueStorage, LocalKeyValueStorage } from './key-value-storage-service';
 import { StatusResult } from '../cli/models/status-result';
 import { ActivityBar } from '../ui/views/activity-bar';
+import { CliScanType } from '../cli/models/cli-scan-type';
+import { MIN_CLI_VERSION_FOR_DIFF_SCAN } from '../cli/constants';
+import { isVersionAtLeast } from '../utils/version';
+
+export enum ScanScope {
+  Project = 'project',
+  Diff = 'diff',
+  File = 'file',
+}
+
+// sentinel value for a diff side that represents the uncommitted working directory rather than a git ref
+export const LOCAL_DIRECTORY_REF_VALUE = 'local';
+
+export const DEFAULT_DIFF_FROM_REF = LOCAL_DIRECTORY_REF_VALUE;
+export const DEFAULT_DIFF_TO_REF = 'HEAD';
 
 export class GlobalExtensionState {
   public EnvVsCode = true;
@@ -12,6 +27,23 @@ export class GlobalExtensionState {
   public CliHash: string | null = null;
   public CliDirHashes: Record<string, string> | null = null;
   public CliLastUpdateCheckedAt: number | null = null;
+
+  // remembered across sessions
+  public ScanScope: ScanScope = ScanScope.Project;
+  public ScanDiffFromRef: string = DEFAULT_DIFF_FROM_REF;
+  public ScanDiffToRef: string = DEFAULT_DIFF_TO_REF;
+
+  public get IsScanScopeProject(): boolean {
+    return this.ScanScope === ScanScope.Project;
+  }
+
+  public get IsScanScopeDiff(): boolean {
+    return this.ScanScope === ScanScope.Diff;
+  }
+
+  public get IsScanScopeFile(): boolean {
+    return this.ScanScope === ScanScope.File;
+  }
 }
 export type GlobalExtensionStateKey = keyof GlobalExtensionState;
 
@@ -35,6 +67,21 @@ export class TemporaryExtensionState {
   public IsTreeViewFilterByLowSeverityEnabled = false;
   public IsTreeViewFilterByInfoSeverityEnabled = false;
 
+  private _runningScanTypes: Record<CliScanType, boolean> = {
+    [CliScanType.Secret]: false,
+    [CliScanType.Sca]: false,
+    [CliScanType.Iac]: false,
+    [CliScanType.Sast]: false,
+  };
+
+  public setScanRunning(scanType: CliScanType, running: boolean): void {
+    this._runningScanTypes[scanType] = running;
+  }
+
+  public isScanRunning(scanType: CliScanType): boolean {
+    return this._runningScanTypes[scanType];
+  }
+
   public get CliStatus(): StatusResult | null {
     return this._cliStatus;
   }
@@ -44,6 +91,10 @@ export class TemporaryExtensionState {
 
     if (this.ActivityBar && value?.supportedModules) {
       this.ActivityBar.ScanView.postSupportedModules(value.supportedModules);
+    }
+
+    if (this.ActivityBar) {
+      this.ActivityBar.ScanView.postDiffScopeSupported(this.IsDiffScanScopeSupported);
     }
   }
 
@@ -65,6 +116,10 @@ export class TemporaryExtensionState {
 
   public get IsAiLargeLanguageModelEnabled(): boolean {
     return this.CliStatus?.supportedModules?.aiLargeLanguageModel === true;
+  }
+
+  public get IsDiffScanScopeSupported(): boolean {
+    return isVersionAtLeast(this.CliStatus?.version, MIN_CLI_VERSION_FOR_DIFF_SCAN);
   }
 }
 
@@ -89,11 +144,19 @@ enum VscodeStates {
   IsTreeViewFilterByMediumSeverityEnabled = 'filter.severity.isMediumEnabled',
   IsTreeViewFilterByLowSeverityEnabled = 'filter.severity.isLowEnabled',
   IsTreeViewFilterByInfoSeverityEnabled = 'filter.severity.isInfoEnabled',
+  // scan scope:
+  IsScanScopeProject = 'scanScope.isProject',
+  IsScanScopeDiff = 'scanScope.isDiff',
+  IsScanScopeFile = 'scanScope.isFile',
 }
 
 const _CONTEXT_EXPORTED_GLOBAL_STATE_KEYS: Record<string, string> = {
   // map global state keys to vscode context keys
   EnvVsCode: VscodeStates.IsVsCodeEnv,
+  // scan scope:
+  IsScanScopeProject: VscodeStates.IsScanScopeProject,
+  IsScanScopeDiff: VscodeStates.IsScanScopeDiff,
+  IsScanScopeFile: VscodeStates.IsScanScopeFile,
 };
 
 const _CONTEXT_EXPORTED_LOCAL_STATE_KEYS: Record<string, string> = {
@@ -259,6 +322,11 @@ export class StateService implements IStateService {
     if (extensionState.CliLastUpdateCheckedAt !== undefined) (
       this._globalState.CliLastUpdateCheckedAt = extensionState.CliLastUpdateCheckedAt
     );
+    if (extensionState.ScanScope !== undefined) (this._globalState.ScanScope = extensionState.ScanScope);
+    if (extensionState.ScanDiffFromRef !== undefined) (
+      this._globalState.ScanDiffFromRef = extensionState.ScanDiffFromRef
+    );
+    if (extensionState.ScanDiffToRef !== undefined) (this._globalState.ScanDiffToRef = extensionState.ScanDiffToRef);
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
