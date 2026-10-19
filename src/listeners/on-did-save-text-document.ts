@@ -13,6 +13,11 @@ export const OnDidSaveTextDocument = (document: vscode.TextDocument) => {
     return;
   }
 
+  if (!vscode.workspace.isTrusted) {
+    // do not scan automatically in untrusted workspaces (Restricted Mode)
+    return;
+  }
+
   if (validateConfig()) {
     return;
   }

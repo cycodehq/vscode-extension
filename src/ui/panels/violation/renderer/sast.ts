@@ -21,7 +21,7 @@ const renderDetection = detection => {
   const renderedCwes = detection.detectionDetails.cwe.map(cwe => renderCweCveLink(cwe));
   const cwes = renderedCwes.join(', ');
   if (cwes) {
-    ge('short-details').innerHTML = [detection.severity, cwes].join(' | ');    
+    ge('short-details').innerHTML = [escapeHtml(detection.severity), cwes].join(' | ');    
   } else {
     ge('short-details').innerText = detection.severity;
   }

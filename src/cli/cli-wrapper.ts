@@ -28,7 +28,7 @@ export class CliWrapper {
     if (classConst == null) {
       // in case when we do not expect any output and want just call command like "ignore" command
       this.logger.debug('No classConst provided. Returning CliResultSuccess(null)');
-      return new CliResultSuccess(null);
+      return new CliResultSuccess(null as unknown as T);
     }
 
     let camelCasedObj;
@@ -65,7 +65,7 @@ export class CliWrapper {
     const defaultCliArgs = [CommandParameters.OutputFormatJson, getUserAgentArg()];
     const commandParams = [...config.additionalParams, ...defaultCliArgs, ...args];
 
-    const executedCommand = `${config.cliPath} ${commandParams.join(' ')}`;
+    const executedCommand = `${config.cliPath} ${[...defaultCliArgs, ...args.slice(0, 3)].join(' ')} ...`;
     this.logger.debug(`Running command: "${executedCommand}"`);
 
     const childProcess = spawn(config.cliPath, commandParams, {
@@ -74,7 +74,6 @@ export class CliWrapper {
         ...process.env,
         ...config.cliEnv,
       },
-      shell: true,
     });
 
     let exitCode = 0;
@@ -110,7 +109,7 @@ export class CliWrapper {
       });
 
       childProcess.stdout.on('data', (data) => {
-        this.logger.debug(`Command stdout: ${data.toString()}`);
+        this.logger.debug(`Command stdout: received ${data.length} bytes`);
 
         if (!data) {
           return;
@@ -120,7 +119,7 @@ export class CliWrapper {
       });
 
       childProcess.stderr.on('data', (data) => {
-        this.logger.debug(`Command stderr: ${data.toString()}`);
+        this.logger.debug(`Command stderr: received ${data.length} bytes`);
 
         if (!data) {
           return;

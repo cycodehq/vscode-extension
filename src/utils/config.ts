@@ -48,7 +48,7 @@ export const config = {
       .getConfiguration(extensionId)
       .get<string>('additionalParameters');
 
-    return additionalParams ? additionalParams.split(' ') : [];
+    return additionalParams ? additionalParams.split(' ').filter(Boolean) : [];
   },
   get agentName(): string {
     if (this.isTheiaIde) {
@@ -91,7 +91,7 @@ export const validateConfig = () => {
       return null;
     }
 
-    if (!url.startsWith('https')) {
+    if (!url.startsWith('https://')) {
       const message = `URLs must start with https: ${url}`;
       showSettingsError(message);
 

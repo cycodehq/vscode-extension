@@ -17,7 +17,7 @@ vscode.window.onDidChangeActiveColorTheme((theme) => {
   isDarkTheme = theme.kind !== vscode.ColorThemeKind.Light;
 });
 
-export default (scanType: CliScanType) => `
+export default (scanType: CliScanType, diff2htmlScriptUri: string) => `
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -27,7 +27,7 @@ export default (scanType: CliScanType) => `
 
     <script 
       type="text/javascript" 
-      src="https://cdn.jsdelivr.net/npm/diff2html/bundles/js/diff2html-ui.min.js"
+      src="${diff2htmlScriptUri}"
     ></script>
 </head>
 <body>

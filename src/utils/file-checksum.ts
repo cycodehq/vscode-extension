@@ -30,13 +30,44 @@ export const verifyFileChecksum = (filePath: string, checksum: string): boolean 
 };
 
 export const verifyDirContentChecksums = (dirPath: string, checksums: Record<string, string>): boolean => {
+  const rootPath = path.resolve(dirPath);
   for (const [file, checksum] of Object.entries(checksums)) {
-    if (!verifyFileChecksum(path.join(dirPath, file), checksum)) {
+    const filePath = path.resolve(rootPath, file);
+    if (!filePath.startsWith(rootPath + path.sep)) {
+      return false;
+    }
+
+    if (!verifyFileChecksum(filePath, checksum)) {
       return false;
     }
   }
 
   return true;
+};
+
+/*
+ * returns paths of all files inside dirPath, relative to rootPath (the same format as in the checksum db).
+ * returns null if the directory contains anything except regular files and directories (e.g. symlinks)
+ */
+export const listDirFiles = (rootPath: string, dirPath: string): string[] | null => {
+  const files: string[] = [];
+  for (const entry of fs.readdirSync(dirPath, { withFileTypes: true })) {
+    const entryPath = path.join(dirPath, entry.name);
+    if (entry.isDirectory()) {
+      const nestedFiles = listDirFiles(rootPath, entryPath);
+      if (nestedFiles === null) {
+        return null;
+      }
+
+      files.push(...nestedFiles);
+    } else if (entry.isFile()) {
+      files.push(path.relative(rootPath, entryPath));
+    } else {
+      return null;
+    }
+  }
+
+  return files;
 };
 
 export const parseOnedirChecksumDb = (rawChecksumDb: string): Record<string, string> => {
@@ -48,4 +79,24 @@ export const parseOnedirChecksumDb = (rawChecksumDb: string): Record<string, str
     }
   }
   return checksums;
+};
+
+/*
+ * checks that dirPath contains exactly the files listed in the checksum db (nothing more, nothing less)
+ * and that all of them have the expected checksum. paths in the checksum db are relative to rootPath
+ */
+export const verifyDirContentExactly = (
+  rootPath: string, dirPath: string, checksums: Record<string, string>,
+): boolean => {
+  const expectedFiles = new Set(Object.keys(checksums));
+  if (expectedFiles.size === 0) {
+    return false;
+  }
+
+  const actualFiles = listDirFiles(rootPath, dirPath);
+  if (actualFiles?.length !== expectedFiles.size || !actualFiles.every((file) => expectedFiles.has(file))) {
+    return false;
+  }
+
+  return verifyDirContentChecksums(rootPath, checksums);
 };

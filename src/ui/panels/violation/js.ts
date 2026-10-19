@@ -46,23 +46,31 @@ export default (detectionType: CliScanType) => `
       }
 
       if (cweCve.startsWith('GHSA')) {
-          return 'https://github.com/advisories/' + cweCve;
+          return 'https://github.com/advisories/' + encodeURIComponent(cweCve);
       } else if (cweCve.startsWith('CWE')) {
           const cweNumber = parseInt(cweCve.split('-')[1]);
           return 'https://cwe.mitre.org/data/definitions/' + cweNumber;
       } else if (cweCve.startsWith('CVE')) {
-          return 'https://cve.mitre.org/cgi-bin/cvename.cgi?name=' + cweCve;
+          return 'https://cve.mitre.org/cgi-bin/cvename.cgi?name=' + encodeURIComponent(cweCve);
       } else {
           return undefined;
       }
     };
 
+    const escapeHtml = value => String(value)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+
     const renderCweCveLink = cweCve => {
       const link = getCweCveLink(cweCve);
       if (link) {
-          return \`<a href="\${link}" target="_blank" rel="noopener noreferrer">\${cweCve}</a>\`;
+          const href = escapeHtml(link);
+          return \`<a href="\${href}" target="_blank" rel="noopener noreferrer">\${escapeHtml(cweCve)}</a>\`;
       } else {
-          return cweCve;
+          return escapeHtml(cweCve);
       }
     };
     

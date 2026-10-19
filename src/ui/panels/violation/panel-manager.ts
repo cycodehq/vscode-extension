@@ -14,13 +14,14 @@ export const getPanel = (scanType: CliScanType) => {
   return _scanTypeToPanelMap.get(scanType);
 };
 
-export const createPanel = (scanType: CliScanType): vscode.WebviewPanel => {
+export const createPanel = (scanType: CliScanType, extensionUri: vscode.Uri): vscode.WebviewPanel => {
   const panel = vscode.window.createWebviewPanel(
     'detectionDetails',
     _scanTypeToPanelTitleMap.get(scanType) ?? 'Cycode: Detection Details',
     vscode.ViewColumn.Two,
     {
       enableScripts: true,
+      localResourceRoots: [vscode.Uri.joinPath(extensionUri, 'resources')],
     },
   );
 

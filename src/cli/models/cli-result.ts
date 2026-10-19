@@ -1,25 +1,18 @@
 import { CliError } from './cli-error';
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars,@typescript-eslint/no-extraneous-class
-export abstract class CliResult<_> {}
-
-export class CliResultSuccess<T> extends CliResult<T> {
-  constructor(public result: T) {
-    super();
-  }
+export class CliResultSuccess<T> {
+  constructor(public result: T) {}
 }
 
-export class CliResultError extends CliResult<never> {
-  constructor(public result: CliError) {
-    super();
-  }
+export class CliResultError {
+  constructor(public result: CliError) {}
 }
 
-export class CliResultPanic extends CliResult<never> {
-  constructor(public exitCode: number | null, public errorMessage: string) {
-    super();
-  }
+export class CliResultPanic {
+  constructor(public exitCode: number | null, public errorMessage: string) {}
 }
+
+export type CliResult<T> = CliResultSuccess<T> | CliResultError | CliResultPanic;
 
 export const isCliResultSuccess = <T>(obj: unknown): obj is CliResultSuccess<T> => {
   return obj instanceof CliResultSuccess;
