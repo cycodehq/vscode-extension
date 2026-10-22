@@ -20,7 +20,6 @@ export enum CommandParameters {
   UserAgent = '--user-agent',
   scanType = '--scan-type',
   CommitRange = '--commit-range',
-  // "local diff" scanning (IDE use case) is `pre-commit --include-unstaged`, not its own command
   BaseRef = '--base-ref',
   IncludeUnstaged = '--include-unstaged',
   Path = '--path',
