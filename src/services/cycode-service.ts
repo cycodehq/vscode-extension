@@ -352,7 +352,7 @@ export class CycodeService implements ICycodeService {
 
     if (scope === ScanScope.Diff) {
       await this.startDiffScansForCurrentProject(
-        scanTypes, this.stateService.globalState.ScanDiffFromRef, this.stateService.globalState.ScanDiffToRef,
+        scanTypes, this.stateService.tempState.ScanDiffFromRef, this.stateService.tempState.ScanDiffToRef,
       );
       return;
     }
@@ -441,10 +441,9 @@ export class CycodeService implements ICycodeService {
   }
 
   /**
-   * Re-reads the project's git refs and pushes them (and the stored selection) to the Scan view.
-   * The stored from/to refs live in global state, so they can belong to another repo. A stored ref that
-   * scrolled out of the recent-commits list but still resolves is kept (and listed with its description);
-   * one that no longer resolves to a commit here is reset to the defaults.
+   * Re-reads the project's git refs and pushes them (and the selected revisions) to the Scan view.
+   * A selected ref that scrolled out of the recent-commits list but still resolves is kept (and listed with its
+   * description); one that no longer resolves to a commit (e.g. a deleted branch) is reset to the defaults.
    */
   public async refreshDiffRefs(): Promise<void> {
     const projectRoot = this.cliService.getProjectRootDirectory();
@@ -452,32 +451,31 @@ export class CycodeService implements ICycodeService {
       return;
     }
 
-    // several triggers can overlap (activation, focus, watcher); only the latest request may publish results
+    // several triggers can overlap (activation, Diff selected, repository changes); only the latest may publish results
     const requestId = ++this.refreshDiffRefsRequestId;
 
-    const { globalState, tempState } = this.stateService;
-    const storedRefs = [globalState.ScanDiffFromRef, globalState.ScanDiffToRef];
+    const { tempState } = this.stateService;
+    const selectedRefs = [tempState.ScanDiffFromRef, tempState.ScanDiffToRef];
     const refs = await this.gitService.getAvailableRefs(
-      projectRoot, storedRefs.filter((ref) => !this.isLocalDirectoryRef(ref)),
+      projectRoot, selectedRefs.filter((ref) => !this.isLocalDirectoryRef(ref)),
     );
 
     if (requestId !== this.refreshDiffRefsRequestId) {
       return;
     }
 
-    // an empty list means git failed, so there is nothing to validate the stored selection against
+    // an empty list means git failed, so there is nothing to validate the selection against
     const listedValues = new Set(refs.map((ref) => ref.value));
-    const storedRefsExist = !refs.length
-      || storedRefs.every((ref) => this.isLocalDirectoryRef(ref) || listedValues.has(ref));
+    const selectedRefsExist = !refs.length
+      || selectedRefs.every((ref) => this.isLocalDirectoryRef(ref) || listedValues.has(ref));
 
-    if (!storedRefsExist) {
-      this.logger.debug('Stored Diff revisions do not exist in this repository; resetting to defaults');
-      globalState.ScanDiffFromRef = DEFAULT_DIFF_FROM_REF;
-      globalState.ScanDiffToRef = DEFAULT_DIFF_TO_REF;
-      this.stateService.save();
+    if (!selectedRefsExist) {
+      this.logger.debug('Selected Diff revisions do not exist in this repository; resetting to defaults');
+      tempState.ScanDiffFromRef = DEFAULT_DIFF_FROM_REF;
+      tempState.ScanDiffToRef = DEFAULT_DIFF_TO_REF;
     }
 
     tempState.ActivityBar?.ScanView.postGitRefs(refs);
-    tempState.ActivityBar?.ScanView.postScanScope(globalState);
+    tempState.ActivityBar?.ScanView.postScanScope(this.stateService);
   }
 }

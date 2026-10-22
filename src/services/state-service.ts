@@ -24,8 +24,6 @@ export class GlobalExtensionState {
 
   // remembered across sessions
   public ScanScope: ScanScope = ScanScope.Project;
-  public ScanDiffFromRef: string = DEFAULT_DIFF_FROM_REF;
-  public ScanDiffToRef: string = DEFAULT_DIFF_TO_REF;
 }
 export type GlobalExtensionStateKey = keyof GlobalExtensionState;
 
@@ -42,6 +40,13 @@ export class TemporaryExtensionState {
   public CliAuthed = false;
 
   public ActivityBar: ActivityBar | null = null;
+
+  /*
+   * the two revisions picked in the Diff scope. they belong to one repository and go stale quickly (HEAD moves,
+   * branches get deleted), so they are kept for the session only instead of in the global state shared by all projects
+   */
+  public ScanDiffFromRef: string = DEFAULT_DIFF_FROM_REF;
+  public ScanDiffToRef: string = DEFAULT_DIFF_TO_REF;
 
   public IsTreeViewFilterByCriticalSeverityEnabled = false;
   public IsTreeViewFilterByHighSeverityEnabled = false;
@@ -300,10 +305,6 @@ export class StateService implements IStateService {
       this._globalState.CliLastUpdateCheckedAt = extensionState.CliLastUpdateCheckedAt
     );
     if (extensionState.ScanScope !== undefined) (this._globalState.ScanScope = extensionState.ScanScope);
-    if (extensionState.ScanDiffFromRef !== undefined) (
-      this._globalState.ScanDiffFromRef = extensionState.ScanDiffFromRef
-    );
-    if (extensionState.ScanDiffToRef !== undefined) (this._globalState.ScanDiffToRef = extensionState.ScanDiffToRef);
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

@@ -2,7 +2,7 @@ import { CycodeView } from '../cycode-view';
 import content from './content';
 import { SupportedModulesStatus } from '../../../cli/models/status-result';
 import { GitRefOption } from '../../../services/git-service';
-import { GlobalExtensionState } from '../../../services/state-service';
+import { IStateService } from '../../../services/state-service';
 
 export default class ScanView extends CycodeView {
   public static readonly viewType = 'cycode.view.scan';
@@ -22,12 +22,12 @@ export default class ScanView extends CycodeView {
     this.postMessage({ command: 'supportedModules', modules: moduleStatus });
   }
 
-  public postScanScope(state: GlobalExtensionState): void {
+  public postScanScope(stateService: IStateService): void {
     this.postMessage({
       command: 'scanScope',
-      scope: state.ScanScope,
-      diffFromRef: state.ScanDiffFromRef,
-      diffToRef: state.ScanDiffToRef,
+      scope: stateService.globalState.ScanScope,
+      diffFromRef: stateService.tempState.ScanDiffFromRef,
+      diffToRef: stateService.tempState.ScanDiffToRef,
     });
   }
 

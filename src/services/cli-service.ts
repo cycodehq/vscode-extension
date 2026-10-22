@@ -182,7 +182,7 @@ export class CliService implements ICliService {
     }
 
     this.stateService.save();
-    this.tempState.ActivityBar?.ScanView.postScanScope(this.state);
+    this.tempState.ActivityBar?.ScanView.postScanScope(this.stateService);
 
     if (!this.tempState.CliAuthed) {
       statusBar.showAuthIsRequired();

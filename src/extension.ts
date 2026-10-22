@@ -72,7 +72,7 @@ export function activate(context: vscode.ExtensionContext) {
   registerOnDidChangeActiveTextEditor(context);
 
   stateService.tempState.ActivityBar = registerActivityBar(context);
-  stateService.tempState.ActivityBar.ScanView.postScanScope(stateService.globalState);
+  stateService.tempState.ActivityBar.ScanView.postScanScope(stateService);
 
   // do not await because it blocks loading of the extension like views rendering
   void postActivate().then(() => {

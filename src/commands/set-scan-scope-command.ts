@@ -1,19 +1,19 @@
 import { container } from 'tsyringe';
 import { CycodeServiceSymbol, StateServiceSymbol } from '../symbols';
-import { GlobalExtensionState, IStateService, ScanScope } from '../services/state-service';
+import { IStateService, ScanScope, TemporaryExtensionState } from '../services/state-service';
 import { ICycodeService } from '../services/cycode-service';
 
-type DiffRefSide = keyof Pick<GlobalExtensionState, 'ScanDiffFromRef' | 'ScanDiffToRef'>;
+type DiffRefSide = keyof Pick<TemporaryExtensionState, 'ScanDiffFromRef' | 'ScanDiffToRef'>;
 
-const saveAndPostScanScope = (): void => {
-  const stateService = container.resolve<IStateService>(StateServiceSymbol);
-  stateService.save();
-  stateService.tempState.ActivityBar?.ScanView.postScanScope(stateService.globalState);
+const postScanScope = (stateService: IStateService): void => {
+  stateService.tempState.ActivityBar?.ScanView.postScanScope(stateService);
 };
 
 export const setScanScopeCommand = (scope: ScanScope) => (): void => {
-  container.resolve<IStateService>(StateServiceSymbol).globalState.ScanScope = scope;
-  saveAndPostScanScope();
+  const stateService = container.resolve<IStateService>(StateServiceSymbol);
+  stateService.globalState.ScanScope = scope;
+  stateService.save();
+  postScanScope(stateService);
 
   if (scope === ScanScope.Diff) {
     void container.resolve<ICycodeService>(CycodeServiceSymbol).refreshDiffRefs();
@@ -25,6 +25,7 @@ export const setDiffRefCommand = (side: DiffRefSide) => (ref: unknown): void => 
     return;
   }
 
-  container.resolve<IStateService>(StateServiceSymbol).globalState[side] = ref;
-  saveAndPostScanScope();
+  const stateService = container.resolve<IStateService>(StateServiceSymbol);
+  stateService.tempState[side] = ref;
+  postScanScope(stateService);
 };
