@@ -17,9 +17,10 @@ export enum ScanScope {
 
 // sentinel value for a diff side that represents the uncommitted working directory rather than a git ref
 export const LOCAL_DIRECTORY_REF_VALUE = 'local';
+export const HEAD_REF_VALUE = 'HEAD';
 
 export const DEFAULT_DIFF_FROM_REF = LOCAL_DIRECTORY_REF_VALUE;
-export const DEFAULT_DIFF_TO_REF = 'HEAD';
+export const DEFAULT_DIFF_TO_REF = HEAD_REF_VALUE;
 
 export class GlobalExtensionState {
   public EnvVsCode = true;
@@ -32,18 +33,6 @@ export class GlobalExtensionState {
   public ScanScope: ScanScope = ScanScope.Project;
   public ScanDiffFromRef: string = DEFAULT_DIFF_FROM_REF;
   public ScanDiffToRef: string = DEFAULT_DIFF_TO_REF;
-
-  public get IsScanScopeProject(): boolean {
-    return this.ScanScope === ScanScope.Project;
-  }
-
-  public get IsScanScopeDiff(): boolean {
-    return this.ScanScope === ScanScope.Diff;
-  }
-
-  public get IsScanScopeFile(): boolean {
-    return this.ScanScope === ScanScope.File;
-  }
 }
 export type GlobalExtensionStateKey = keyof GlobalExtensionState;
 
@@ -147,19 +136,11 @@ enum VscodeStates {
   IsTreeViewFilterByMediumSeverityEnabled = 'filter.severity.isMediumEnabled',
   IsTreeViewFilterByLowSeverityEnabled = 'filter.severity.isLowEnabled',
   IsTreeViewFilterByInfoSeverityEnabled = 'filter.severity.isInfoEnabled',
-  // scan scope:
-  IsScanScopeProject = 'scanScope.isProject',
-  IsScanScopeDiff = 'scanScope.isDiff',
-  IsScanScopeFile = 'scanScope.isFile',
 }
 
 const _CONTEXT_EXPORTED_GLOBAL_STATE_KEYS: Record<string, string> = {
   // map global state keys to vscode context keys
   EnvVsCode: VscodeStates.IsVsCodeEnv,
-  // scan scope:
-  IsScanScopeProject: VscodeStates.IsScanScopeProject,
-  IsScanScopeDiff: VscodeStates.IsScanScopeDiff,
-  IsScanScopeFile: VscodeStates.IsScanScopeFile,
 };
 
 const _CONTEXT_EXPORTED_LOCAL_STATE_KEYS: Record<string, string> = {

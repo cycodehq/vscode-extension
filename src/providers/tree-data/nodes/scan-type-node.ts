@@ -13,7 +13,8 @@ export class ScanTypeNode extends BaseNode {
     super(title, summary, icon);
 
     this.scanType = scanType;
-    this.contextValue = `${scanType.toLowerCase()}ScanTypeNode${isRunning ? 'Running' : ''}`;
+    // must stay constant: the inline scan buttons in package.json match this exact value
+    this.contextValue = `${scanType.toLowerCase()}ScanTypeNode`;
 
     if (isRunning) {
       this.iconPath = new ThemeIcon('sync~spin');

@@ -1,65 +1,30 @@
 import { container } from 'tsyringe';
 import { CycodeServiceSymbol, StateServiceSymbol } from '../symbols';
-import vscode from 'vscode';
-import { IStateService, ScanScope } from '../services/state-service';
+import { GlobalExtensionState, IStateService, ScanScope } from '../services/state-service';
 import { ICycodeService } from '../services/cycode-service';
 
-const postScanScope = (): void => {
+type DiffRefSide = keyof Pick<GlobalExtensionState, 'ScanDiffFromRef' | 'ScanDiffToRef'>;
+
+const saveAndPostScanScope = (): void => {
   const stateService = container.resolve<IStateService>(StateServiceSymbol);
-  stateService.tempState.ActivityBar?.ScanView.postScanScope(
-    stateService.globalState.ScanScope,
-    stateService.globalState.ScanDiffFromRef,
-    stateService.globalState.ScanDiffToRef,
-  );
+  stateService.save();
+  stateService.tempState.ActivityBar?.ScanView.postScanScope(stateService.globalState);
 };
 
-const setScanScopeCallback = (scope: ScanScope) => {
-  const stateService = container.resolve<IStateService>(StateServiceSymbol);
-  stateService.globalState.ScanScope = scope;
-  stateService.save();
-  postScanScope();
+export const setScanScopeCommand = (scope: ScanScope) => (): void => {
+  container.resolve<IStateService>(StateServiceSymbol).globalState.ScanScope = scope;
+  saveAndPostScanScope();
 
   if (scope === ScanScope.Diff) {
     void container.resolve<ICycodeService>(CycodeServiceSymbol).refreshDiffRefs();
   }
 };
 
-const setScanDiffFromRefCallback = (ref: unknown) => {
+export const setDiffRefCommand = (side: DiffRefSide) => (ref: unknown): void => {
   if (typeof ref !== 'string' || !ref) {
     return;
   }
 
-  const stateService = container.resolve<IStateService>(StateServiceSymbol);
-  stateService.globalState.ScanDiffFromRef = ref;
-  stateService.save();
-  postScanScope();
-};
-
-const setScanDiffToRefCallback = (ref: unknown) => {
-  if (typeof ref !== 'string' || !ref) {
-    return;
-  }
-
-  const stateService = container.resolve<IStateService>(StateServiceSymbol);
-  stateService.globalState.ScanDiffToRef = ref;
-  stateService.save();
-  postScanScope();
-};
-
-export default (context: vscode.ExtensionContext): void => {
-  context.subscriptions.push(
-    vscode.commands.registerCommand('cycode.setScanScopeProject', () => { setScanScopeCallback(ScanScope.Project); }),
-  );
-  context.subscriptions.push(
-    vscode.commands.registerCommand('cycode.setScanScopeDiff', () => { setScanScopeCallback(ScanScope.Diff); }),
-  );
-  context.subscriptions.push(
-    vscode.commands.registerCommand('cycode.setScanScopeFile', () => { setScanScopeCallback(ScanScope.File); }),
-  );
-  context.subscriptions.push(
-    vscode.commands.registerCommand('cycode.setScanDiffFromRef', setScanDiffFromRefCallback),
-  );
-  context.subscriptions.push(
-    vscode.commands.registerCommand('cycode.setScanDiffToRef', setScanDiffToRefCallback),
-  );
+  container.resolve<IStateService>(StateServiceSymbol).globalState[side] = ref;
+  saveAndPostScanScope();
 };

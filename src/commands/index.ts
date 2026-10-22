@@ -17,7 +17,8 @@ import treeViewCollapseAllCommand from './tree-view-collapse-all-command';
 import runAllScansCommand from './run-all-scans-command';
 import clearAllScanResultsCommand from './clear-all-scan-results-command';
 import registerTreeViewSeverityFilterCommands from './tree-view-filter-by-severity-command';
-import registerScanScopeCommands from './set-scan-scope-command';
+import { setDiffRefCommand, setScanScopeCommand } from './set-scan-scope-command';
+import { ScanScope } from '../services/state-service';
 
 export enum VscodeCommands {
   SecretScanCommandId = 'cycode.secretScan',
@@ -69,6 +70,11 @@ const _VS_CODE_COMMANDS_ID_TO_CALLBACK: Record<string, (...args: never[]) => unk
   [VscodeCommands.SastScanCommandId]: sastScanCommand,
   [VscodeCommands.SastScanForProjectCommandId]: sastScanForCurrentProjectCommand,
   [VscodeCommands.RunAllScansCommandId]: runAllScansCommand,
+  [VscodeCommands.SetScanScopeProjectCommandId]: setScanScopeCommand(ScanScope.Project),
+  [VscodeCommands.SetScanScopeDiffCommandId]: setScanScopeCommand(ScanScope.Diff),
+  [VscodeCommands.SetScanScopeFileCommandId]: setScanScopeCommand(ScanScope.File),
+  [VscodeCommands.SetScanDiffFromRefCommandId]: setDiffRefCommand('ScanDiffFromRef'),
+  [VscodeCommands.SetScanDiffToRefCommandId]: setDiffRefCommand('ScanDiffToRef'),
   [VscodeCommands.OpenViolationInFile]: openViolationInFileCommand,
   [VscodeCommands.OpenViolationPanel]: openViolationPanelCommand,
   [VscodeCommands.OpenSettingsCommandId]: openSettingsCommand,
@@ -84,5 +90,4 @@ export const registerCommands = (context: vscode.ExtensionContext): void => {
   }
 
   registerTreeViewSeverityFilterCommands(context);
-  registerScanScopeCommands(context);
 };

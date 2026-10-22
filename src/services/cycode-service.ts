@@ -19,14 +19,13 @@ import { IScanResultsService } from './scan-results-service';
 import { IExtensionService } from './extension-service';
 import { CliScanType } from '../cli/models/cli-scan-type';
 import { AiRemediationResultData } from '../cli/models/ai-remediation-result';
-import { MIN_CLI_VERSION_FOR_DIFF_SCAN } from '../cli/constants';
+import { DiffScanMode, MIN_CLI_VERSION_FOR_DIFF_SCAN, supportsDiffScan } from '../cli/constants';
 import {
   DEFAULT_DIFF_FROM_REF, DEFAULT_DIFF_TO_REF, IStateService, LOCAL_DIRECTORY_REF_VALUE, ScanScope,
 } from './state-service';
 import TrayNotifications from '../utils/tray-notifications';
 import { getActiveFilePath } from '../utils/active-editor';
 import { IGitService } from './git-service';
-import { resolveScanMode, ScanMode } from '../utils/scan-mode';
 
 export interface ICycodeService {
   installCliIfNeededAndCheckAuthentication(): Promise<void>;
@@ -40,8 +39,6 @@ export interface ICycodeService {
   getAiRemediation(detectionId: string): Promise<AiRemediationResultData | null>;
   refreshDiffRefs(): Promise<void>;
 }
-
-type DiffScanMode = ScanMode.CommitRange | ScanMode.LocalDiff;
 
 // for a commit range `ref` is the range expression, for a local diff it's the revision compared against
 interface DiffScanRequest {
@@ -163,30 +160,6 @@ export class CycodeService implements ICycodeService {
     return scanMethod && this.withScanRunningTracking(scanType, scanMethod);
   }
 
-  private getDiffScanMethod(
-    scanType: CliScanType,
-    request: DiffScanRequest,
-    path: string,
-  ): ((token: vscode.CancellationToken) => Promise<void>) | undefined {
-    const { mode, ref } = request;
-    const scanMethods: Record<DiffScanMode, Record<CliScanType, (token: vscode.CancellationToken) => Promise<void>>> = {
-      [ScanMode.CommitRange]: {
-        [CliScanType.Secret]: (token) => this.cliService.scanCommitRangeSecrets(ref, path, true, token),
-        [CliScanType.Sca]: (token) => this.cliService.scanCommitRangeSca(ref, path, true, token),
-        [CliScanType.Iac]: (token) => this.cliService.scanCommitRangeIac(ref, path, true, token),
-        [CliScanType.Sast]: (token) => this.cliService.scanCommitRangeSast(ref, path, true, token),
-      },
-      [ScanMode.LocalDiff]: {
-        [CliScanType.Secret]: (token) => this.cliService.scanLocalDiffSecrets(ref, path, true, token),
-        [CliScanType.Sca]: (token) => this.cliService.scanLocalDiffSca(ref, path, true, token),
-        [CliScanType.Iac]: (token) => this.cliService.scanLocalDiffIac(ref, path, true, token),
-        [CliScanType.Sast]: (token) => this.cliService.scanLocalDiffSast(ref, path, true, token),
-      },
-    };
-    const scanMethod = scanMethods[mode][scanType];
-    return scanMethod && this.withScanRunningTracking(scanType, scanMethod);
-  }
-
   private async runScanMethodsInParallel(
     scanTypes: CliScanType[],
     getMethod: (scanType: CliScanType) => ((token: vscode.CancellationToken) => Promise<void>) | undefined,
@@ -261,8 +234,8 @@ export class CycodeService implements ICycodeService {
       return;
     }
 
-    const diffScanTypes = scanTypes.filter((scanType) => resolveScanMode(scanType, request.mode) === request.mode);
-    const fallbackScanTypes = scanTypes.filter((scanType) => !diffScanTypes.includes(scanType));
+    const diffScanTypes = scanTypes.filter(supportsDiffScan);
+    const fallbackScanTypes = scanTypes.filter((scanType) => !supportsDiffScan(scanType));
 
     if (fallbackScanTypes.length) {
       this.logger.debug(
@@ -284,7 +257,10 @@ export class CycodeService implements ICycodeService {
         statusBar.showScanningInProgress();
         await this.runScanMethodsInParallel(
           diffScanTypes,
-          (scanType) => this.getDiffScanMethod(scanType, request, projectRoot),
+          (scanType) => this.withScanRunningTracking(
+            scanType,
+            (token) => this.cliService.scanDiff(scanType, request.mode, request.ref, projectRoot, true, token),
+          ),
           cancellationToken,
         );
         statusBar.showScanComplete();
@@ -324,14 +300,14 @@ export class CycodeService implements ICycodeService {
    */
   private buildDiffScanRequest(fromRef: string, toRef: string): DiffScanRequest {
     if (this.isLocalDirectoryRef(toRef)) {
-      return { mode: ScanMode.LocalDiff, ref: fromRef };
+      return { mode: DiffScanMode.LocalDiff, ref: fromRef };
     }
 
     if (this.isLocalDirectoryRef(fromRef)) {
-      return { mode: ScanMode.LocalDiff, ref: toRef };
+      return { mode: DiffScanMode.LocalDiff, ref: toRef };
     }
 
-    return { mode: ScanMode.CommitRange, ref: this.buildCommitRange(fromRef, toRef) };
+    return { mode: DiffScanMode.CommitRange, ref: this.buildCommitRange(fromRef, toRef) };
   }
 
   private async startDiffScansForCurrentProject(scanTypes: CliScanType[], fromRef: string, toRef: string) {
@@ -367,34 +343,7 @@ export class CycodeService implements ICycodeService {
   }
 
   public async startScanForCurrentProjectByScope(scanType: CliScanType) {
-    const scope = this.stateService.globalState.ScanScope;
-
-    if (scope === ScanScope.Diff) {
-      await this.startDiffScansForCurrentProject(
-        [scanType], this.stateService.globalState.ScanDiffFromRef, this.stateService.globalState.ScanDiffToRef,
-      );
-      return;
-    }
-
-    if (scope === ScanScope.File) {
-      const activeFilePath = getActiveFilePath();
-      if (!activeFilePath) {
-        TrayNotifications.showMustBeFocusedOnFile();
-        return;
-      }
-
-      if (!this.isScanTypeRelevantForFile(scanType, activeFilePath)) {
-        vscode.window.showInformationMessage(
-          `The current file is not relevant for ${getScanTypeDisplayName(scanType)} scanning.`,
-        );
-        return;
-      }
-
-      await this.startScan(scanType, [activeFilePath], true);
-      return;
-    }
-
-    await this.startScanForCurrentProject(scanType);
+    await this.startAllScansForCurrentProjectByScope([scanType]);
   }
 
   public async startAllScansForCurrentProjectByScope(scanTypes: CliScanType[]) {
@@ -524,8 +473,6 @@ export class CycodeService implements ICycodeService {
     }
 
     tempState.ActivityBar?.ScanView.postGitRefs(refs);
-    tempState.ActivityBar?.ScanView.postScanScope(
-      globalState.ScanScope, globalState.ScanDiffFromRef, globalState.ScanDiffToRef,
-    );
+    tempState.ActivityBar?.ScanView.postScanScope(globalState);
   }
 }

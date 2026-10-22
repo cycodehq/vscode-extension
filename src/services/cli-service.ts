@@ -9,7 +9,7 @@ import { isPathInsideAnyRoot } from '../utils/path-containment';
 import { CliResult, isCliResultError, isCliResultPanic, isCliResultSuccess } from '../cli/models/cli-result';
 import { ExitCode } from '../cli/exit-code';
 import { ScanResultBase } from '../cli/models/scan-result/scan-result-base';
-import { CliCommands, CommandParameters } from '../cli/constants';
+import { CliCommands, CommandParameters, DiffScanMode } from '../cli/constants';
 import { AuthResult } from '../cli/models/auth-result';
 import { getScanTypeDisplayName } from '../constants';
 import { ClassConstructor } from 'class-transformer';
@@ -41,34 +41,21 @@ export interface ICliService {
   scanPathsSca(paths: string[], onDemand: boolean, cancellationToken: CancellationToken | undefined): Promise<void>;
   scanPathsIac(paths: string[], onDemand: boolean, cancellationToken: CancellationToken | undefined): Promise<void>;
   scanPathsSast(paths: string[], onDemand: boolean, cancellationToken: CancellationToken | undefined): Promise<void>;
-  scanCommitRangeSecrets(
-    commitRange: string, path: string, onDemand: boolean, cancellationToken: CancellationToken | undefined
-  ): Promise<void>;
-  scanCommitRangeSca(
-    commitRange: string, path: string, onDemand: boolean, cancellationToken: CancellationToken | undefined
-  ): Promise<void>;
-  scanCommitRangeIac(
-    commitRange: string, path: string, onDemand: boolean, cancellationToken: CancellationToken | undefined
-  ): Promise<void>;
-  scanCommitRangeSast(
-    commitRange: string, path: string, onDemand: boolean, cancellationToken: CancellationToken | undefined
-  ): Promise<void>;
-  scanLocalDiffSecrets(
-    commit: string, path: string, onDemand: boolean, cancellationToken: CancellationToken | undefined
-  ): Promise<void>;
-  scanLocalDiffSca(
-    commit: string, path: string, onDemand: boolean, cancellationToken: CancellationToken | undefined
-  ): Promise<void>;
-  scanLocalDiffIac(
-    commit: string, path: string, onDemand: boolean, cancellationToken: CancellationToken | undefined
-  ): Promise<void>;
-  scanLocalDiffSast(
-    commit: string, path: string, onDemand: boolean, cancellationToken: CancellationToken | undefined
+  scanDiff(
+    scanType: CliScanType, mode: DiffScanMode, ref: string, path: string, onDemand: boolean,
+    cancellationToken: CancellationToken | undefined,
   ): Promise<void>;
   getAiRemediation(
     detectionId: string, cancellationToken: CancellationToken | undefined
   ): Promise<AiRemediationResultData | null>;
 }
+
+// IaC is missing on purpose, see supportsDiffScan
+const DIFF_SCAN_RESULT_CLASSES: Partial<Record<CliScanType, ClassConstructor<ScanResultBase>>> = {
+  [CliScanType.Secret]: SecretScanResult,
+  [CliScanType.Sca]: ScaScanResult,
+  [CliScanType.Sast]: SastScanResult,
+};
 
 @singleton()
 export class CliService implements ICliService {
@@ -195,9 +182,7 @@ export class CliService implements ICliService {
     }
 
     this.stateService.save();
-    this.tempState.ActivityBar?.ScanView.postScanScope(
-      this.state.ScanScope, this.state.ScanDiffFromRef, this.state.ScanDiffToRef,
-    );
+    this.tempState.ActivityBar?.ScanView.postScanScope(this.state);
 
     if (!this.tempState.CliAuthed) {
       statusBar.showAuthIsRequired();
@@ -275,33 +260,21 @@ export class CliService implements ICliService {
     return this.processCliResult(await this.cli.executeCommand(classConst, args, cancellationToken));
   }
 
-  private async scanCommitRange<T extends ClassConstructor<unknown>>(
-    classConst: T, commitRange: string, path: string, scanType: CliScanType, cancellationToken?: CancellationToken,
-  ): Promise<CliResult<T> | null> {
-    const scanOptions = this.getCliScanOptions(scanType);
-    const args = [
-      CliCommands.Scan, '-t', scanType.toLowerCase(), ...scanOptions,
-      CliCommands.CommitHistory, CommandParameters.CommitRange, assertSafeRefArg(commitRange), path,
-    ];
-    return this.processCliResult(await this.cli.executeCommand(classConst, args, cancellationToken));
-  }
+  private getDiffScanArgs(mode: DiffScanMode, ref: string, path: string): string[] {
+    if (mode === DiffScanMode.CommitRange) {
+      return [CliCommands.CommitHistory, CommandParameters.CommitRange, assertSafeRefArg(ref), path];
+    }
 
-  /**
-   * "Local diff" scanning (the IDE use case: working directory, including unstaged edits, against
-   * a base ref) isn't its own CLI command - it's `pre-commit --include-unstaged --base-ref <ref>`.
-   * The plain `pre-commit` command (no flags) is also what the git pre-commit hook itself runs.
-   */
-  private async scanLocalDiff<T extends ClassConstructor<unknown>>(
-    classConst: T, commit: string, path: string, scanType: CliScanType, cancellationToken?: CancellationToken,
-  ): Promise<CliResult<T> | null> {
-    const scanOptions = this.getCliScanOptions(scanType);
-    const args = [
-      CliCommands.Scan, '-t', scanType.toLowerCase(), ...scanOptions,
+    /*
+     * "local diff" scanning (the IDE use case: working directory, including unstaged edits, against a base ref)
+     * isn't its own CLI command - it's `pre-commit --include-unstaged --base-ref <ref>`.
+     * the plain `pre-commit` command (no flags) is also what the git pre-commit hook itself runs.
+     */
+    return [
       CliCommands.PreCommit, CommandParameters.IncludeUnstaged,
-      CommandParameters.BaseRef, assertSafeRefArg(commit),
+      CommandParameters.BaseRef, assertSafeRefArg(ref),
       CommandParameters.Path, path,
     ];
-    return this.processCliResult(await this.cli.executeCommand(classConst, args, cancellationToken));
   }
 
   private filterOutVirtualIacFiles(detections: DetectionBase[]): DetectionBase[] {
@@ -365,48 +338,12 @@ export class CliService implements ICliService {
     );
   }
 
-  public async scanCommitRangeSecrets(
-    commitRange: string, path: string, onDemand = false, cancellationToken?: CancellationToken,
-  ): Promise<void> {
-    await this.runScanAndProcessResults<SecretScanResult>(
-      CliScanType.Secret, onDemand, [path],
-      () => this.scanCommitRange(SecretScanResult, commitRange, path, CliScanType.Secret, cancellationToken),
-    );
-  }
-
-  public async scanLocalDiffSecrets(
-    commit: string, path: string, onDemand = false, cancellationToken?: CancellationToken,
-  ): Promise<void> {
-    await this.runScanAndProcessResults<SecretScanResult>(
-      CliScanType.Secret, onDemand, [path],
-      () => this.scanLocalDiff(SecretScanResult, commit, path, CliScanType.Secret, cancellationToken),
-    );
-  }
-
   public async scanPathsSca(
     paths: string[], onDemand = false, cancellationToken?: CancellationToken,
   ): Promise<void> {
     await this.runScanAndProcessResults<ScaScanResult>(
       CliScanType.Sca, onDemand, paths,
       () => this.scanPaths(ScaScanResult, paths, CliScanType.Sca, cancellationToken),
-    );
-  }
-
-  public async scanCommitRangeSca(
-    commitRange: string, path: string, onDemand = false, cancellationToken?: CancellationToken,
-  ): Promise<void> {
-    await this.runScanAndProcessResults<ScaScanResult>(
-      CliScanType.Sca, onDemand, [path],
-      () => this.scanCommitRange(ScaScanResult, commitRange, path, CliScanType.Sca, cancellationToken),
-    );
-  }
-
-  public async scanLocalDiffSca(
-    commit: string, path: string, onDemand = false, cancellationToken?: CancellationToken,
-  ): Promise<void> {
-    await this.runScanAndProcessResults<ScaScanResult>(
-      CliScanType.Sca, onDemand, [path],
-      () => this.scanLocalDiff(ScaScanResult, commit, path, CliScanType.Sca, cancellationToken),
     );
   }
 
@@ -420,26 +357,6 @@ export class CliService implements ICliService {
     );
   }
 
-  public async scanCommitRangeIac(
-    commitRange: string, path: string, onDemand = false, cancellationToken?: CancellationToken,
-  ): Promise<void> {
-    await this.runScanAndProcessResults<IacScanResult>(
-      CliScanType.Iac, onDemand, [path],
-      () => this.scanCommitRange(IacScanResult, commitRange, path, CliScanType.Iac, cancellationToken),
-      (detections) => this.filterOutVirtualIacFiles(detections),
-    );
-  }
-
-  public async scanLocalDiffIac(
-    commit: string, path: string, onDemand = false, cancellationToken?: CancellationToken,
-  ): Promise<void> {
-    await this.runScanAndProcessResults<IacScanResult>(
-      CliScanType.Iac, onDemand, [path],
-      () => this.scanLocalDiff(IacScanResult, commit, path, CliScanType.Iac, cancellationToken),
-      (detections) => this.filterOutVirtualIacFiles(detections),
-    );
-  }
-
   public async scanPathsSast(
     paths: string[], onDemand = false, cancellationToken?: CancellationToken,
   ): Promise<void> {
@@ -449,21 +366,22 @@ export class CliService implements ICliService {
     );
   }
 
-  public async scanCommitRangeSast(
-    commitRange: string, path: string, onDemand = false, cancellationToken?: CancellationToken,
+  public async scanDiff(
+    scanType: CliScanType, mode: DiffScanMode, ref: string, path: string, onDemand = false,
+    cancellationToken?: CancellationToken,
   ): Promise<void> {
-    await this.runScanAndProcessResults<SastScanResult>(
-      CliScanType.Sast, onDemand, [path],
-      () => this.scanCommitRange(SastScanResult, commitRange, path, CliScanType.Sast, cancellationToken),
-    );
-  }
+    const resultClass = DIFF_SCAN_RESULT_CLASSES[scanType];
+    if (!resultClass) {
+      throw new Error(`Diff scans are not supported for ${scanType}`);
+    }
 
-  public async scanLocalDiffSast(
-    commit: string, path: string, onDemand = false, cancellationToken?: CancellationToken,
-  ): Promise<void> {
-    await this.runScanAndProcessResults<SastScanResult>(
-      CliScanType.Sast, onDemand, [path],
-      () => this.scanLocalDiff(SastScanResult, commit, path, CliScanType.Sast, cancellationToken),
+    const args = [
+      CliCommands.Scan, '-t', scanType.toLowerCase(), ...this.getCliScanOptions(scanType),
+      ...this.getDiffScanArgs(mode, ref, path),
+    ];
+    await this.runScanAndProcessResults<ScanResultBase>(
+      scanType, onDemand, [path],
+      async () => this.processCliResult(await this.cli.executeCommand(resultClass, args, cancellationToken)),
     );
   }
 

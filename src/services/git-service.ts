@@ -2,6 +2,7 @@ import { execFile } from 'node:child_process';
 import { inject, singleton } from 'tsyringe';
 import { LoggerServiceSymbol } from '../symbols';
 import { ILoggerService } from './logger-service';
+import { HEAD_REF_VALUE } from './state-service';
 
 export interface GitRefOption {
   value: string;
@@ -58,7 +59,7 @@ export class GitService implements IGitService {
   }
 
   private buildHeadOption(currentBranch: string | null): GitRefOption {
-    return { value: 'HEAD', label: currentBranch ? `${currentBranch} (HEAD)` : 'HEAD' };
+    return { value: HEAD_REF_VALUE, label: currentBranch ? `${currentBranch} (HEAD)` : HEAD_REF_VALUE };
   }
 
   private async getBranchesAndTags(cwd: string): Promise<{ refs: GitRefOption[]; tipHashes: Set<string> }> {
@@ -123,7 +124,12 @@ export class GitService implements IGitService {
           return null;
         }
 
-        // the branch prefix is only accurate for commits that are actually part of the current branch
+        /*
+         * users compare branches in the Diff scope, so which branch a commit belongs to is part of what they choose
+         * between. the prefix is only right for commits that are part of the current branch, so it is checked here
+         * (at most two cheap calls, and only for a stored revision that scrolled out of the recent-commits list)
+         * rather than labelling a commit with a branch it isn't on.
+         */
         const branch = currentBranch && await this.isAncestorOfHead(cwd, ref) ? currentBranch : null;
         /*
          * keep the stored value as the option value so the existing selection keeps matching it;

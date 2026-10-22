@@ -2,6 +2,9 @@ import { getContent } from '../content';
 import { VscodeCommands } from '../../../commands';
 import { CliScanType } from '../../../cli/models/cli-scan-type';
 import { getScanTypeDisplayName } from '../../../constants';
+import {
+  DEFAULT_DIFF_FROM_REF, DEFAULT_DIFF_TO_REF, HEAD_REF_VALUE, LOCAL_DIRECTORY_REF_VALUE,
+} from '../../../services/state-service';
 
 const getBtnText = (scanType: CliScanType, inProgress = false) => {
   const verb = inProgress ? 'Scanning' : 'Scan';
@@ -87,8 +90,8 @@ registerButton(
 );
 registerButton('open-cycode-settings', '${VscodeCommands.OpenSettingsCommandId}');
 
-// must match LOCAL_DIRECTORY_REF_VALUE in src/services/state-service.ts
-const LOCAL_DIRECTORY_REF_VALUE = 'local';
+const LOCAL_DIRECTORY_REF_VALUE = '${LOCAL_DIRECTORY_REF_VALUE}';
+const HEAD_REF_VALUE = '${HEAD_REF_VALUE}';
 
 const scopeButtons = {
   project: ge('scope-project-btn'),
@@ -124,13 +127,13 @@ const diffFromSelect = ge('scope-diff-from-select');
 const diffToSelect = ge('scope-diff-to-select');
 let availableGitRefs = [];
 let lastGitRefsJson = '';
-let diffFromRef = LOCAL_DIRECTORY_REF_VALUE;
-let diffToRef = 'HEAD';
+let diffFromRef = '${DEFAULT_DIFF_FROM_REF}';
+let diffToRef = '${DEFAULT_DIFF_TO_REF}';
 
 const buildRefOptionList = () => {
   const options = [{ value: LOCAL_DIRECTORY_REF_VALUE, label: 'Local directory' }];
-  if (!availableGitRefs.some(ref => ref.value === 'HEAD')) {
-    options.push({ value: 'HEAD', label: 'HEAD (current)' });
+  if (!availableGitRefs.some(ref => ref.value === HEAD_REF_VALUE)) {
+    options.push({ value: HEAD_REF_VALUE, label: 'HEAD (current)' });
   }
   return options.concat(availableGitRefs);
 };

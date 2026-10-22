@@ -7,7 +7,7 @@ import { ICycodeService } from '../services/cycode-service';
 import { IStateService, ScanScope } from '../services/state-service';
 import { ILoggerService } from '../services/logger-service';
 
-// a single checkout or commit touches several files under .git at once
+// a single checkout or commit changes the repository state several times in a row
 const REFRESH_DEBOUNCE_MS = 300;
 
 /*
@@ -38,13 +38,6 @@ interface GitExtension {
   getAPI(version: 1): GitApi;
 }
 
-const refreshIfDiffScopeIsActive = () => {
-  const stateService = container.resolve<IStateService>(StateServiceSymbol);
-  if (stateService.globalState.ScanScope === ScanScope.Diff) {
-    void container.resolve<ICycodeService>(CycodeServiceSymbol).refreshDiffRefs();
-  }
-};
-
 // state.onDidChange also fires for every working tree / index change, so only react when branches, tags or HEAD move
 const getRefsSignature = (repository: GitRepository): string => {
   const refs = (repository.state.refs ?? [])
@@ -72,100 +65,58 @@ const isInsideRepository = (projectRoot: string, repositoryRoot: string): boolea
   return relative === '' || (!relative.startsWith('..') && !path.isAbsolute(relative));
 };
 
-const watchViaGitExtension = async (
-  context: vscode.ExtensionContext, projectRoot: string, scheduleRefresh: () => void, onRepositoryWatched: () => void,
-): Promise<boolean> => {
-  try {
-    const extension = vscode.extensions.getExtension<GitExtension>(GIT_EXTENSION_ID);
-    if (!extension) {
-      return false;
-    }
-
-    const gitExtension = extension.isActive ? extension.exports : await extension.activate();
-    const api = gitExtension.getAPI(1);
-
-    let watchedRepositories = 0;
-    const watchRepository = (repository: GitRepository) => {
-      if (!isInsideRepository(projectRoot, repository.rootUri.fsPath)) {
-        return;
-      }
-
-      watchedRepositories++;
-      onRepositoryWatched();
-
-      let lastSignature = getRefsSignature(repository);
-      context.subscriptions.push(repository.state.onDidChange(() => {
-        const signature = getRefsSignature(repository);
-        if (signature !== lastSignature) {
-          lastSignature = signature;
-          scheduleRefresh();
-        }
-      }));
-    };
-
-    api.repositories.forEach(watchRepository);
-    context.subscriptions.push(api.onDidOpenRepository(watchRepository));
-
-    // repositories can still be discovered later (handled above), which also retires the file watcher fallback
-    return watchedRepositories > 0;
-  } catch (error: unknown) {
-    const logger = container.resolve<ILoggerService>(LoggerServiceSymbol);
-    logger.debug(`Git extension API is not available: ${error instanceof Error ? error.message : String(error)}`);
-    return false;
+const refreshIfDiffScopeIsActive = () => {
+  const stateService = container.resolve<IStateService>(StateServiceSymbol);
+  if (stateService.globalState.ScanScope === ScanScope.Diff) {
+    void container.resolve<ICycodeService>(CycodeServiceSymbol).refreshDiffRefs();
   }
 };
 
 /**
- * Fallback for editors without the `vscode.git` extension (e.g. Theia): watch the files git rewrites
- * on checkout (HEAD), commit and branch/tag changes. Remote refs are deliberately left out because
- * auto-fetch rewrites them regularly and they are not listed in the Diff dropdowns.
+ * Keeps the Diff revision dropdowns current while the user switches branches, commits or tags inside the editor,
+ * using the built-in git extension (which also handles sub-folder repositories and worktrees).
+ * Editors without it (e.g. Theia) get no live updates: the lists are read on activation and whenever Diff is selected.
  */
-const watchViaFileSystem = (
-  workspaceFolder: vscode.WorkspaceFolder, scheduleRefresh: () => void,
-): vscode.FileSystemWatcher => {
-  const watcher = vscode.workspace.createFileSystemWatcher(
-    new vscode.RelativePattern(workspaceFolder, '.git/{HEAD,packed-refs,refs/heads/**,refs/tags/**}'),
-  );
-  watcher.onDidChange(scheduleRefresh);
-  watcher.onDidCreate(scheduleRefresh);
-  watcher.onDidDelete(scheduleRefresh);
-  return watcher;
-};
-
 export const registerOnGitRefsChange = (context: vscode.ExtensionContext) => {
+  const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+  const gitExtension = vscode.extensions.getExtension<GitExtension>(GIT_EXTENSION_ID);
+  if (!workspaceFolder || !gitExtension) {
+    return;
+  }
+
   let debounceTimer: NodeJS.Timeout | undefined;
   const scheduleRefresh = () => {
     clearTimeout(debounceTimer);
     debounceTimer = setTimeout(refreshIfDiffScopeIsActive, REFRESH_DEBOUNCE_MS);
   };
-
-  // the file watcher only stands in until the git extension reports a matching repository
-  let fallbackWatcher: vscode.FileSystemWatcher | undefined;
-  const onRepositoryWatched = () => {
-    fallbackWatcher?.dispose();
-    fallbackWatcher = undefined;
-  };
-
   context.subscriptions.push(new vscode.Disposable(() => {
     clearTimeout(debounceTimer);
-    fallbackWatcher?.dispose();
   }));
 
-  const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
-  if (workspaceFolder) {
-    void watchViaGitExtension(
-      context, workspaceFolder.uri.fsPath, scheduleRefresh, onRepositoryWatched,
-    ).then((usingGitExtension) => {
-      if (!usingGitExtension) {
-        fallbackWatcher = watchViaFileSystem(workspaceFolder, scheduleRefresh);
-      }
-    });
-  }
-
-  // covers changes made by tools outside the editor that neither of the above can see
-  context.subscriptions.push(vscode.window.onDidChangeWindowState((windowState) => {
-    if (windowState.focused) {
-      refreshIfDiffScopeIsActive();
+  const watchRepository = (repository: GitRepository) => {
+    if (!isInsideRepository(workspaceFolder.uri.fsPath, repository.rootUri.fsPath)) {
+      return;
     }
-  }));
+
+    let lastSignature = getRefsSignature(repository);
+    context.subscriptions.push(repository.state.onDidChange(() => {
+      const signature = getRefsSignature(repository);
+      if (signature !== lastSignature) {
+        lastSignature = signature;
+        scheduleRefresh();
+      }
+    }));
+  };
+
+  // do not await: activating the git extension must not delay this extension's own activation
+  void Promise.resolve(gitExtension.isActive ? gitExtension.exports : gitExtension.activate())
+    .then((exports) => {
+      const api = exports.getAPI(1);
+      api.repositories.forEach(watchRepository);
+      context.subscriptions.push(api.onDidOpenRepository(watchRepository));
+    })
+    .catch((error: unknown) => {
+      const logger = container.resolve<ILoggerService>(LoggerServiceSymbol);
+      logger.warn(`Diff revisions will not update live, the git extension is unavailable: ${String(error)}`);
+    });
 };
