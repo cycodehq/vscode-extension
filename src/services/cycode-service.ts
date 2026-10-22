@@ -20,8 +20,7 @@ import { IExtensionService } from './extension-service';
 import { CliScanType } from '../cli/models/cli-scan-type';
 import { AiRemediationResultData } from '../cli/models/ai-remediation-result';
 import {
-  DEFAULT_DIFF_FROM_REF, DEFAULT_DIFF_TO_REF, DiffScanMode, LOCAL_DIRECTORY_REF_VALUE, MIN_CLI_VERSION_FOR_DIFF_SCAN,
-  supportsDiffScan,
+  DEFAULT_DIFF_FROM_REF, DEFAULT_DIFF_TO_REF, DiffScanMode, LOCAL_DIRECTORY_REF_VALUE, supportsDiffScan,
 } from '../cli/constants';
 import { IStateService, ScanScope } from './state-service';
 import TrayNotifications from '../utils/tray-notifications';
@@ -277,15 +276,8 @@ export class CycodeService implements ICycodeService {
     return ref === LOCAL_DIRECTORY_REF_VALUE;
   }
 
-  /** Shows an error and returns false if the CLI is too old or the two picked sides can't produce a diff. */
+  /** Shows an error and returns false if the two picked sides can't produce a diff. */
   private validateDiffSelectionOrNotify(fromRef: string, toRef: string): boolean {
-    if (!this.stateService.tempState.IsDiffScanScopeSupported) {
-      vscode.window.showErrorMessage(
-        `The Diff scan scope requires Cycode CLI v${MIN_CLI_VERSION_FOR_DIFF_SCAN} or later.`,
-      );
-      return false;
-    }
-
     if (fromRef === toRef) {
       // covers both "Local directory" on both sides and the same revision on both sides
       vscode.window.showErrorMessage('Select two different revisions to compare.');
@@ -343,12 +335,24 @@ export class CycodeService implements ICycodeService {
     return true;
   }
 
+  /**
+   * The Diff scope needs a CLI that supports it. Until that is known (the status has not loaded yet, or could not
+   * be read) it behaves like the Project scope, which is also what the Scan view shows for it in that state.
+   * A CLI that is known to be too old has already had the stored scope reset to Project when its status was read.
+   */
+  private getEffectiveScanScope(): ScanScope {
+    const { globalState, tempState } = this.stateService;
+    return globalState.ScanScope === ScanScope.Diff && !tempState.IsDiffScanScopeSupported
+      ? ScanScope.Project
+      : globalState.ScanScope;
+  }
+
   public async startScanForCurrentProjectByScope(scanType: CliScanType) {
     await this.startAllScansForCurrentProjectByScope([scanType]);
   }
 
   public async startAllScansForCurrentProjectByScope(scanTypes: CliScanType[]) {
-    const scope = this.stateService.globalState.ScanScope;
+    const scope = this.getEffectiveScanScope();
 
     if (scope === ScanScope.Diff) {
       await this.startDiffScansForCurrentProject(

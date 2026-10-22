@@ -28,7 +28,8 @@ class GitCommandError extends Error {
   }
 }
 
-const NOT_A_GIT_REPOSITORY_REGEX = /not a git repository/i;
+// normal situations rather than failures: a folder that is not a repository, or a repository without commits yet
+const EXPECTED_GIT_FAILURE_REGEX = /not a git repository|does not have any commits yet|ambiguous argument 'HEAD'/i;
 
 const MAX_RECENT_COMMITS = 20;
 const MAX_BRANCHES_AND_TAGS = 20;
@@ -169,13 +170,13 @@ export class GitService implements IGitService {
       });
   }
 
-  // a folder that simply is not a repository is normal; anything else (e.g. git missing) is worth a warning
+  // anything that is not an expected situation (e.g. git missing) is worth a warning
   private logFailure(message: string, error: unknown): void {
     if (!(error instanceof Error)) {
       return;
     }
 
-    if (NOT_A_GIT_REPOSITORY_REGEX.test(error.message)) {
+    if (EXPECTED_GIT_FAILURE_REGEX.test(error.message)) {
       this.logger.debug(`${message}: ${error.message}`);
     } else {
       this.logger.warn(`${message}: ${error.message}`);

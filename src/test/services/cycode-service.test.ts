@@ -9,10 +9,34 @@ import { IExtensionService } from '../../services/extension-service';
 import {
   GlobalExtensionState, IStateService, ScanScope, TemporaryExtensionState,
 } from '../../services/state-service';
-import { DEFAULT_DIFF_FROM_REF, DEFAULT_DIFF_TO_REF, HEAD_REF_VALUE } from '../../cli/constants';
+import { StatusResult } from '../../cli/models/status-result';
+import { CliScanType } from '../../cli/models/cli-scan-type';
+import {
+  DEFAULT_DIFF_FROM_REF, DEFAULT_DIFF_TO_REF, DiffScanMode, HEAD_REF_VALUE, LOCAL_DIRECTORY_REF_VALUE,
+} from '../../cli/constants';
+import { window } from '../vscode-mock';
 import { registerLoggerMock } from '../helpers';
 
+const PROJECT_ROOT = '/project';
+const ALL_SCAN_TYPES = [CliScanType.Secret, CliScanType.Sca, CliScanType.Iac, CliScanType.Sast];
+
 const refOption = (value: string): GitRefOption => ({ value, label: value });
+
+const createService = (
+  cliService: Partial<ICliService>,
+  gitService: Partial<IGitService>,
+  globalState: GlobalExtensionState,
+  tempState: TemporaryExtensionState,
+  onSave: () => void = () => undefined,
+): CycodeService => new CycodeService(
+  registerLoggerMock() as unknown as ILoggerService,
+  {} as ICliDownloadService,
+  cliService as ICliService,
+  {} as IScanResultsService,
+  { treeDataProvider: { refresh: () => undefined } } as unknown as IExtensionService,
+  { globalState, tempState, save: onSave } as unknown as IStateService,
+  gitService as IGitService,
+);
 
 suite('state of the Diff revisions', () => {
   test('is not part of the persisted global state', () => {
@@ -43,12 +67,11 @@ suite('CycodeService.refreshDiffRefs', () => {
   let service: CycodeService;
 
   setup(() => {
-    const logger = registerLoggerMock();
     tempState = new TemporaryExtensionState();
     saves = 0;
     postedRefs = [];
     postedScopes = 0;
-    projectRoot = '/project';
+    projectRoot = PROJECT_ROOT;
     requestedPinnedRefs = [];
     getAvailableRefs = () => Promise.resolve([refOption('HEAD'), refOption('main')]);
 
@@ -62,21 +85,17 @@ suite('CycodeService.refreshDiffRefs', () => {
     const globalState = new GlobalExtensionState();
     globalState.ScanScope = ScanScope.Diff;
 
-    const gitService: IGitService = {
-      getAvailableRefs: (_cwd: string, pinnedRefs: string[] = []) => {
-        requestedPinnedRefs.push(pinnedRefs);
-        return getAvailableRefs(pinnedRefs);
+    service = createService(
+      { getProjectRootDirectory: () => projectRoot },
+      {
+        getAvailableRefs: (_cwd: string, pinnedRefs: string[] = []) => {
+          requestedPinnedRefs.push(pinnedRefs);
+          return getAvailableRefs(pinnedRefs);
+        },
       },
-    };
-
-    service = new CycodeService(
-      logger as unknown as ILoggerService,
-      {} as ICliDownloadService,
-      { getProjectRootDirectory: () => projectRoot } as unknown as ICliService,
-      {} as IScanResultsService,
-      {} as IExtensionService,
-      { globalState, tempState, save: () => saves++ } as unknown as IStateService,
-      gitService,
+      globalState,
+      tempState,
+      () => saves++,
     );
   });
 
@@ -153,5 +172,174 @@ suite('CycodeService.refreshDiffRefs', () => {
     await firstRefresh;
 
     assert.deepStrictEqual(postedRefs, [[refOption('HEAD'), refOption('newer')]]);
+  });
+});
+
+suite('CycodeService scans by scope', () => {
+  interface DiffCall {
+    scanType: CliScanType;
+    mode: DiffScanMode;
+    ref: string;
+    path: string;
+  }
+
+  let globalState: GlobalExtensionState;
+  let tempState: TemporaryExtensionState;
+  let diffCalls: DiffCall[];
+  let projectScans: { scanType: CliScanType; paths: string[] }[];
+  let errors: string[];
+  let service: CycodeService;
+  const originalShowErrorMessage = window.showErrorMessage;
+
+  const setCliVersion = (version: string) => {
+    tempState.CliStatus = { version } as StatusResult;
+  };
+
+  setup(() => {
+    globalState = new GlobalExtensionState();
+    globalState.ScanScope = ScanScope.Diff;
+    tempState = new TemporaryExtensionState();
+    setCliVersion('3.25.0');
+    diffCalls = [];
+    projectScans = [];
+    errors = [];
+    window.showErrorMessage = (...args: unknown[]) => {
+      errors.push(String(args[0]));
+      return Promise.resolve(undefined);
+    };
+
+    const projectScan = (scanType: CliScanType) => (paths: string[]) => {
+      projectScans.push({ scanType, paths });
+      return Promise.resolve();
+    };
+    service = createService(
+      {
+        getProjectRootDirectory: () => PROJECT_ROOT,
+        scanPathsSecrets: projectScan(CliScanType.Secret),
+        scanPathsSca: projectScan(CliScanType.Sca),
+        scanPathsIac: projectScan(CliScanType.Iac),
+        scanPathsSast: projectScan(CliScanType.Sast),
+        scanDiff: (scanType: CliScanType, mode: DiffScanMode, ref: string, path: string) => {
+          diffCalls.push({ scanType, mode, ref, path });
+          return Promise.resolve();
+        },
+      },
+      {},
+      globalState,
+      tempState,
+    );
+  });
+
+  teardown(() => {
+    window.showErrorMessage = originalShowErrorMessage;
+  });
+
+  const diffScanTypes = () => diffCalls.map((call) => call.scanType);
+
+  test('compares the local directory against the revision picked on the other side', async () => {
+    tempState.ScanDiffFromRef = 'main';
+    tempState.ScanDiffToRef = LOCAL_DIRECTORY_REF_VALUE;
+    await service.startAllScansForCurrentProjectByScope([CliScanType.Secret, CliScanType.Sca]);
+
+    tempState.ScanDiffFromRef = LOCAL_DIRECTORY_REF_VALUE;
+    tempState.ScanDiffToRef = 'feature/x';
+    await service.startAllScansForCurrentProjectByScope([CliScanType.Sast]);
+
+    assert.deepStrictEqual(diffCalls, [
+      { scanType: CliScanType.Secret, mode: DiffScanMode.LocalDiff, ref: 'main', path: PROJECT_ROOT },
+      { scanType: CliScanType.Sca, mode: DiffScanMode.LocalDiff, ref: 'main', path: PROJECT_ROOT },
+      { scanType: CliScanType.Sast, mode: DiffScanMode.LocalDiff, ref: 'feature/x', path: PROJECT_ROOT },
+    ]);
+  });
+
+  test('compares two revisions with a three-dot commit range, whichever way round they are picked', async () => {
+    tempState.ScanDiffFromRef = 'main';
+    tempState.ScanDiffToRef = 'feature/x';
+    await service.startAllScansForCurrentProjectByScope([CliScanType.Secret]);
+
+    tempState.ScanDiffFromRef = 'feature/x';
+    tempState.ScanDiffToRef = 'main';
+    await service.startAllScansForCurrentProjectByScope([CliScanType.Secret]);
+
+    assert.deepStrictEqual(diffCalls.map((call) => [call.mode, call.ref]), [
+      [DiffScanMode.CommitRange, 'main...feature/x'],
+      [DiffScanMode.CommitRange, 'feature/x...main'],
+    ]);
+  });
+
+  test('runs IaC as a project scan while the other scanners run as diffs', async () => {
+    await service.startAllScansForCurrentProjectByScope(ALL_SCAN_TYPES);
+
+    assert.deepStrictEqual(diffScanTypes(), [CliScanType.Secret, CliScanType.Sca, CliScanType.Sast]);
+    assert.deepStrictEqual(projectScans, [{ scanType: CliScanType.Iac, paths: [PROJECT_ROOT] }]);
+  });
+
+  test('runs a lone IaC scan as a project scan', async () => {
+    await service.startScanForCurrentProjectByScope(CliScanType.Iac);
+
+    assert.deepStrictEqual(diffCalls, []);
+    assert.deepStrictEqual(projectScans, [{ scanType: CliScanType.Iac, paths: [PROJECT_ROOT] }]);
+  });
+
+  test('runs a single scan type as a diff scan too', async () => {
+    await service.startScanForCurrentProjectByScope(CliScanType.Secret);
+
+    assert.deepStrictEqual(diffScanTypes(), [CliScanType.Secret]);
+    assert.deepStrictEqual(projectScans, []);
+  });
+
+  test('refuses to compare a revision with itself', async () => {
+    tempState.ScanDiffFromRef = 'main';
+    tempState.ScanDiffToRef = 'main';
+    await service.startAllScansForCurrentProjectByScope(ALL_SCAN_TYPES);
+
+    tempState.ScanDiffFromRef = LOCAL_DIRECTORY_REF_VALUE;
+    tempState.ScanDiffToRef = LOCAL_DIRECTORY_REF_VALUE;
+    await service.startAllScansForCurrentProjectByScope(ALL_SCAN_TYPES);
+
+    assert.deepStrictEqual(errors, [
+      'Select two different revisions to compare.',
+      'Select two different revisions to compare.',
+    ]);
+    assert.deepStrictEqual(diffCalls, []);
+    assert.deepStrictEqual(projectScans, []);
+  });
+
+  test('behaves like the Project scope while the CLI status is not known', async () => {
+    tempState = new TemporaryExtensionState();
+    service = createService({
+      getProjectRootDirectory: () => PROJECT_ROOT,
+      scanPathsSecrets: (paths: string[]) => {
+        projectScans.push({ scanType: CliScanType.Secret, paths });
+        return Promise.resolve();
+      },
+      scanDiff: () => {
+        assert.fail('a diff scan must not run');
+      },
+    }, {}, globalState, tempState);
+
+    await service.startAllScansForCurrentProjectByScope([CliScanType.Secret]);
+
+    assert.deepStrictEqual(projectScans, [{ scanType: CliScanType.Secret, paths: [PROJECT_ROOT] }]);
+    assert.deepStrictEqual(errors, [], 'no misleading "CLI too old" message');
+  });
+
+  test('behaves like the Project scope for a CLI that is too old', async () => {
+    setCliVersion('3.24.2.dev7');
+
+    await service.startAllScansForCurrentProjectByScope([CliScanType.Secret]);
+
+    assert.deepStrictEqual(diffCalls, []);
+    assert.deepStrictEqual(projectScans, [{ scanType: CliScanType.Secret, paths: [PROJECT_ROOT] }]);
+    assert.deepStrictEqual(errors, []);
+  });
+
+  test('does not diff when the Project scope is selected', async () => {
+    globalState.ScanScope = ScanScope.Project;
+
+    await service.startAllScansForCurrentProjectByScope([CliScanType.Secret]);
+
+    assert.deepStrictEqual(diffCalls, []);
+    assert.deepStrictEqual(projectScans, [{ scanType: CliScanType.Secret, paths: [PROJECT_ROOT] }]);
   });
 });

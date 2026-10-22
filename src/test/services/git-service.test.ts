@@ -164,4 +164,10 @@ suite('GitService.getAvailableRefs', function () {
     assert.deepStrictEqual(refs, []);
     assert.ok(warnings.length > 0);
   });
+
+  test('returns nothing, without a warning, for a repository without commits', async () => {
+    // setup() created the repository but no commit yet, so there is no HEAD to name or to list
+    assert.deepStrictEqual(await service.getAvailableRefs(repoDir), []);
+    assert.deepStrictEqual(warnings, []);
+  });
 });
