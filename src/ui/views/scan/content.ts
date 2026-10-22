@@ -4,7 +4,7 @@ import { CliScanType } from '../../../cli/models/cli-scan-type';
 import { getScanTypeDisplayName } from '../../../constants';
 import {
   DEFAULT_DIFF_FROM_REF, DEFAULT_DIFF_TO_REF, HEAD_REF_VALUE, LOCAL_DIRECTORY_REF_VALUE,
-} from '../../../services/state-service';
+} from '../../../cli/constants';
 
 const getBtnText = (scanType: CliScanType, inProgress = false) => {
   const verb = inProgress ? 'Scanning' : 'Scan';

@@ -19,10 +19,11 @@ import { IScanResultsService } from './scan-results-service';
 import { IExtensionService } from './extension-service';
 import { CliScanType } from '../cli/models/cli-scan-type';
 import { AiRemediationResultData } from '../cli/models/ai-remediation-result';
-import { DiffScanMode, MIN_CLI_VERSION_FOR_DIFF_SCAN, supportsDiffScan } from '../cli/constants';
 import {
-  DEFAULT_DIFF_FROM_REF, DEFAULT_DIFF_TO_REF, IStateService, LOCAL_DIRECTORY_REF_VALUE, ScanScope,
-} from './state-service';
+  DEFAULT_DIFF_FROM_REF, DEFAULT_DIFF_TO_REF, DiffScanMode, LOCAL_DIRECTORY_REF_VALUE, MIN_CLI_VERSION_FOR_DIFF_SCAN,
+  supportsDiffScan,
+} from '../cli/constants';
+import { IStateService, ScanScope } from './state-service';
 import TrayNotifications from '../utils/tray-notifications';
 import { getActiveFilePath } from '../utils/active-editor';
 import { IGitService } from './git-service';
@@ -372,7 +373,11 @@ export class CycodeService implements ICycodeService {
       });
 
       if (!relevantScanTypes.length) {
-        vscode.window.showInformationMessage('The current file is not relevant to any enabled scan type.');
+        vscode.window.showInformationMessage(
+          scanTypes.length === 1
+            ? `The current file is not relevant for ${getScanTypeDisplayName(scanTypes[0])} scanning.`
+            : 'The current file is not relevant to any enabled scan type.',
+        );
         return;
       }
 

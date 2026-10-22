@@ -17,7 +17,7 @@ import {
   ScanResultsServiceSymbol,
   StateServiceSymbol,
 } from './symbols';
-import { IStateService } from './services/state-service';
+import { IStateService, ScanScope } from './services/state-service';
 import { ILoggerService } from './services/logger-service';
 import { IScanResultsService } from './services/scan-results-service';
 import { IExtensionService } from './services/extension-service';
@@ -78,7 +78,10 @@ export function activate(context: vscode.ExtensionContext) {
   void postActivate().then(() => {
     onProjectOpen();
   });
-  void container.resolve<ICycodeService>(CycodeServiceSymbol).refreshDiffRefs();
+  if (stateService.globalState.ScanScope === ScanScope.Diff) {
+    // otherwise the revisions are read when the user selects the Diff scope
+    void container.resolve<ICycodeService>(CycodeServiceSymbol).refreshDiffRefs();
+  }
   registerOnGitRefsChange(context);
 }
 

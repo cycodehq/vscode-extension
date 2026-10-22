@@ -27,6 +27,13 @@ export enum CommandParameters {
 
 export const MIN_CLI_VERSION_FOR_DIFF_SCAN = '3.25.0';
 
+// sentinel value for a diff side that represents the uncommitted working directory rather than a git ref
+export const LOCAL_DIRECTORY_REF_VALUE = 'local';
+export const HEAD_REF_VALUE = 'HEAD';
+
+export const DEFAULT_DIFF_FROM_REF = LOCAL_DIRECTORY_REF_VALUE;
+export const DEFAULT_DIFF_TO_REF = HEAD_REF_VALUE;
+
 export enum DiffScanMode {
   // `commit-history --commit-range a...b`: the changes between two revisions
   CommitRange = 'commit-range',

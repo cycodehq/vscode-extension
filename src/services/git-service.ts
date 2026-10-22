@@ -2,7 +2,7 @@ import { execFile } from 'node:child_process';
 import { inject, singleton } from 'tsyringe';
 import { LoggerServiceSymbol } from '../symbols';
 import { ILoggerService } from './logger-service';
-import { HEAD_REF_VALUE } from './state-service';
+import { HEAD_REF_VALUE } from '../cli/constants';
 
 export interface GitRefOption {
   value: string;
@@ -27,6 +27,8 @@ class GitCommandError extends Error {
     this.name = 'GitCommandError';
   }
 }
+
+const NOT_A_GIT_REPOSITORY_REGEX = /not a git repository/i;
 
 const MAX_RECENT_COMMITS = 20;
 const MAX_BRANCHES_AND_TAGS = 20;
@@ -167,13 +169,23 @@ export class GitService implements IGitService {
       });
   }
 
+  // a folder that simply is not a repository is normal; anything else (e.g. git missing) is worth a warning
+  private logFailure(message: string, error: unknown): void {
+    if (!(error instanceof Error)) {
+      return;
+    }
+
+    if (NOT_A_GIT_REPOSITORY_REGEX.test(error.message)) {
+      this.logger.debug(`${message}: ${error.message}`);
+    } else {
+      this.logger.warn(`${message}: ${error.message}`);
+    }
+  }
+
   public async getAvailableRefs(cwd: string, pinnedRefs: string[] = []): Promise<GitRefOption[]> {
     try {
       const currentBranch = await this.getCurrentBranch(cwd).catch((error: unknown) => {
-        if (error instanceof Error) {
-          this.logger.warn(`Failed to resolve current branch: ${error.message}`);
-        }
-
+        this.logFailure('Failed to resolve current branch', error);
         return null;
       });
       const headOption = this.buildHeadOption(currentBranch);
@@ -192,9 +204,7 @@ export class GitService implements IGitService {
 
       return [...listed, ...pinned];
     } catch (error: unknown) {
-      if (error instanceof Error) {
-        this.logger.warn(`Failed to list git refs; the Diff dropdowns will only offer HEAD: ${error.message}`);
-      }
+      this.logFailure('Failed to list git refs; the Diff dropdowns will only offer HEAD', error);
 
       return [];
     }

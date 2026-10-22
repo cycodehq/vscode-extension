@@ -6,7 +6,7 @@ import { GlobalKeyValueStorage, LocalKeyValueStorage } from './key-value-storage
 import { StatusResult } from '../cli/models/status-result';
 import { ActivityBar } from '../ui/views/activity-bar';
 import { CliScanType } from '../cli/models/cli-scan-type';
-import { MIN_CLI_VERSION_FOR_DIFF_SCAN } from '../cli/constants';
+import { DEFAULT_DIFF_FROM_REF, DEFAULT_DIFF_TO_REF, MIN_CLI_VERSION_FOR_DIFF_SCAN } from '../cli/constants';
 import { isVersionAtLeast } from '../utils/version';
 
 export enum ScanScope {
@@ -14,13 +14,6 @@ export enum ScanScope {
   Diff = 'diff',
   File = 'file',
 }
-
-// sentinel value for a diff side that represents the uncommitted working directory rather than a git ref
-export const LOCAL_DIRECTORY_REF_VALUE = 'local';
-export const HEAD_REF_VALUE = 'HEAD';
-
-export const DEFAULT_DIFF_FROM_REF = LOCAL_DIRECTORY_REF_VALUE;
-export const DEFAULT_DIFF_TO_REF = HEAD_REF_VALUE;
 
 export class GlobalExtensionState {
   public EnvVsCode = true;
