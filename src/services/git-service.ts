@@ -1,4 +1,4 @@
-import { execFile, ExecFileException } from 'node:child_process';
+import { execFile } from 'node:child_process';
 import { inject, singleton } from 'tsyringe';
 import { LoggerServiceSymbol } from '../symbols';
 import { ILoggerService } from './logger-service';
@@ -16,6 +16,17 @@ export interface IGitService {
   getAvailableRefs(cwd: string, pinnedRefs?: string[]): Promise<GitRefOption[]>;
 }
 
+// exit code git uses when the given revision cannot be resolved
+const GIT_BAD_REVISION_EXIT_CODE = 128;
+
+// keeps git's exit code (a number) apart from spawn failure codes such as ENOENT (a string)
+class GitCommandError extends Error {
+  constructor(message: string, public readonly code: number | string | undefined) {
+    super(message);
+    this.name = 'GitCommandError';
+  }
+}
+
 const MAX_RECENT_COMMITS = 20;
 const MAX_BRANCHES_AND_TAGS = 20;
 const COMMIT_HASH_REGEX = /^[0-9a-f]{4,40}$/i;
@@ -29,7 +40,7 @@ export class GitService implements IGitService {
       // execFile does not spawn a shell, so args are passed as an argv array rather than interpolated
       execFile('git', args, { cwd }, (error, stdout) => {
         if (error) {
-          reject(error);
+          reject(new GitCommandError(error.message, error.code ?? undefined));
           return;
         }
 
@@ -81,9 +92,8 @@ export class GitService implements IGitService {
     return [currentBranch, hash, subject].filter(Boolean).join(' │ ');
   }
 
-  // `git log <unknown revision>` exits with 128; spawn failures carry a string code (e.g. ENOENT) instead
   private isBadRevisionError(error: unknown): boolean {
-    return error instanceof Error && (error as ExecFileException).code === 128;
+    return error instanceof GitCommandError && error.code === GIT_BAD_REVISION_EXIT_CODE;
   }
 
   private async isAncestorOfHead(cwd: string, ref: string): Promise<boolean> {

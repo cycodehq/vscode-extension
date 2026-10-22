@@ -123,7 +123,10 @@ export class TemporaryExtensionState {
   }
 }
 
-export type TempExtensionStateKey = keyof TemporaryExtensionState;
+// only the state fields; methods (e.g. setScanRunning) are not values that can be exported to a context
+export type TempExtensionStateKey = {
+  [K in keyof TemporaryExtensionState]: TemporaryExtensionState[K] extends (...args: never[]) => unknown ? never : K;
+}[keyof TemporaryExtensionState];
 
 const _GLOBAL_STATE_KEY = 'cycode:globalState';
 const _LOCAL_STATE_KEY = 'cycode:localState';

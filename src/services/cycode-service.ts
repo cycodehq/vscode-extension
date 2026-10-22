@@ -26,6 +26,7 @@ import {
 import TrayNotifications from '../utils/tray-notifications';
 import { getActiveFilePath } from '../utils/active-editor';
 import { IGitService } from './git-service';
+import { resolveScanMode, ScanMode } from '../utils/scan-mode';
 
 export interface ICycodeService {
   installCliIfNeededAndCheckAuthentication(): Promise<void>;
@@ -38,6 +39,14 @@ export interface ICycodeService {
   applyDetectionIgnore(scanType: CliScanType, ignoreType: CliIgnoreType, value: string): Promise<void>;
   getAiRemediation(detectionId: string): Promise<AiRemediationResultData | null>;
   refreshDiffRefs(): Promise<void>;
+}
+
+type DiffScanMode = ScanMode.CommitRange | ScanMode.LocalDiff;
+
+// for a commit range `ref` is the range expression, for a local diff it's the revision compared against
+interface DiffScanRequest {
+  mode: DiffScanMode;
+  ref: string;
 }
 
 type ProgressBar = vscode.Progress<{ message?: string; increment?: number }>;
@@ -154,35 +163,27 @@ export class CycodeService implements ICycodeService {
     return scanMethod && this.withScanRunningTracking(scanType, scanMethod);
   }
 
-  private getCommitRangeScanMethod(
+  private getDiffScanMethod(
     scanType: CliScanType,
-    commitRange: string,
+    request: DiffScanRequest,
     path: string,
-    onDemand: boolean,
   ): ((token: vscode.CancellationToken) => Promise<void>) | undefined {
-    const scanMethods: Record<CliScanType, (token: vscode.CancellationToken) => Promise<void>> = {
-      [CliScanType.Secret]: (token) => this.cliService.scanCommitRangeSecrets(commitRange, path, onDemand, token),
-      [CliScanType.Sca]: (token) => this.cliService.scanCommitRangeSca(commitRange, path, onDemand, token),
-      [CliScanType.Iac]: (token) => this.cliService.scanCommitRangeIac(commitRange, path, onDemand, token),
-      [CliScanType.Sast]: (token) => this.cliService.scanCommitRangeSast(commitRange, path, onDemand, token),
+    const { mode, ref } = request;
+    const scanMethods: Record<DiffScanMode, Record<CliScanType, (token: vscode.CancellationToken) => Promise<void>>> = {
+      [ScanMode.CommitRange]: {
+        [CliScanType.Secret]: (token) => this.cliService.scanCommitRangeSecrets(ref, path, true, token),
+        [CliScanType.Sca]: (token) => this.cliService.scanCommitRangeSca(ref, path, true, token),
+        [CliScanType.Iac]: (token) => this.cliService.scanCommitRangeIac(ref, path, true, token),
+        [CliScanType.Sast]: (token) => this.cliService.scanCommitRangeSast(ref, path, true, token),
+      },
+      [ScanMode.LocalDiff]: {
+        [CliScanType.Secret]: (token) => this.cliService.scanLocalDiffSecrets(ref, path, true, token),
+        [CliScanType.Sca]: (token) => this.cliService.scanLocalDiffSca(ref, path, true, token),
+        [CliScanType.Iac]: (token) => this.cliService.scanLocalDiffIac(ref, path, true, token),
+        [CliScanType.Sast]: (token) => this.cliService.scanLocalDiffSast(ref, path, true, token),
+      },
     };
-    const scanMethod = scanMethods[scanType];
-    return scanMethod && this.withScanRunningTracking(scanType, scanMethod);
-  }
-
-  private getLocalDiffScanMethod(
-    scanType: CliScanType,
-    commit: string,
-    path: string,
-    onDemand: boolean,
-  ): ((token: vscode.CancellationToken) => Promise<void>) | undefined {
-    const scanMethods: Record<CliScanType, (token: vscode.CancellationToken) => Promise<void>> = {
-      [CliScanType.Secret]: (token) => this.cliService.scanLocalDiffSecrets(commit, path, onDemand, token),
-      [CliScanType.Sca]: (token) => this.cliService.scanLocalDiffSca(commit, path, onDemand, token),
-      [CliScanType.Iac]: (token) => this.cliService.scanLocalDiffIac(commit, path, onDemand, token),
-      [CliScanType.Sast]: (token) => this.cliService.scanLocalDiffSast(commit, path, onDemand, token),
-    };
-    const scanMethod = scanMethods[scanType];
+    const scanMethod = scanMethods[mode][scanType];
     return scanMethod && this.withScanRunningTracking(scanType, scanMethod);
   }
 
@@ -247,18 +248,11 @@ export class CycodeService implements ICycodeService {
     );
   }
 
-  private isScanTypeSupportedForDiff(scanType: CliScanType): boolean {
-    // the CLI does not support commit-range or pre-commit (local diff) scanning for IaC
-    return scanType !== CliScanType.Iac;
-  }
-
-  private async startCommitRangeScanForCurrentProject(scanType: CliScanType, commitRange: string) {
-    if (!this.isScanTypeSupportedForDiff(scanType)) {
-      this.logger.debug(`[${scanType}] Diff scope not supported, running a full project scan instead`);
-      await this.startScanForCurrentProject(scanType);
-      return;
-    }
-
+  /**
+   * Runs diff scans for the given scan types. Scan types that can't do the requested diff mode (IaC) fall back to a
+   * full project scan, and everything that can runs in parallel under a single (quiet) progress indicator.
+   */
+  private async runDiffScans(scanTypes: CliScanType[], request: DiffScanRequest) {
     const projectRoot = this.cliService.getProjectRootDirectory();
     if (!projectRoot) {
       vscode.window.showErrorMessage(
@@ -267,147 +261,39 @@ export class CycodeService implements ICycodeService {
       return;
     }
 
-    const scanMethod = this.getCommitRangeScanMethod(scanType, commitRange, projectRoot, true);
-    if (!scanMethod) {
-      this.logger.error(`Unknown scan type: ${scanType}`);
-      return;
-    }
+    const diffScanTypes = scanTypes.filter((scanType) => resolveScanMode(scanType, request.mode) === request.mode);
+    const fallbackScanTypes = scanTypes.filter((scanType) => !diffScanTypes.includes(scanType));
 
-    await this.withProgressBar(
-      `Cycode is scanning changed files for ${getScanTypeDisplayName(scanType)}...`,
-      async (cancellationToken: vscode.CancellationToken) => {
-        this.logger.debug(`[${scanType}] Start scanning commit range: ${commitRange}`);
-        statusBar.showScanningInProgress();
-        await scanMethod(cancellationToken);
-        statusBar.showScanComplete();
-        this.logger.debug(`[${scanType}] Finish scanning commit range: ${commitRange}`);
-      },
-      this.getScanProgressBarOptions(true),
-    );
-  }
-
-  private async startAllCommitRangeScansForCurrentProject(scanTypes: CliScanType[], commitRange: string) {
-    const projectRoot = this.cliService.getProjectRootDirectory();
-    if (!projectRoot) {
-      vscode.window.showErrorMessage(
-        'Cycode scans the project that is currently opened. Please open a project and try again',
-      );
-      return;
-    }
-
-    const supportedScanTypes = scanTypes.filter((scanType) => this.isScanTypeSupportedForDiff(scanType));
-    const unsupportedScanTypes = scanTypes.filter((scanType) => !this.isScanTypeSupportedForDiff(scanType));
-
-    if (unsupportedScanTypes.length) {
+    if (fallbackScanTypes.length) {
       this.logger.debug(
-        `[RunAllCommitRange] Diff scope not supported for ${unsupportedScanTypes.join(', ')}, `
+        `[Diff] ${request.mode} scans are not supported for ${fallbackScanTypes.join(', ')}, `
         + 'running full project scans instead',
       );
     }
 
-    const fallbackFullScans = unsupportedScanTypes.map((scanType) => this.startScanForCurrentProject(scanType));
-
-    if (!supportedScanTypes.length) {
+    const fallbackFullScans = fallbackScanTypes.map((scanType) => this.startScanForCurrentProject(scanType));
+    if (!diffScanTypes.length) {
       await Promise.all(fallbackFullScans);
       return;
     }
 
     const diffScan = this.withProgressBar(
-      'Cycode is scanning changed files...',
+      '',
       async (cancellationToken: vscode.CancellationToken) => {
-        this.logger.debug(`[RunAllCommitRange] Start scanning commit range: ${commitRange}`);
+        this.logger.debug(`[Diff] Start ${request.mode} scan of ${diffScanTypes.join(', ')}: ${request.ref}`);
         statusBar.showScanningInProgress();
         await this.runScanMethodsInParallel(
-          supportedScanTypes,
-          (scanType) => this.getCommitRangeScanMethod(scanType, commitRange, projectRoot, true),
+          diffScanTypes,
+          (scanType) => this.getDiffScanMethod(scanType, request, projectRoot),
           cancellationToken,
         );
         statusBar.showScanComplete();
-        this.logger.debug(`[RunAllCommitRange] Finish scanning commit range: ${commitRange}`);
+        this.logger.debug(`[Diff] Finish ${request.mode} scan of ${diffScanTypes.join(', ')}: ${request.ref}`);
       },
-      { cancellable: true, location: vscode.ProgressLocation.Notification },
+      { cancellable: true, location: vscode.ProgressLocation.Window },
     );
 
     await Promise.all([...fallbackFullScans, diffScan]);
-  }
-
-  private async startLocalDiffScanForCurrentProject(scanType: CliScanType, commit: string) {
-    if (!this.isScanTypeSupportedForDiff(scanType)) {
-      this.logger.debug(`[${scanType}] Local diff scope not supported, running a full project scan instead`);
-      await this.startScanForCurrentProject(scanType);
-      return;
-    }
-
-    const projectRoot = this.cliService.getProjectRootDirectory();
-    if (!projectRoot) {
-      vscode.window.showErrorMessage(
-        'Cycode scans the project that is currently opened. Please open a project and try again',
-      );
-      return;
-    }
-
-    const scanMethod = this.getLocalDiffScanMethod(scanType, commit, projectRoot, true);
-    if (!scanMethod) {
-      this.logger.error(`Unknown scan type: ${scanType}`);
-      return;
-    }
-
-    await this.withProgressBar(
-      '',
-      async (cancellationToken: vscode.CancellationToken) => {
-        this.logger.debug(`[${scanType}] Start scanning local diff against ${commit}: ${projectRoot}`);
-        statusBar.showScanningInProgress();
-        await scanMethod(cancellationToken);
-        statusBar.showScanComplete();
-        this.logger.debug(`[${scanType}] Finish scanning local diff against ${commit}: ${projectRoot}`);
-      },
-      { cancellable: true, location: vscode.ProgressLocation.Window },
-    );
-  }
-
-  private async startAllLocalDiffScansForCurrentProject(scanTypes: CliScanType[], commit: string) {
-    const projectRoot = this.cliService.getProjectRootDirectory();
-    if (!projectRoot) {
-      vscode.window.showErrorMessage(
-        'Cycode scans the project that is currently opened. Please open a project and try again',
-      );
-      return;
-    }
-
-    const supportedScanTypes = scanTypes.filter((scanType) => this.isScanTypeSupportedForDiff(scanType));
-    const unsupportedScanTypes = scanTypes.filter((scanType) => !this.isScanTypeSupportedForDiff(scanType));
-
-    if (unsupportedScanTypes.length) {
-      this.logger.debug(
-        `[RunAllLocalDiff] Local diff scope not supported for ${unsupportedScanTypes.join(', ')}, `
-        + 'running full project scans instead',
-      );
-    }
-
-    const fallbackFullScans = unsupportedScanTypes.map((scanType) => this.startScanForCurrentProject(scanType));
-
-    if (!supportedScanTypes.length) {
-      await Promise.all(fallbackFullScans);
-      return;
-    }
-
-    const localDiffScan = this.withProgressBar(
-      '',
-      async (cancellationToken: vscode.CancellationToken) => {
-        this.logger.debug(`[RunAllLocalDiff] Start scanning local diff against ${commit}: ${projectRoot}`);
-        statusBar.showScanningInProgress();
-        await this.runScanMethodsInParallel(
-          supportedScanTypes,
-          (scanType) => this.getLocalDiffScanMethod(scanType, commit, projectRoot, true),
-          cancellationToken,
-        );
-        statusBar.showScanComplete();
-        this.logger.debug(`[RunAllLocalDiff] Finish scanning local diff against ${commit}: ${projectRoot}`);
-      },
-      { cancellable: true, location: vscode.ProgressLocation.Window },
-    );
-
-    await Promise.all([...fallbackFullScans, localDiffScan]);
   }
 
   private isLocalDirectoryRef(ref: string): boolean {
@@ -433,44 +319,27 @@ export class CycodeService implements ICycodeService {
   }
 
   /**
-   * Dispatches a "from ref" vs "to ref" diff to the right underlying CLI command: if one side is
-   * the uncommitted working directory, that's a local-diff scan against the other (committed) side;
-   * if both sides are commits/branches/tags, that's a commit-range scan between them.
+   * Maps the "from" / "to" pickers to a diff scan: if one side is the uncommitted working directory that's a
+   * local-diff scan against the other (committed) side; if both sides are revisions it's a commit-range scan.
    */
-  private async startDiffScanForCurrentProject(scanType: CliScanType, fromRef: string, toRef: string) {
-    if (!this.validateDiffSelectionOrNotify(fromRef, toRef)) {
-      return;
-    }
-
+  private buildDiffScanRequest(fromRef: string, toRef: string): DiffScanRequest {
     if (this.isLocalDirectoryRef(toRef)) {
-      await this.startLocalDiffScanForCurrentProject(scanType, fromRef);
-      return;
+      return { mode: ScanMode.LocalDiff, ref: fromRef };
     }
 
     if (this.isLocalDirectoryRef(fromRef)) {
-      await this.startLocalDiffScanForCurrentProject(scanType, toRef);
-      return;
+      return { mode: ScanMode.LocalDiff, ref: toRef };
     }
 
-    await this.startCommitRangeScanForCurrentProject(scanType, this.buildCommitRange(fromRef, toRef));
+    return { mode: ScanMode.CommitRange, ref: this.buildCommitRange(fromRef, toRef) };
   }
 
-  private async startAllDiffScansForCurrentProject(scanTypes: CliScanType[], fromRef: string, toRef: string) {
+  private async startDiffScansForCurrentProject(scanTypes: CliScanType[], fromRef: string, toRef: string) {
     if (!this.validateDiffSelectionOrNotify(fromRef, toRef)) {
       return;
     }
 
-    if (this.isLocalDirectoryRef(toRef)) {
-      await this.startAllLocalDiffScansForCurrentProject(scanTypes, fromRef);
-      return;
-    }
-
-    if (this.isLocalDirectoryRef(fromRef)) {
-      await this.startAllLocalDiffScansForCurrentProject(scanTypes, toRef);
-      return;
-    }
-
-    await this.startAllCommitRangeScansForCurrentProject(scanTypes, this.buildCommitRange(fromRef, toRef));
+    await this.runDiffScans(scanTypes, this.buildDiffScanRequest(fromRef, toRef));
   }
 
   /**
@@ -501,8 +370,8 @@ export class CycodeService implements ICycodeService {
     const scope = this.stateService.globalState.ScanScope;
 
     if (scope === ScanScope.Diff) {
-      await this.startDiffScanForCurrentProject(
-        scanType, this.stateService.globalState.ScanDiffFromRef, this.stateService.globalState.ScanDiffToRef,
+      await this.startDiffScansForCurrentProject(
+        [scanType], this.stateService.globalState.ScanDiffFromRef, this.stateService.globalState.ScanDiffToRef,
       );
       return;
     }
@@ -532,7 +401,7 @@ export class CycodeService implements ICycodeService {
     const scope = this.stateService.globalState.ScanScope;
 
     if (scope === ScanScope.Diff) {
-      await this.startAllDiffScansForCurrentProject(
+      await this.startDiffScansForCurrentProject(
         scanTypes, this.stateService.globalState.ScanDiffFromRef, this.stateService.globalState.ScanDiffToRef,
       );
       return;

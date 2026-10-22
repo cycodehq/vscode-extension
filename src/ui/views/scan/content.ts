@@ -100,9 +100,15 @@ const scopeDescriptions = {
   diff: ge('scope-diff-desc'),
   file: ge('scope-file-desc'),
 };
+// the extension owns the stored scope; this view only renders what it is told
+let currentScope = 'project';
+let diffScopeSupported = false;
 const setActiveScope = (scope) => {
-  for (const [key, btn] of Object.entries(scopeButtons)) btn.classList.toggle('active', key === scope);
-  for (const [key, desc] of Object.entries(scopeDescriptions)) desc.hidden = key !== scope;
+  currentScope = scope;
+  // until the extension reports that Diff is supported, a stored "diff" scope is only displayed as Project
+  const shownScope = scope === 'diff' && !diffScopeSupported ? 'project' : scope;
+  for (const [key, btn] of Object.entries(scopeButtons)) btn.classList.toggle('active', key === shownScope);
+  for (const [key, desc] of Object.entries(scopeDescriptions)) desc.hidden = key !== shownScope;
 };
 scopeButtons.project.addEventListener(
   'click', () => vscode.postMessage({ command: '${VscodeCommands.SetScanScopeProjectCommandId}' })
@@ -193,10 +199,9 @@ window.addEventListener('message', event => {
       }
     }
     if (event.data.command === 'diffScopeSupported') {
-      scopeButtons.diff.style.display = event.data.supported ? '' : 'none';
-      if (!event.data.supported && scopeButtons.diff.classList.contains('active')) {
-        setActiveScope('project');
-      }
+      diffScopeSupported = !!event.data.supported;
+      scopeButtons.diff.style.display = diffScopeSupported ? '' : 'none';
+      setActiveScope(currentScope);
     }
 });
 </script>
