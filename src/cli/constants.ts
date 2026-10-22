@@ -25,7 +25,6 @@ export enum CommandParameters {
   Path = '--path',
 }
 
-// minimum Cycode CLI version that supports the Diff scan scope (commit-history/pre-commit --include-unstaged)
 export const MIN_CLI_VERSION_FOR_DIFF_SCAN = '3.25.0';
 
 const SCAN_TYPE_TO_SCAN_TYPE_CLI_FLAG_VALUE = {
