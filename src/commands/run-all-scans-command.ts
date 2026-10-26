@@ -16,5 +16,5 @@ export default getCommonCommand(async () => {
   if (stateService.tempState.IsIacScanningEnabled) enabledScanTypes.push(CliScanType.Iac);
   if (stateService.tempState.IsSastScanningEnabled) enabledScanTypes.push(CliScanType.Sast);
 
-  await cycodeService.startAllScansForCurrentProject(enabledScanTypes);
+  await cycodeService.startAllScansForCurrentProjectByScope(enabledScanTypes);
 });

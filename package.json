@@ -181,6 +181,18 @@
           "when": "cycode:modules.isScaScanningEnabled"
         },
         {
+          "command": "cycode.setScanScopeProject",
+          "when": "false"
+        },
+        {
+          "command": "cycode.setScanScopeDiff",
+          "when": "false"
+        },
+        {
+          "command": "cycode.setScanScopeFile",
+          "when": "false"
+        },
+        {
           "command": "cycode.enableFilterByCriticalSeverity",
           "when": "false"
         },
@@ -290,6 +302,24 @@
         "category": "Cycode",
         "title": "Scan for package vulnerabilities",
         "icon": "$(testing-run-icon)"
+      },
+      {
+        "command": "cycode.setScanScopeProject",
+        "category": "Cycode",
+        "title": "Scan Scope: Full Project",
+        "icon": "$(root-folder)"
+      },
+      {
+        "command": "cycode.setScanScopeDiff",
+        "category": "Cycode",
+        "title": "Scan Scope: Diff Between Revisions",
+        "icon": "$(diff)"
+      },
+      {
+        "command": "cycode.setScanScopeFile",
+        "category": "Cycode",
+        "title": "Scan Scope: Current File",
+        "icon": "$(file)"
       },
       {
         "command": "cycode.openSettings",

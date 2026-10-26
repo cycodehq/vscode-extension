@@ -10,7 +10,7 @@ import { ScanResultsServiceSymbol, StateServiceSymbol } from '../../symbols';
 import { DetectionBase } from '../../cli/models/scan-result/detection-base';
 import { VscodeCommands } from '../../commands';
 import { FilterNode } from './nodes/filter-node';
-import { IStateService } from '../../services/state-service';
+import { IStateService, TemporaryExtensionState } from '../../services/state-service';
 
 export class TreeDataProvider implements vscode.TreeDataProvider<BaseNode> {
   public static readonly viewType = 'cycode.view.tree';
@@ -54,10 +54,7 @@ export class TreeDataProvider implements vscode.TreeDataProvider<BaseNode> {
     return severityWeights[severity.toLowerCase()] || 0;
   }
 
-  private getEnabledSeverityFilters(): Set<string> {
-    const stateService = container.resolve<IStateService>(StateServiceSymbol);
-    const tempState = stateService.tempState;
-
+  private getEnabledSeverityFilters(tempState: TemporaryExtensionState): Set<string> {
     const enabledSeverityFilters = new Set<string>();
     if (tempState.IsTreeViewFilterByCriticalSeverityEnabled) {
       enabledSeverityFilters.add('critical');
@@ -98,7 +95,8 @@ export class TreeDataProvider implements vscode.TreeDataProvider<BaseNode> {
     const scanResultsService = container.resolve<IScanResultsService>(ScanResultsServiceSymbol);
     const detections = scanResultsService.getDetections(scanType);
 
-    const enabledSeverityFilters = this.getEnabledSeverityFilters();
+    const stateService = container.resolve<IStateService>(StateServiceSymbol);
+    const enabledSeverityFilters = this.getEnabledSeverityFilters(stateService.tempState);
     const severityFilteredDetections = detections.filter((detection) => {
       return !enabledSeverityFilters.has(detection.severity.toLowerCase());
     });
@@ -113,7 +111,8 @@ export class TreeDataProvider implements vscode.TreeDataProvider<BaseNode> {
         return acc;
       }, new Map());
 
-    const scanTypeNode = new ScanTypeNode(scanType, this.getScanTypeNodeSummary(severityFilteredDetections));
+    const isRunning = stateService.tempState.isScanRunning(scanType);
+    const scanTypeNode = new ScanTypeNode(scanType, this.getScanTypeNodeSummary(severityFilteredDetections), isRunning);
     this._createdRootNodes.push(scanTypeNode);
     this._createdNodesToChildren.set(scanTypeNode, []);
 
