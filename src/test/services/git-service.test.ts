@@ -268,6 +268,16 @@ suite('GitService.getCommitRange', function () {
     await assert.rejects(service.getCommitRange(repoDir, 'main', '--output=x'), /not a valid revision/);
   });
 
+  test('reports whether the folder is a git repository', async () => {
+    const plainDir = createTempDir();
+    try {
+      assert.strictEqual(await service.isGitRepository(repoDir), true);
+      assert.strictEqual(await service.isGitRepository(plainDir), false);
+    } finally {
+      fs.rmSync(plainDir, { recursive: true, force: true });
+    }
+  });
+
   test('says so when the folder is not a git repository', async () => {
     const plainDir = createTempDir();
     try {

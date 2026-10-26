@@ -315,6 +315,14 @@ export class CycodeService implements ICycodeService {
       return;
     }
 
+    if (!await this.gitService.isGitRepository(projectRoot)) {
+      vscode.window.showErrorMessage(
+        'The opened folder is not a git repository, so the Diff scope has nothing to compare. '
+        + 'Switch to the Project or File scope.',
+      );
+      return;
+    }
+
     let request: DiffScanRequest;
     try {
       request = await this.buildDiffScanRequest(projectRoot, fromRef, toRef);

@@ -191,6 +191,7 @@ suite('CycodeService scans by scope', () => {
   let projectScans: { scanType: CliScanType; paths: string[] }[];
   let errors: string[];
   let rangeError: Error | undefined;
+  let isGitRepository: boolean;
   let service: CycodeService;
   const originalShowErrorMessage = window.showErrorMessage;
 
@@ -207,6 +208,7 @@ suite('CycodeService scans by scope', () => {
     projectScans = [];
     errors = [];
     rangeError = undefined;
+    isGitRepository = true;
     window.showErrorMessage = (...args: unknown[]) => {
       errors.push(String(args[0]));
       return Promise.resolve(undefined);
@@ -229,6 +231,7 @@ suite('CycodeService scans by scope', () => {
         },
       },
       {
+        isGitRepository: () => Promise.resolve(isGitRepository),
         getCommitRange: (_cwd: string, fromRef: string, toRef: string) => {
           if (rangeError) {
             return Promise.reject(rangeError);
@@ -272,6 +275,18 @@ suite('CycodeService scans by scope', () => {
     assert.deepStrictEqual(scans, [[DiffScanMode.CommitRange, 'main..feature/x']]);
   });
 
+  test('starts no scan, local or ranged, in a folder that is not a git repository', async () => {
+    isGitRepository = false;
+    tempState.ScanDiffFromRef = 'main';
+    tempState.ScanDiffToRef = LOCAL_DIRECTORY_REF_VALUE;
+    await service.startAllScansForCurrentProjectByScope(ALL_SCAN_TYPES);
+
+    assert.strictEqual(errors.length, 1);
+    assert.match(errors[0], /not a git repository/);
+    assert.deepStrictEqual(diffCalls, []);
+    assert.deepStrictEqual(projectScans, []);
+  });
+
   test('tells the user why no range could be built and starts no scan', async () => {
     rangeError = new Error('The two selected revisions have no common history to compare.');
     tempState.ScanDiffFromRef = 'main';
@@ -291,7 +306,10 @@ suite('CycodeService scans by scope', () => {
         getProjectRootDirectory: () => PROJECT_ROOT,
         scanDiff: () => (scanFails ? Promise.reject(new Error('cli crashed')) : Promise.resolve()),
       },
-      {},
+      {
+        isGitRepository: () => Promise.resolve(true),
+        getCommitRange: () => Promise.resolve('a..b'),
+      },
       globalState,
       tempState,
     );

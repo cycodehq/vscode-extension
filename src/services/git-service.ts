@@ -22,6 +22,9 @@ export interface IGitService {
    * to compare (same commit, no common history) or a revision cannot be resolved.
    */
   getCommitRange(cwd: string, fromRef: string, toRef: string): Promise<string>;
+
+  /** False only when git says the folder is not inside a repository; any other failure is left to later steps. */
+  isGitRepository(cwd: string): Promise<boolean>;
 }
 
 // exit code git uses when the given revision cannot be resolved
@@ -191,6 +194,21 @@ export class GitService implements IGitService {
       this.logger.debug(`${message}: ${error.message}`);
     } else {
       this.logger.warn(`${message}: ${error.message}`);
+    }
+  }
+
+  public async isGitRepository(cwd: string): Promise<boolean> {
+    try {
+      await this.runGit(['rev-parse', '--is-inside-work-tree'], cwd);
+      return true;
+    } catch (error: unknown) {
+      if (error instanceof Error && NOT_A_REPOSITORY_REGEX.test(error.message)) {
+        this.logger.debug(`Not a git repository: ${cwd}`);
+        return false;
+      }
+
+      this.logFailure('Failed to check for a git repository', error);
+      return true;
     }
   }
 
