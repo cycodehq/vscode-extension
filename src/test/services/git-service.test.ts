@@ -171,3 +171,100 @@ suite('GitService.getAvailableRefs', function () {
     assert.deepStrictEqual(warnings, []);
   });
 });
+
+suite('GitService.getCommitRange', function () {
+  this.timeout(30000);
+
+  let repoDir: string;
+  let service: GitService;
+
+  const git = (...args: string[]): string => {
+    const output = execFileSync('git', args, { cwd: repoDir, env: GIT_ENV });
+    return output.toString().trim();
+  };
+  const commit = (subject: string) => {
+    git('-c', 'commit.gpgsign=false', 'commit', '--allow-empty', '-m', subject);
+    return git('rev-parse', 'HEAD');
+  };
+  const subjectsIn = (range: string) => git('log', '--pretty=%s', range).split('\n')
+    .filter(Boolean);
+
+  setup(function () {
+    if (!isGitAvailable()) {
+      this.skip();
+    }
+
+    repoDir = createTempDir();
+    git('init', '-q', '-b', 'main');
+    service = new GitService({ debug: () => undefined, warn: () => undefined } as unknown as ILoggerService);
+  });
+
+  teardown(() => {
+    if (repoDir) {
+      fs.rmSync(repoDir, { recursive: true, force: true });
+    }
+  });
+
+  const diverge = () => {
+    commit('base');
+    git('checkout', '-q', '-b', 'feature');
+    commit('feature-1');
+    commit('feature-2');
+    git('checkout', '-q', 'main');
+    commit('main-moved-on');
+  };
+
+  test('covers only what the other branch added since the branches diverged', async () => {
+    diverge();
+
+    const range = await service.getCommitRange(repoDir, 'main', 'feature');
+
+    assert.deepStrictEqual(subjectsIn(range), ['feature-2', 'feature-1']);
+  });
+
+  test('resolves a diverged pair the same way round as it was picked', async () => {
+    diverge();
+
+    const range = await service.getCommitRange(repoDir, 'feature', 'main');
+
+    assert.deepStrictEqual(subjectsIn(range), ['main-moved-on']);
+  });
+
+  test('swaps the sides when the newer commit was picked first', async () => {
+    const older = commit('older');
+    commit('newer');
+
+    const range = await service.getCommitRange(repoDir, 'HEAD', older);
+
+    assert.deepStrictEqual(subjectsIn(range), ['newer']);
+  });
+
+  test('builds the range from full commit hashes', async () => {
+    const older = commit('older');
+    const newer = commit('newer');
+
+    assert.strictEqual(await service.getCommitRange(repoDir, older, newer), `${older}..${newer}`);
+  });
+
+  test('refuses two refs on the same commit', async () => {
+    commit('only');
+    git('branch', 'copy');
+
+    await assert.rejects(service.getCommitRange(repoDir, 'main', 'copy'), /same commit/);
+  });
+
+  test('refuses histories that share no commit', async () => {
+    commit('main-root');
+    git('checkout', '-q', '--orphan', 'unrelated');
+    commit('unrelated-root');
+
+    await assert.rejects(service.getCommitRange(repoDir, 'main', 'unrelated'), /no common history/);
+  });
+
+  test('refuses a revision that does not exist or looks like an option', async () => {
+    commit('only');
+
+    await assert.rejects(service.getCommitRange(repoDir, 'main', 'nope'), /Could not find revision "nope"/);
+    await assert.rejects(service.getCommitRange(repoDir, 'main', '--output=x'), /not a valid revision/);
+  });
+});

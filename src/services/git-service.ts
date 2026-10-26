@@ -15,6 +15,13 @@ export interface IGitService {
    * part of that list but still resolve to a commit are included too, described like the recent commits.
    */
   getAvailableRefs(cwd: string, pinnedRefs?: string[]): Promise<GitRefOption[]>;
+
+  /**
+   * Resolves two picked revisions into the `base..tip` range holding what one side added on top of the other,
+   * whichever way round they were picked. Throws an Error with a message fit for the user when there is nothing
+   * to compare (same commit, no common history) or a revision cannot be resolved.
+   */
+  getCommitRange(cwd: string, fromRef: string, toRef: string): Promise<string>;
 }
 
 // exit code git uses when the given revision cannot be resolved
@@ -181,6 +188,47 @@ export class GitService implements IGitService {
     } else {
       this.logger.warn(`${message}: ${error.message}`);
     }
+  }
+
+  private async resolveCommit(cwd: string, ref: string): Promise<string> {
+    // a leading '-' would be read by git as an option rather than a revision
+    if (!ref || ref.startsWith('-')) {
+      throw new Error(`"${ref}" is not a valid revision.`);
+    }
+
+    try {
+      return (await this.runGit(['rev-parse', '--verify', '--quiet', `${ref}^{commit}`], cwd)).trim();
+    } catch (error: unknown) {
+      this.logFailure(`Failed to resolve revision ${ref}`, error);
+      throw new Error(`Could not find revision "${ref}" in this repository.`);
+    }
+  }
+
+  private async findMergeBase(cwd: string, fromSha: string, toSha: string): Promise<string> {
+    try {
+      return (await this.runGit(['merge-base', fromSha, toSha], cwd)).trim();
+    } catch (error: unknown) {
+      this.logFailure('Failed to find the merge base', error);
+      throw new Error('The two selected revisions have no common history to compare.');
+    }
+  }
+
+  /*
+   * `from..to` alone lists nothing when `to` is the older of two commits on one line of history (the usual
+   * result of picking them newest-first), and `from...to` also pulls in whatever the other branch gained since
+   * they diverged. The merge base keeps the range to what the newer/diverged side added, and an ancestor `to`
+   * is treated as "compare back from `from`" so the pick order doesn't matter.
+   * The range is built from full SHAs, so ref names can't be reinterpreted by the CLI.
+   */
+  public async getCommitRange(cwd: string, fromRef: string, toRef: string): Promise<string> {
+    const [fromSha, toSha] = await Promise.all([this.resolveCommit(cwd, fromRef), this.resolveCommit(cwd, toRef)]);
+    if (fromSha === toSha) {
+      throw new Error('The two selected revisions are the same commit, so there is nothing to compare.');
+    }
+
+    const base = await this.findMergeBase(cwd, fromSha, toSha);
+
+    return base === toSha ? `${toSha}..${fromSha}` : `${base}..${toSha}`;
   }
 
   public async getAvailableRefs(cwd: string, pinnedRefs: string[] = []): Promise<GitRefOption[]> {

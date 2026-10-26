@@ -16,6 +16,8 @@ import {
 } from '../../cli/constants';
 import { window } from '../vscode-mock';
 import { registerLoggerMock } from '../helpers';
+import statusBar from '../../utils/status-bar';
+import { StatusBarTexts } from '../../utils/texts';
 
 const PROJECT_ROOT = '/project';
 const ALL_SCAN_TYPES = [CliScanType.Secret, CliScanType.Sca, CliScanType.Iac, CliScanType.Sast];
@@ -188,6 +190,7 @@ suite('CycodeService scans by scope', () => {
   let diffCalls: DiffCall[];
   let projectScans: { scanType: CliScanType; paths: string[] }[];
   let errors: string[];
+  let rangeError: Error | undefined;
   let service: CycodeService;
   const originalShowErrorMessage = window.showErrorMessage;
 
@@ -203,6 +206,7 @@ suite('CycodeService scans by scope', () => {
     diffCalls = [];
     projectScans = [];
     errors = [];
+    rangeError = undefined;
     window.showErrorMessage = (...args: unknown[]) => {
       errors.push(String(args[0]));
       return Promise.resolve(undefined);
@@ -224,7 +228,14 @@ suite('CycodeService scans by scope', () => {
           return Promise.resolve();
         },
       },
-      {},
+      {
+        getCommitRange: (_cwd: string, fromRef: string, toRef: string) => {
+          if (rangeError) {
+            return Promise.reject(rangeError);
+          }
+          return Promise.resolve(`${fromRef}..${toRef}`);
+        },
+      },
       globalState,
       tempState,
     );
@@ -252,19 +263,41 @@ suite('CycodeService scans by scope', () => {
     ]);
   });
 
-  test('compares two revisions with a three-dot commit range, whichever way round they are picked', async () => {
+  test('compares two revisions with the commit range the git service resolves for them', async () => {
     tempState.ScanDiffFromRef = 'main';
     tempState.ScanDiffToRef = 'feature/x';
     await service.startAllScansForCurrentProjectByScope([CliScanType.Secret]);
 
-    tempState.ScanDiffFromRef = 'feature/x';
-    tempState.ScanDiffToRef = 'main';
-    await service.startAllScansForCurrentProjectByScope([CliScanType.Secret]);
+    const scans = diffCalls.map((call) => [call.mode, call.ref]);
+    assert.deepStrictEqual(scans, [[DiffScanMode.CommitRange, 'main..feature/x']]);
+  });
 
-    assert.deepStrictEqual(diffCalls.map((call) => [call.mode, call.ref]), [
-      [DiffScanMode.CommitRange, 'main...feature/x'],
-      [DiffScanMode.CommitRange, 'feature/x...main'],
-    ]);
+  test('tells the user why no range could be built and starts no scan', async () => {
+    rangeError = new Error('The two selected revisions have no common history to compare.');
+    tempState.ScanDiffFromRef = 'main';
+    tempState.ScanDiffToRef = 'feature/x';
+    await service.startAllScansForCurrentProjectByScope(ALL_SCAN_TYPES);
+
+    assert.deepStrictEqual(errors, ['The two selected revisions have no common history to compare.']);
+    assert.deepStrictEqual(diffCalls, []);
+    assert.deepStrictEqual(projectScans, []);
+  });
+
+  test('leaves the status bar on "completed" when a diff scan throws', async () => {
+    statusBar.create();
+    service = createService(
+      {
+        getProjectRootDirectory: () => PROJECT_ROOT,
+        scanDiff: () => Promise.reject(new Error('cli crashed')),
+      },
+      {},
+      globalState,
+      tempState,
+    );
+
+    await service.startAllScansForCurrentProjectByScope([CliScanType.Secret]).catch(() => undefined);
+
+    assert.strictEqual(statusBar.statusBar.text, StatusBarTexts.ScanComplete);
   });
 
   test('runs IaC as a project scan while the other scanners run as diffs', async () => {

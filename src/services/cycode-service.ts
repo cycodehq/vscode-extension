@@ -188,9 +188,7 @@ export class CycodeService implements ICycodeService {
       `Cycode is scanning files for ${getScanTypeDisplayName(scanType)}...`,
       async (cancellationToken: vscode.CancellationToken) => {
         this.logger.debug(`[${scanType}] Start scanning paths: ${paths}`);
-        statusBar.showScanningInProgress();
-        await scanMethod(cancellationToken);
-        statusBar.showScanComplete();
+        await this.withScanStatusBar(() => scanMethod(cancellationToken));
         this.logger.debug(`[${scanType}] Finish scanning paths: ${paths}`);
       },
       this.getScanProgressBarOptions(onDemand),
@@ -210,11 +208,9 @@ export class CycodeService implements ICycodeService {
       'Cycode is scanning files...',
       async (cancellationToken: vscode.CancellationToken) => {
         this.logger.debug(`[RunAll] Start scanning paths: ${projectRoot}`);
-        statusBar.showScanningInProgress();
-        await this.runScanMethodsInParallel(
+        await this.withScanStatusBar(() => this.runScanMethodsInParallel(
           scanTypes, (scanType) => this.getScanMethod(scanType, [projectRoot], true), cancellationToken,
-        );
-        statusBar.showScanComplete();
+        ));
         this.logger.debug(`[RunAll] Finish scanning paths: ${projectRoot}`);
       },
       { cancellable: true, location: vscode.ProgressLocation.Notification },
@@ -254,22 +250,30 @@ export class CycodeService implements ICycodeService {
       '',
       async (cancellationToken: vscode.CancellationToken) => {
         this.logger.debug(`[Diff] Start ${request.mode} scan of ${diffScanTypes.join(', ')}: ${request.ref}`);
-        statusBar.showScanningInProgress();
-        await this.runScanMethodsInParallel(
+        await this.withScanStatusBar(() => this.runScanMethodsInParallel(
           diffScanTypes,
           (scanType) => this.withScanRunningTracking(
             scanType,
             (token) => this.cliService.scanDiff(scanType, request.mode, request.ref, projectRoot, true, token),
           ),
           cancellationToken,
-        );
-        statusBar.showScanComplete();
+        ));
         this.logger.debug(`[Diff] Finish ${request.mode} scan of ${diffScanTypes.join(', ')}: ${request.ref}`);
       },
       { cancellable: true, location: vscode.ProgressLocation.Window },
     );
 
     await Promise.all([...fallbackFullScans, diffScan]);
+  }
+
+  // a scan that throws must not leave the status bar on "Waiting for scan to complete"
+  private async withScanStatusBar(scan: () => Promise<void>): Promise<void> {
+    statusBar.showScanningInProgress();
+    try {
+      await scan();
+    } finally {
+      statusBar.showScanComplete();
+    }
   }
 
   private isLocalDirectoryRef(ref: string): boolean {
@@ -291,7 +295,7 @@ export class CycodeService implements ICycodeService {
    * Maps the "from" / "to" pickers to a diff scan: if one side is the uncommitted working directory that's a
    * local-diff scan against the other (committed) side; if both sides are revisions it's a commit-range scan.
    */
-  private buildDiffScanRequest(fromRef: string, toRef: string): DiffScanRequest {
+  private async buildDiffScanRequest(projectRoot: string, fromRef: string, toRef: string): Promise<DiffScanRequest> {
     if (this.isLocalDirectoryRef(toRef)) {
       return { mode: DiffScanMode.LocalDiff, ref: fromRef };
     }
@@ -300,7 +304,7 @@ export class CycodeService implements ICycodeService {
       return { mode: DiffScanMode.LocalDiff, ref: toRef };
     }
 
-    return { mode: DiffScanMode.CommitRange, ref: this.buildCommitRange(fromRef, toRef) };
+    return { mode: DiffScanMode.CommitRange, ref: await this.gitService.getCommitRange(projectRoot, fromRef, toRef) };
   }
 
   private async startDiffScansForCurrentProject(scanTypes: CliScanType[], fromRef: string, toRef: string) {
@@ -308,18 +312,25 @@ export class CycodeService implements ICycodeService {
       return;
     }
 
-    await this.runDiffScans(scanTypes, this.buildDiffScanRequest(fromRef, toRef));
-  }
+    const projectRoot = this.cliService.getProjectRootDirectory();
+    if (!projectRoot) {
+      vscode.window.showErrorMessage(
+        'Cycode scans the project that is currently opened. Please open a project and try again',
+      );
+      return;
+    }
 
-  /**
-   * Builds a commit-range expression for two arbitrary user-picked refs. Uses three-dot ("...")
-   * syntax rather than two-dot: two-dot ranges list commits reachable from the right side but not
-   * the left, which is empty (and fails the scan with "no relevant files") if the refs were picked
-   * in the "wrong" chronological order — three-dot is symmetric around the merge-base, so it
-   * produces a meaningful diff regardless of which ref the user picked as "from" vs "to".
-   */
-  private buildCommitRange(fromRef: string, toRef: string): string {
-    return `${fromRef}...${toRef}`;
+    let request: DiffScanRequest;
+    try {
+      request = await this.buildDiffScanRequest(projectRoot, fromRef, toRef);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Could not compare the selected revisions.';
+      this.logger.warn(`[Diff] ${message}`);
+      vscode.window.showErrorMessage(message);
+      return;
+    }
+
+    await this.runDiffScans(scanTypes, request);
   }
 
   private isScanTypeRelevantForFile(scanType: CliScanType, filePath: string): boolean {
@@ -389,11 +400,9 @@ export class CycodeService implements ICycodeService {
         'Cycode is scanning files...',
         async (cancellationToken: vscode.CancellationToken) => {
           this.logger.debug(`[RunAll] Start scanning file: ${activeFilePath}`);
-          statusBar.showScanningInProgress();
-          await this.runScanMethodsInParallel(
+          await this.withScanStatusBar(() => this.runScanMethodsInParallel(
             relevantScanTypes, (scanType) => this.getScanMethod(scanType, [activeFilePath], true), cancellationToken,
-          );
-          statusBar.showScanComplete();
+          ));
           this.logger.debug(`[RunAll] Finish scanning file: ${activeFilePath}`);
         },
         { cancellable: true, location: vscode.ProgressLocation.Notification },
