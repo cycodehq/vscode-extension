@@ -221,15 +221,7 @@ export class CycodeService implements ICycodeService {
    * Runs diff scans for the given scan types. Scan types that can't do the requested diff mode (IaC) fall back to a
    * full project scan, and everything that can runs in parallel under a single (quiet) progress indicator.
    */
-  private async runDiffScans(scanTypes: CliScanType[], request: DiffScanRequest) {
-    const projectRoot = this.cliService.getProjectRootDirectory();
-    if (!projectRoot) {
-      vscode.window.showErrorMessage(
-        'Cycode scans the project that is currently opened. Please open a project and try again',
-      );
-      return;
-    }
-
+  private async runDiffScans(scanTypes: CliScanType[], request: DiffScanRequest, projectRoot: string) {
     const diffScanTypes = scanTypes.filter(supportsDiffScan);
     const fallbackScanTypes = scanTypes.filter((scanType) => !supportsDiffScan(scanType));
 
@@ -266,14 +258,17 @@ export class CycodeService implements ICycodeService {
     await Promise.all([...fallbackFullScans, diffScan]);
   }
 
-  // a scan that throws must not leave the status bar on "Waiting for scan to complete"
+  // a scan that throws must not leave the status bar on "Waiting for scan to complete", nor report it as a success
   private async withScanStatusBar(scan: () => Promise<void>): Promise<void> {
     statusBar.showScanningInProgress();
     try {
       await scan();
-    } finally {
-      statusBar.showScanComplete();
+    } catch (error: unknown) {
+      statusBar.showScanError();
+      throw error;
     }
+
+    statusBar.showScanComplete();
   }
 
   private isLocalDirectoryRef(ref: string): boolean {
@@ -330,7 +325,7 @@ export class CycodeService implements ICycodeService {
       return;
     }
 
-    await this.runDiffScans(scanTypes, request);
+    await this.runDiffScans(scanTypes, request, projectRoot);
   }
 
   private isScanTypeRelevantForFile(scanType: CliScanType, filePath: string): boolean {

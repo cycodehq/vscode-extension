@@ -35,6 +35,10 @@ class GitCommandError extends Error {
   }
 }
 
+// exit code of `rev-parse --verify --quiet` for an unknown revision and of `merge-base` without a common ancestor
+const GIT_NOT_FOUND_EXIT_CODE = 1;
+const NOT_A_REPOSITORY_REGEX = /not a git repository/i;
+
 // normal situations rather than failures: a folder that is not a repository, or a repository without commits yet
 const EXPECTED_GIT_FAILURE_REGEX = /not a git repository|does not have any commits yet|ambiguous argument 'HEAD'/i;
 
@@ -190,6 +194,21 @@ export class GitService implements IGitService {
     }
   }
 
+  private isExitCode(error: unknown, code: number): boolean {
+    return error instanceof GitCommandError && error.code === code;
+  }
+
+  // anything that is not a clear answer from git (missing binary, killed, corrupt repository) is not blamed on the refs
+  private buildCompareFailure(message: string, error: unknown): Error {
+    this.logFailure(message, error);
+
+    if (error instanceof Error && NOT_A_REPOSITORY_REGEX.test(error.message)) {
+      return new Error('The opened folder is not a git repository, so there are no revisions to compare.');
+    }
+
+    return new Error('Could not compare the selected revisions. See the Cycode output for details.');
+  }
+
   private async resolveCommit(cwd: string, ref: string): Promise<string> {
     // a leading '-' would be read by git as an option rather than a revision
     if (!ref || ref.startsWith('-')) {
@@ -199,8 +218,12 @@ export class GitService implements IGitService {
     try {
       return (await this.runGit(['rev-parse', '--verify', '--quiet', `${ref}^{commit}`], cwd)).trim();
     } catch (error: unknown) {
-      this.logFailure(`Failed to resolve revision ${ref}`, error);
-      throw new Error(`Could not find revision "${ref}" in this repository.`);
+      // --quiet turns an unknown revision into a silent exit code 1
+      if (this.isExitCode(error, GIT_NOT_FOUND_EXIT_CODE)) {
+        throw new Error(`Could not find revision "${ref}" in this repository.`);
+      }
+
+      throw this.buildCompareFailure(`Failed to resolve revision ${ref}`, error);
     }
   }
 
@@ -208,8 +231,12 @@ export class GitService implements IGitService {
     try {
       return (await this.runGit(['merge-base', fromSha, toSha], cwd)).trim();
     } catch (error: unknown) {
-      this.logFailure('Failed to find the merge base', error);
-      throw new Error('The two selected revisions have no common history to compare.');
+      // exit code 1 is git's answer for "no common ancestor"
+      if (this.isExitCode(error, GIT_NOT_FOUND_EXIT_CODE)) {
+        throw new Error('The two selected revisions have no common history to compare.');
+      }
+
+      throw this.buildCompareFailure('Failed to find the merge base', error);
     }
   }
 

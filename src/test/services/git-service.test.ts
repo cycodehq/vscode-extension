@@ -267,4 +267,13 @@ suite('GitService.getCommitRange', function () {
     await assert.rejects(service.getCommitRange(repoDir, 'main', 'nope'), /Could not find revision "nope"/);
     await assert.rejects(service.getCommitRange(repoDir, 'main', '--output=x'), /not a valid revision/);
   });
+
+  test('says so when the folder is not a git repository', async () => {
+    const plainDir = createTempDir();
+    try {
+      await assert.rejects(service.getCommitRange(plainDir, 'main', 'dev'), /not a git repository/);
+    } finally {
+      fs.rmSync(plainDir, { recursive: true, force: true });
+    }
+  });
 });

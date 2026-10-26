@@ -283,12 +283,13 @@ suite('CycodeService scans by scope', () => {
     assert.deepStrictEqual(projectScans, []);
   });
 
-  test('leaves the status bar on "completed" when a diff scan throws', async () => {
+  test('shows the scan error in the status bar when a diff scan throws, and completion when it succeeds', async () => {
     statusBar.create();
+    let scanFails = true;
     service = createService(
       {
         getProjectRootDirectory: () => PROJECT_ROOT,
-        scanDiff: () => Promise.reject(new Error('cli crashed')),
+        scanDiff: () => (scanFails ? Promise.reject(new Error('cli crashed')) : Promise.resolve()),
       },
       {},
       globalState,
@@ -297,6 +298,10 @@ suite('CycodeService scans by scope', () => {
 
     await service.startAllScansForCurrentProjectByScope([CliScanType.Secret]).catch(() => undefined);
 
+    assert.strictEqual(statusBar.statusBar.text, StatusBarTexts.ScanError);
+
+    scanFails = false;
+    await service.startAllScansForCurrentProjectByScope([CliScanType.Secret]);
     assert.strictEqual(statusBar.statusBar.text, StatusBarTexts.ScanComplete);
   });
 
