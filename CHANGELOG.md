@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+## [v1.19.0]
+
+- Bumped `sanitize-html` to version 2.18.1
+- Bumped `prettier` to version 3.9.9
+- Bumped `cycodelabs/cimon-action` to version 1.0.2
+- Fixed vulnerabilities in transitive dependencies: `brace-expansion`, `fast-uri`, `js-yaml`, `serialize-javascript`, `source-map-js`
+- Removed transitive `deepmerge` (no longer used by `sanitize-html`)
+- Increase minimal VS Code version to 1.95.0 (the extension host must provide Node.js 18+ for the global `fetch` used to download the CLI; VS Code 1.95 ships Node.js 20)
+- Bumped `@types/vscode` to version 1.95.0
+
 ## [v1.18.0]
 
 - Bumped `@eslint/js` to version 9.39.5
