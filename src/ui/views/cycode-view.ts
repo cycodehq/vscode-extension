@@ -2,6 +2,12 @@ import * as vscode from 'vscode';
 import { VscodeCommands } from '../../commands';
 import { applyWebviewCsp } from '../../utils/webview';
 
+// the only commands a webview may pass arguments to; every other command is invoked with none
+const COMMANDS_ACCEPTING_ARGS: string[] = [
+  VscodeCommands.SetScanDiffFromRefCommandId,
+  VscodeCommands.SetScanDiffToRefCommandId,
+];
+
 export abstract class CycodeView implements vscode.WebviewViewProvider {
   protected _view?: vscode.WebviewView;
   private _messageQueue: unknown[] = [];
@@ -28,8 +34,11 @@ export abstract class CycodeView implements vscode.WebviewViewProvider {
     this._view.webview.onDidReceiveMessage((message) => {
       const command = message?.command;
       if (Object.values(VscodeCommands).includes(command)) {
+        const args: unknown[] = COMMANDS_ACCEPTING_ARGS.includes(command) && Array.isArray(message?.args)
+          ? message.args
+          : [];
         // send command back after executing to unblock disabled buttons
-        vscode.commands.executeCommand(command).then(
+        vscode.commands.executeCommand(command, ...args).then(
           () => this.postMessage({ command, finished: true, success: true }),
           () => this.postMessage({ command, finished: true, success: false }),
         );

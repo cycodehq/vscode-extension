@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+- Added the Diff scan scope to the Scan view: compare two revisions, or your working directory against one, and scan only the changes (requires Cycode CLI 3.25.0 or later)
+
 ## [v1.18.0]
 
 - Bumped `@eslint/js` to version 9.39.5

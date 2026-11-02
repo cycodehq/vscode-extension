@@ -2,14 +2,14 @@ import * as vscode from 'vscode';
 import * as fs from 'node:fs';
 import { inject, singleton } from 'tsyringe';
 import { ExtensionServiceSymbol, LoggerServiceSymbol, ScanResultsServiceSymbol, StateServiceSymbol } from '../symbols';
-import { GlobalExtensionState, IStateService, TemporaryExtensionState } from './state-service';
+import { GlobalExtensionState, IStateService, ScanScope, TemporaryExtensionState } from './state-service';
 import { ILoggerService } from './logger-service';
 import { CliWrapper } from '../cli/cli-wrapper';
 import { isPathInsideAnyRoot } from '../utils/path-containment';
 import { CliResult, isCliResultError, isCliResultPanic, isCliResultSuccess } from '../cli/models/cli-result';
 import { ExitCode } from '../cli/exit-code';
 import { ScanResultBase } from '../cli/models/scan-result/scan-result-base';
-import { CliCommands, CommandParameters } from '../cli/constants';
+import { CliCommands, CommandParameters, DiffScanMode, supportsDiffScan } from '../cli/constants';
 import { AuthResult } from '../cli/models/auth-result';
 import { getScanTypeDisplayName } from '../constants';
 import { ClassConstructor } from 'class-transformer';
@@ -28,6 +28,7 @@ import { CliScanType } from '../cli/models/cli-scan-type';
 import { StatusResult } from '../cli/models/status-result';
 import { AiRemediationResult, AiRemediationResultData } from '../cli/models/ai-remediation-result';
 import statusBar from '../utils/status-bar';
+import { assertSafeRefArg } from '../utils/git-ref-arg';
 
 export interface ICliService {
   getProjectRootDirectory(): string | undefined; // TODO REMOVE
@@ -40,10 +41,21 @@ export interface ICliService {
   scanPathsSca(paths: string[], onDemand: boolean, cancellationToken: CancellationToken | undefined): Promise<void>;
   scanPathsIac(paths: string[], onDemand: boolean, cancellationToken: CancellationToken | undefined): Promise<void>;
   scanPathsSast(paths: string[], onDemand: boolean, cancellationToken: CancellationToken | undefined): Promise<void>;
+  scanDiff(
+    scanType: CliScanType, mode: DiffScanMode, ref: string, path: string, onDemand: boolean,
+    cancellationToken: CancellationToken | undefined,
+  ): Promise<void>;
   getAiRemediation(
     detectionId: string, cancellationToken: CancellationToken | undefined
   ): Promise<AiRemediationResultData | null>;
 }
+
+const SCAN_RESULT_CLASSES: Record<CliScanType, ClassConstructor<ScanResultBase>> = {
+  [CliScanType.Secret]: SecretScanResult,
+  [CliScanType.Sca]: ScaScanResult,
+  [CliScanType.Iac]: IacScanResult,
+  [CliScanType.Sast]: SastScanResult,
+};
 
 @singleton()
 export class CliService implements ICliService {
@@ -135,16 +147,16 @@ export class CliService implements ICliService {
     const acceptedDetections = detections.filter((detection) => {
       return isPathInsideAnyRoot(detection.detectionDetails.getFilepath(), scannedPaths);
     });
-    if (acceptedDetections.length !== detections.length) {
+    const skippedCount = detections.length - acceptedDetections.length;
+    if (skippedCount > 0) {
       this.logger.warn(
-        `[processCliScanResult] Skipped ${detections.length - acceptedDetections.length} detections `
-        + 'with file paths outside of the scanned paths',
+        `[processCliScanResult] Skipped ${skippedCount} detections with file paths outside of the scanned paths`,
       );
     }
 
     this.scanResultsService.setDetections(scanType, acceptedDetections);
     await this.extensionService.refreshProviders();
-    this.showScanResultsNotification(scanType, acceptedDetections.length, onDemand);
+    this.showScanResultsNotification(scanType, acceptedDetections.length, onDemand, skippedCount);
   }
 
   public async syncStatus(cancellationToken?: CancellationToken): Promise<void> {
@@ -164,7 +176,13 @@ export class CliService implements ICliService {
 
     this.state.CliVer = processedResult.result.version;
 
+    if (!this.tempState.IsDiffScanScopeSupported && this.state.ScanScope === ScanScope.Diff) {
+      this.logger.debug('Diff scan scope requires a newer Cycode CLI version; resetting scope to Project');
+      this.state.ScanScope = ScanScope.Project;
+    }
+
     this.stateService.save();
+    this.tempState.ActivityBar?.ScanView.postScanScope(this.stateService);
 
     if (!this.tempState.CliAuthed) {
       statusBar.showAuthIsRequired();
@@ -242,14 +260,69 @@ export class CliService implements ICliService {
     return this.processCliResult(await this.cli.executeCommand(classConst, args, cancellationToken));
   }
 
-  private showScanResultsNotification(scanType: CliScanType, detectionsCount: number, onDemand: boolean): void {
+  private getDiffScanArgs(mode: DiffScanMode, ref: string, path: string): string[] {
+    if (mode === DiffScanMode.CommitRange) {
+      return [CliCommands.CommitHistory, CommandParameters.CommitRange, assertSafeRefArg(ref), path];
+    }
+
+    /*
+     * "local diff" scanning (the IDE use case: working directory, including unstaged edits, against a base ref)
+     * isn't its own CLI command - it's `pre-commit --include-unstaged --base-ref <ref>`.
+     * the plain `pre-commit` command (no flags) is also what the git pre-commit hook itself runs.
+     */
+    return [
+      CliCommands.PreCommit, CommandParameters.IncludeUnstaged,
+      CommandParameters.BaseRef, assertSafeRefArg(ref),
+      CommandParameters.Path, path,
+    ];
+  }
+
+  private filterOutVirtualIacFiles(detections: DetectionBase[]): DetectionBase[] {
+    return detections.filter((detection) => {
+      /*
+       * TF plans are virtual files that do not exist in the file system
+       * "file_name": "1711298252-/Users/ilyasiamionau/projects/cycode/ilya-siamionau-payloads/tfplan.tf",
+       * skip such detections
+       */
+      return fs.existsSync(detection.detectionDetails.getFilepath());
+    });
+  }
+
+  private async runScanAndProcessResults<T extends ScanResultBase>(
+    scanType: CliScanType,
+    onDemand: boolean,
+    scannedPaths: string[],
+    runScan: () => Promise<CliResult<unknown> | null>,
+    postProcessDetections?: (detections: DetectionBase[]) => DetectionBase[],
+  ): Promise<void> {
+    const results = await runScan();
+    if (!isCliResultSuccess<T>(results)) {
+      this.logger.warn(`Failed to scan ${scanType}`);
+      return;
+    }
+
+    const detections = postProcessDetections
+      ? postProcessDetections(results.result.detections)
+      : results.result.detections;
+
+    await this.processCliScanResult(scanType, detections, scannedPaths, onDemand);
+  }
+
+  private showScanResultsNotification(
+    scanType: CliScanType, detectionsCount: number, onDemand: boolean, skippedCount = 0,
+  ): void {
     const scanTypeDisplayName: string = getScanTypeDisplayName(scanType);
+    // e.g. commit-range scans report files that were deleted or renamed after the scanned revision
+    const skippedNote = `${skippedCount} more ${skippedCount === 1 ? 'finding is' : 'findings are'} in files outside `
+      + 'of the scanned paths or that no longer exist, so they are not shown.';
+
+    const skippedSuffix = skippedCount > 0 ? ` ${skippedNote}` : '';
 
     if (detectionsCount > 0) {
       vscode.window
         .showInformationMessage(
           `Cycode has detected ${detectionsCount} ${scanTypeDisplayName} 
-          issues in your files. Check out your “Problems” tab to analyze.`,
+          issues in your files. Check out your “Problems” tab to analyze.${skippedSuffix}`,
           this.state.EnvVsCode ? TrayNotificationTexts.OpenProblemsTab : '', // show button only in VSCode
         )
         .then((buttonPressed) => {
@@ -257,67 +330,68 @@ export class CliService implements ICliService {
             vscode.commands.executeCommand(VscodeCommands.WorkbenchShowProblemsTab);
           }
         });
+    } else if (skippedCount > 0) {
+      // never claim a clean scan when findings were left out
+      vscode.window.showInformationMessage(`No ${scanTypeDisplayName} issues to show. ${skippedNote}`);
     } else if (onDemand) {
       vscode.window.showInformationMessage(`No ${scanTypeDisplayName} issues were found.`);
-      return;
     }
   }
 
   public async scanPathsSecrets(
     paths: string[], onDemand = false, cancellationToken?: CancellationToken,
   ): Promise<void> {
-    const results = await this.scanPaths(SecretScanResult, paths, CliScanType.Secret, cancellationToken);
-    if (!isCliResultSuccess<SecretScanResult>(results)) {
-      this.logger.warn(`Failed to scan Secret paths: ${paths}`);
-      return;
-    }
-
-    await this.processCliScanResult(CliScanType.Secret, results.result.detections, paths, onDemand);
+    await this.runScanAndProcessResults<SecretScanResult>(
+      CliScanType.Secret, onDemand, paths,
+      () => this.scanPaths(SecretScanResult, paths, CliScanType.Secret, cancellationToken),
+    );
   }
 
   public async scanPathsSca(
     paths: string[], onDemand = false, cancellationToken?: CancellationToken,
   ): Promise<void> {
-    const results = await this.scanPaths(ScaScanResult, paths, CliScanType.Sca, cancellationToken);
-    if (!isCliResultSuccess<ScaScanResult>(results)) {
-      this.logger.warn(`Failed to scan SCA paths: ${paths}`);
-      return;
-    }
-
-    await this.processCliScanResult(CliScanType.Sca, results.result.detections, paths, onDemand);
+    await this.runScanAndProcessResults<ScaScanResult>(
+      CliScanType.Sca, onDemand, paths,
+      () => this.scanPaths(ScaScanResult, paths, CliScanType.Sca, cancellationToken),
+    );
   }
 
   public async scanPathsIac(
     paths: string[], onDemand = false, cancellationToken?: CancellationToken,
   ): Promise<void> {
-    const results = await this.scanPaths(IacScanResult, paths, CliScanType.Iac, cancellationToken);
-    if (!isCliResultSuccess<IacScanResult>(results)) {
-      this.logger.warn(`Failed to scan IaC paths: ${paths}`);
-      return;
-    }
-
-    results.result.detections = results.result.detections.filter((detection) => {
-      /*
-       * TF plans are virtual files what is not exist in the file system
-       * "file_name": "1711298252-/Users/ilyasiamionau/projects/cycode/ilya-siamionau-payloads/tfplan.tf",
-       * skip such detections
-       */
-      return fs.existsSync(detection.detectionDetails.fileName);
-    });
-
-    await this.processCliScanResult(CliScanType.Iac, results.result.detections, paths, onDemand);
+    await this.runScanAndProcessResults<IacScanResult>(
+      CliScanType.Iac, onDemand, paths,
+      () => this.scanPaths(IacScanResult, paths, CliScanType.Iac, cancellationToken),
+      (detections) => this.filterOutVirtualIacFiles(detections),
+    );
   }
 
   public async scanPathsSast(
     paths: string[], onDemand = false, cancellationToken?: CancellationToken,
   ): Promise<void> {
-    const results = await this.scanPaths(SastScanResult, paths, CliScanType.Sast, cancellationToken);
-    if (!isCliResultSuccess<SastScanResult>(results)) {
-      this.logger.warn(`Failed to scan SAST paths: ${paths}`);
-      return;
+    await this.runScanAndProcessResults<SastScanResult>(
+      CliScanType.Sast, onDemand, paths,
+      () => this.scanPaths(SastScanResult, paths, CliScanType.Sast, cancellationToken),
+    );
+  }
+
+  public async scanDiff(
+    scanType: CliScanType, mode: DiffScanMode, ref: string, path: string, onDemand = false,
+    cancellationToken?: CancellationToken,
+  ): Promise<void> {
+    if (!supportsDiffScan(scanType)) {
+      throw new Error(`Diff scans are not supported for ${scanType}`);
     }
 
-    await this.processCliScanResult(CliScanType.Sast, results.result.detections, paths, onDemand);
+    const args = [
+      CliCommands.Scan, '-t', scanType.toLowerCase(), ...this.getCliScanOptions(scanType),
+      ...this.getDiffScanArgs(mode, ref, path),
+    ];
+    const resultClass = SCAN_RESULT_CLASSES[scanType];
+    await this.runScanAndProcessResults<ScanResultBase>(
+      scanType, onDemand, [path],
+      async () => this.processCliResult(await this.cli.executeCommand(resultClass, args, cancellationToken)),
+    );
   }
 
   public async getAiRemediation(

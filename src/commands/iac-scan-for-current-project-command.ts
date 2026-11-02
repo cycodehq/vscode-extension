@@ -5,5 +5,5 @@ import { getCommonCommand } from './common';
 
 export default getCommonCommand(async () => {
   const cycodeService = container.resolve<ICycodeService>(CycodeService);
-  await cycodeService.startScanForCurrentProject(CliScanType.Iac);
+  await cycodeService.startScanForCurrentProjectByScope(CliScanType.Iac);
 });

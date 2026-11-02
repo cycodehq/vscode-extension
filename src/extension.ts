@@ -17,7 +17,7 @@ import {
   ScanResultsServiceSymbol,
   StateServiceSymbol,
 } from './symbols';
-import { IStateService } from './services/state-service';
+import { IStateService, ScanScope } from './services/state-service';
 import { ILoggerService } from './services/logger-service';
 import { IScanResultsService } from './services/scan-results-service';
 import { IExtensionService } from './services/extension-service';
@@ -29,6 +29,7 @@ import { registerActivityBar } from './ui/views/activity-bar';
 import { registerCodeLensProvider } from './providers/codelens-provider';
 import { registerCodeActionsProvider } from './providers/code-action';
 import { registerOnDidChangeActiveTextEditor } from './listeners/on-did-change-active-text-editor';
+import { registerOnGitRefsChange } from './listeners/on-git-refs-change';
 import { showCliInstallFailed } from './utils/tray-notifications';
 
 export function activate(context: vscode.ExtensionContext) {
@@ -71,11 +72,17 @@ export function activate(context: vscode.ExtensionContext) {
   registerOnDidChangeActiveTextEditor(context);
 
   stateService.tempState.ActivityBar = registerActivityBar(context);
+  stateService.tempState.ActivityBar.ScanView.postScanScope(stateService);
 
   // do not await because it blocks loading of the extension like views rendering
   void postActivate().then(() => {
     onProjectOpen();
   });
+  if (stateService.globalState.ScanScope === ScanScope.Diff) {
+    // otherwise the revisions are read when the user selects the Diff scope
+    void container.resolve<ICycodeService>(CycodeServiceSymbol).refreshDiffRefs();
+  }
+  registerOnGitRefsChange(context);
 }
 
 const postActivate = async () => {
