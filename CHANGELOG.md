@@ -11,6 +11,7 @@
 - Removed transitive `deepmerge` (no longer used by `sanitize-html`)
 - Increase minimal VS Code version to 1.95.0 (the extension host must provide Node.js 18+ for the global `fetch` used to download the CLI; VS Code 1.95 ships Node.js 20)
 - Bumped `@types/vscode` to version 1.95.0
+- Added "diff" scan mode to the Scan view: compare two revisions, or your working directory against one, and scan only the changes (requires Cycode CLI 3.25.0 or later)
 
 ## [v1.18.0]
 

@@ -7,7 +7,7 @@ import { ILoggerService } from '../../services/logger-service';
 import { IScanResultsService } from '../../services/scan-results-service';
 import { IExtensionService } from '../../services/extension-service';
 import { DetectionBase } from '../../cli/models/scan-result/detection-base';
-import { resetVscodeMock, settings } from '../vscode-mock';
+import { resetVscodeMock, settings, window } from '../vscode-mock';
 import { createTempDir, registerExtensionPath, registerLoggerMock } from '../helpers';
 
 // fake CLI: prints the prepared scan result
@@ -40,6 +40,8 @@ suite('CliService scan results', () => {
   let projectDir: string;
   let savedDetections: DetectionBase[] | undefined;
   let service: CliService;
+  let notifications: string[];
+  const originalShowInformationMessage = window.showInformationMessage;
 
   setup(function () {
     if (process.platform === 'win32') {
@@ -78,6 +80,12 @@ suite('CliService scan results', () => {
     fs.writeFileSync(fakeCliPath, FAKE_CLI_SOURCE, { mode: 0o755 });
     settings.cliPath = fakeCliPath;
 
+    notifications = [];
+    window.showInformationMessage = (...args: unknown[]) => {
+      notifications.push(String(args[0]).replace(/\s+/g, ' '));
+      return Promise.resolve(undefined);
+    };
+
     savedDetections = undefined;
     const scanResultsService = {
       setDetections: (_scanType: unknown, detections: DetectionBase[]) => {
@@ -94,6 +102,7 @@ suite('CliService scan results', () => {
   });
 
   teardown(() => {
+    window.showInformationMessage = originalShowInformationMessage;
     delete process.env.FAKE_CLI_OUTPUT;
     if (tempDir) {
       fs.rmSync(tempDir, { recursive: true, force: true });
@@ -115,5 +124,47 @@ suite('CliService scan results', () => {
 
     assert.ok(savedDetections);
     assert.strictEqual(savedDetections.length, 1);
+  });
+
+  const writeScanResult = (detections: unknown[]) => {
+    const outputPath = process.env.FAKE_CLI_OUTPUT;
+    assert.ok(outputPath);
+    fs.writeFileSync(outputPath, JSON.stringify({ detections, errors: [] }));
+  };
+
+  test('tells the user how many findings are not shown', async () => {
+    await service.scanPathsSecrets([projectDir], true);
+
+    assert.strictEqual(notifications.length, 1);
+    assert.match(notifications[0], /detected 1 .* issues/);
+    assert.match(notifications[0], /3 more findings are in files outside of the scanned paths or that no longer exist/);
+  });
+
+  test('does not claim a clean scan when every finding was left out', async () => {
+    writeScanResult([createSecretDetection(`${tempDir}/`, 'id_rsa')]);
+
+    await service.scanPathsSecrets([projectDir], true);
+
+    assert.strictEqual(notifications.length, 1);
+    assert.match(notifications[0], /issues to show\. 1 more finding is in files outside/);
+    assert.doesNotMatch(notifications[0], /were found/);
+  });
+
+  test('says nothing extra when no finding was left out', async () => {
+    writeScanResult([createSecretDetection(`${projectDir}/`, 'config.py')]);
+
+    await service.scanPathsSecrets([projectDir], true);
+
+    assert.strictEqual(notifications.length, 1);
+    assert.doesNotMatch(notifications[0], /not shown/);
+  });
+
+  test('reports a clean scan when there are no findings at all', async () => {
+    writeScanResult([]);
+
+    await service.scanPathsSecrets([projectDir], true);
+
+    assert.strictEqual(notifications.length, 1);
+    assert.match(notifications[0], /issues were found\./);
   });
 });

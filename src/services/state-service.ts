@@ -5,6 +5,15 @@ import { ILoggerService } from './logger-service';
 import { GlobalKeyValueStorage, LocalKeyValueStorage } from './key-value-storage-service';
 import { StatusResult } from '../cli/models/status-result';
 import { ActivityBar } from '../ui/views/activity-bar';
+import { CliScanType } from '../cli/models/cli-scan-type';
+import { DEFAULT_DIFF_FROM_REF, DEFAULT_DIFF_TO_REF, MIN_CLI_VERSION_FOR_DIFF_SCAN } from '../cli/constants';
+import { isVersionAtLeast } from '../utils/version';
+
+export enum ScanScope {
+  Project = 'project',
+  Diff = 'diff',
+  File = 'file',
+}
 
 export class GlobalExtensionState {
   public EnvVsCode = true;
@@ -12,6 +21,9 @@ export class GlobalExtensionState {
   public CliHash: string | null = null;
   public CliDirHashes: Record<string, string> | null = null;
   public CliLastUpdateCheckedAt: number | null = null;
+
+  // remembered across sessions
+  public ScanScope: ScanScope = ScanScope.Project;
 }
 export type GlobalExtensionStateKey = keyof GlobalExtensionState;
 
@@ -29,11 +41,33 @@ export class TemporaryExtensionState {
 
   public ActivityBar: ActivityBar | null = null;
 
+  /*
+   * the two revisions picked in the Diff scope. they belong to one repository and go stale quickly (HEAD moves,
+   * branches get deleted), so they are kept for the session only instead of in the global state shared by all projects
+   */
+  public ScanDiffFromRef: string = DEFAULT_DIFF_FROM_REF;
+  public ScanDiffToRef: string = DEFAULT_DIFF_TO_REF;
+
   public IsTreeViewFilterByCriticalSeverityEnabled = false;
   public IsTreeViewFilterByHighSeverityEnabled = false;
   public IsTreeViewFilterByMediumSeverityEnabled = false;
   public IsTreeViewFilterByLowSeverityEnabled = false;
   public IsTreeViewFilterByInfoSeverityEnabled = false;
+
+  private _runningScanTypes: Record<CliScanType, boolean> = {
+    [CliScanType.Secret]: false,
+    [CliScanType.Sca]: false,
+    [CliScanType.Iac]: false,
+    [CliScanType.Sast]: false,
+  };
+
+  public setScanRunning(scanType: CliScanType, running: boolean): void {
+    this._runningScanTypes[scanType] = running;
+  }
+
+  public isScanRunning(scanType: CliScanType): boolean {
+    return this._runningScanTypes[scanType];
+  }
 
   public get CliStatus(): StatusResult | null {
     return this._cliStatus;
@@ -44,6 +78,10 @@ export class TemporaryExtensionState {
 
     if (this.ActivityBar && value?.supportedModules) {
       this.ActivityBar.ScanView.postSupportedModules(value.supportedModules);
+    }
+
+    if (this.ActivityBar) {
+      this.ActivityBar.ScanView.postDiffScopeSupported(this.IsDiffScanScopeSupported);
     }
   }
 
@@ -66,9 +104,16 @@ export class TemporaryExtensionState {
   public get IsAiLargeLanguageModelEnabled(): boolean {
     return this.CliStatus?.supportedModules?.aiLargeLanguageModel === true;
   }
+
+  public get IsDiffScanScopeSupported(): boolean {
+    return isVersionAtLeast(this.CliStatus?.version, MIN_CLI_VERSION_FOR_DIFF_SCAN);
+  }
 }
 
-export type TempExtensionStateKey = keyof TemporaryExtensionState;
+// only the state fields; methods (e.g. setScanRunning) are not values that can be exported to a context
+export type TempExtensionStateKey = {
+  [K in keyof TemporaryExtensionState]: TemporaryExtensionState[K] extends (...args: never[]) => unknown ? never : K;
+}[keyof TemporaryExtensionState];
 
 const _GLOBAL_STATE_KEY = 'cycode:globalState';
 const _LOCAL_STATE_KEY = 'cycode:localState';
@@ -259,6 +304,7 @@ export class StateService implements IStateService {
     if (extensionState.CliLastUpdateCheckedAt !== undefined) (
       this._globalState.CliLastUpdateCheckedAt = extensionState.CliLastUpdateCheckedAt
     );
+    if (extensionState.ScanScope !== undefined) (this._globalState.ScanScope = extensionState.ScanScope);
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

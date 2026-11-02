@@ -9,6 +9,7 @@ import { IStateService, StateService } from './services/state-service';
 import { CliService, ICliService } from './services/cli-service';
 import { DownloadService, IDownloadService } from './services/download-service';
 import { ExtensionService, IExtensionService } from './services/extension-service';
+import { GitService, IGitService } from './services/git-service';
 
 container.registerSingleton<ILoggerService>(IocSymbols.LoggerServiceSymbol, LoggerService);
 container.registerSingleton<IDownloadService>(IocSymbols.DownloadServiceSymbol, DownloadService);
@@ -19,3 +20,4 @@ container.registerSingleton<ICliService>(IocSymbols.CliServiceSymbol, CliService
 container.registerSingleton<IScanResultsService>(IocSymbols.ScanResultsServiceSymbol, ScanResultsService);
 container.registerSingleton<IStateService>(IocSymbols.StateServiceSymbol, StateService);
 container.registerSingleton<IExtensionService>(IocSymbols.ExtensionServiceSymbol, ExtensionService);
+container.registerSingleton<IGitService>(IocSymbols.GitServiceSymbol, GitService);
