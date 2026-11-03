@@ -67,12 +67,12 @@ jobs:
       - name: Publish extension to Visual Studio Marketplace
         env:
           VSCE_PAT: ${{ secrets.VSCODE_MARKETPLACE_TOKEN }}
-        run: pnpm dlx @vscode/vsce publish --packagePath "${{ steps.build.outputs.vsix }}"
+        run: pnpm dlx @vscode/vsce publish --packagePath "${{ steps.build.outputs.vsix }}" --oidc
 
       - name: Publish extension to Open VSX
         env:
           OVSX_PAT: ${{ secrets.OPEN_VSX_MARKETPLACE_TOKEN }}
-        run: pnpm dlx ovsx publish "${{ steps.build.outputs.vsix }}" --oidc
+        run: pnpm dlx ovsx publish "${{ steps.build.outputs.vsix }}"
 
       - name: Upload extension package to release
         env:
