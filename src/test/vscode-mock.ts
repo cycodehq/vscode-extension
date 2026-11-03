@@ -57,7 +57,7 @@ export class ThemeColor {
 
 export const ColorThemeKind = { Light: 1, Dark: 2, HighContrast: 3, HighContrastLight: 4 };
 
-export const version = '1.66.0';
+export const version = '1.95.0';
 
 export const resetVscodeMock = () => {
   for (const key of Object.keys(settings)) {
