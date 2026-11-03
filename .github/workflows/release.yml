@@ -61,7 +61,7 @@ jobs:
       - name: Build extension
         id: build
         run: |
-          pnpm dlx @vscode/vsce package --no-dependencies
+          pnpm dlx @vscode/vsce package --no-dependencies 
           echo "vsix=$(ls *.vsix)" >> $GITHUB_OUTPUT
 
       - name: Publish extension to Visual Studio Marketplace
@@ -72,7 +72,7 @@ jobs:
       - name: Publish extension to Open VSX
         env:
           OVSX_PAT: ${{ secrets.OPEN_VSX_MARKETPLACE_TOKEN }}
-        run: pnpm dlx ovsx publish "${{ steps.build.outputs.vsix }}"
+        run: pnpm dlx ovsx publish "${{ steps.build.outputs.vsix }}" --oidc
 
       - name: Upload extension package to release
         env:
