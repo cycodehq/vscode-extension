@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+- Update extension icon to the new Cycode brand logo
+
 ## [v1.19.0]
 
 - Bumped `sanitize-html` to version 2.18.1
